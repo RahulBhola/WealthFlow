@@ -277,19 +277,21 @@
 
 ## Epic 15: Trip Expenses & Flexible Splitting Engine
 
-### `WF-EP15-001`: Split Models (Equal, Unequal, Percentage, Shares)
+### `WF-EP15-001`: Decentralized Multi-Payer Logging & Split Models (Equal, Unequal, Percentage, Shares)
 - **Priority:** P0
-- **Description:** Record trip expenses with flexible participant split allocations and strict mathematical validation.
+- **Description:** Allow any trip member (or guest via link) to record expenses that they personally paid for, with flexible participant split allocations and strict mathematical validation.
 - **Requirements:**
   - Entities `TripExpense` and `TripExpenseSplit`.
+  - Payer attribution: Can be logged by any participant for themselves or on behalf of another member.
   - Support split modes: Equal, Unequal, Percentage, Shares, Itemized.
   - Validation: Sum of split amounts must equal total expense amount; percentages must equal 100.00%.
   - Endpoints: `GET /api/v1/trips/{id}/expenses`, `POST /api/v1/trips/{id}/expenses`.
 - **Acceptance Criteria:**
-  - ₹4,000 dinner with 4 equal members creates ₹1,000 split share per member.
+  - When Amit pays ₹1,200 for a cab, it is logged under Amit as Payer and split among the selected participants.
+  - Multiple members can concurrently log their individual expenses without race conditions.
   - Incomplete or mismatched split amounts return HTTP 400 with descriptive RFC 7807 validation error.
 - **Dependencies:** `WF-EP13-001`, `WF-EP14-001`
-- **Testing Requirements:** Comprehensive automated test suite covering all 5 split modes, decimal rounding remainders, and multiple payers.
+- **Testing Requirements:** Comprehensive automated test suite covering decentralized multi-payer entries, all 5 split modes, decimal rounding remainders, and multiple concurrent submissions.
 
 ---
 
@@ -332,6 +334,20 @@
   - Advances given before and after expenses.
   - Previous partial settlements.
   - Decimal rounding and zero-balance verifications.
+
+### `WF-EP17-002`: Google Pay Style Group Spending Summary & "Settle Up" Flow
+- **Priority:** P1
+- **Description:** Deliver a transparent Google Pay style group summary tab that aggregates total group spend, displays a per-member "Paid vs Fair Share" matrix, and offers one-tap "Settle Up" cards.
+- **Requirements:**
+  - Query handler returning `TripSummaryDto` with `TotalGroupSpending`, `MemberSummaries` (Paid, FairShare, Net), and `SimplifiedRepayments`.
+  - Hero banner indicating current user's personalized net position ("You get back ₹X" or "You owe ₹Y").
+  - One-tap `[Settle Up]` button on repayment cards recording a confirmed settlement with UPI/Cash notes.
+  - Real-time SignalR updates on settlement execution.
+- **Acceptance Criteria:**
+  - Displays instant group transparency of who has spent what so far.
+  - Clicking "Settle Up" marks the debt resolved and updates everyone's balances in real-time.
+- **Dependencies:** `WF-EP17-001`
+- **Testing Requirements:** Integration tests for summary calculations across multi-payer scenarios and settlement reconciliation.
 
 ---
 

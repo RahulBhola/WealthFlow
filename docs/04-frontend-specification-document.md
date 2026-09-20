@@ -187,32 +187,51 @@ A unified, keyboard-accessible dialog triggered by global shortcut `Ctrl+K` / `C
   - Fields: Source Bank Account, Payment Amount (presets: Minimum Due, Total Outstanding, Custom), Date.
   - **Explicit Accounting Alert:** *"This payment reduces your credit card liability and debits your bank account. It does NOT count as an expense."*
 
-### 4.6 Collaborative Trips Workspace
-A premier feature containing five dedicated tabs:
+### 4.6 Collaborative Trips Workspace (Google Pay / Splitwise Group Model)
+A premier feature containing five dedicated tabs built around a decentralized group expense workflow:
 ```
 ┌────────────────────────────────────────────────────────────────────────┐
 │  TRIP: GOA VACATION 2026                 [Planning | Active | Settled] │
-│  Dates: Oct 12 - Oct 18, 2026 | Budget: ₹50,000 | Spent: ₹38,400        │
+│  Dates: Oct 12 - Oct 18, 2026 | Budget: ₹50,000 | Total Group: ₹38,400 │
+├────────────────────────────────────────────────────────────────────────┤
+│  HERO BANNER: "Overall in this trip: You get back ₹1,875.00 ↑"         │
 ├───────────────┬───────────────┬───────────────┬───────────────┬────────┤
-│ 1. Overview   │ 2. Expenses   │ 3. Advances   │ 4. Members    │ 5. Settle│
+│ 1. Summary    │ 2. Expenses   │ 3. Advances   │ 4. Members    │ 5. Settle│
 └───────────────┴───────────────┴───────────────┴───────────────┴────────┘
 ```
 
-1. **Tab 1: Overview:** Budget burn rate, per-member spending contribution bars, recent activity.
-2. **Tab 2: Expenses:** Filterable list of trip expenses displaying Payer, Amount, Date, Category, and Split breakdown badge.
+1. **Tab 1: Group Summary (Google Pay Style Dashboard):**
+   - **Personal Standing Hero Card:** Instantly answers the user's primary question:
+     - Positive balance: *"You get back ₹1,875.00"* (Emerald banner with upward arrow).
+     - Negative balance: *"You owe ₹625.00"* (Amber/Rose banner with downward arrow).
+     - Zero balance: *"You are all settled up in this trip!"* (Neutral checkmark).
+   - **Total Group Cost Gauge:** ₹ Spent vs. Planned Budget progress bar.
+   - **Group Spending Matrix (High-Density Table):**
+     - Columns: `Member` | `Paid by Them` | `Fair Share Owed` | `Net Balance`
+     - Allows every friend in the group to see complete transparency of who has spent what so far.
+2. **Tab 2: Decentralized Expenses Feed:**
+   - Any member (or guest via link) taps `(+) Add Expense` to record what *they personally paid*:
+     - Input: Amount, Category, Description (e.g. "Dinner at Fishermans Wharf"), Date.
+     - Payer: Defaults to current user (can be assigned to any member).
+     - Split selector: Defaults to *Split Equally between all members*, or custom subset.
+   - Transaction list clearly displays: *"Paid by Amit • ₹1,200.00"* with chips showing who was included.
 3. **Tab 3: Advances (CRITICAL UI):**
-   - **Informational Callout:** *"Advances are informal prepayments or loans between trip members. They do NOT increase the total trip expenses and are factored directly into final settlement calculations."*
+   - **Informational Callout:** *"Advances are informal prepayments or transfers between members (e.g., Amit sends Rahul ₹500 via UPI beforehand). They do NOT increase total trip expenses and are factored directly into final settlements."*
    - Add Advance Modal: Giver -> Receiver -> Amount -> Date -> Notes.
-   - Advances List: Shows who transferred funds to whom with date and status.
+   - Advances List: Shows chronological capital transfers between friends.
 4. **Tab 4: Members & Guest Links:**
    - Member roster with avatar, name, registered/guest status.
    - **"Create Guest Link" Action:** Generates `/trip/{tripId}/guest/{secureToken}`.
    - Host can toggle `Can Add Expenses` permission or click `Revoke Link`.
-5. **Tab 5: Settlement & Debt Minimization:**
-   - **Net Balance Breakdown:** Visual bar chart showing each participant's position (Creditor in green, Debtor in red, Settled in grey).
-   - **Optimized Settlement Cards:** Step-by-step minimal repayment instructions computed by the greedy algorithm:
-     - Card: **Amit** owes **Rahul** `₹2,000.00`.
-     - Action: `[Mark as Settled]` button (prompts for settlement payment date and payment method).
+5. **Tab 5: Settlement & "Who Pays Whom" Cards (Google Pay Style):**
+   - **Simplified Bilateral Settlement Cards:** Translates all multi-payer balances into the absolute minimum number of payments:
+     - Card: **Amit** pays **Rahul** `₹625.00`
+     - Card: **Neha** pays **Rahul** `₹1,250.00`
+     - Card: **Neha** pays **Rohit** `₹75.00`
+   - **One-Tap "Settle Up" Action:**
+     - Tapping `[Settle Up]` opens a quick settlement confirmation modal.
+     - Options: Payment Method (UPI / Google Pay / Cash), Payment Date, Transaction Note (e.g., "Paid via GPay UPI Ref #8291").
+     - Instantly updates group balances in real-time across all connected devices via SignalR.
 
 ### 4.7 Guest Trip View (`/trip/:tripId/guest/:token`)
 - A streamlined, distraction-free portal for invited friends:

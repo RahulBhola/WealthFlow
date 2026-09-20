@@ -292,6 +292,31 @@ Every trip expense has a single primary Payer (or multiple payers) and a set of 
    $$\text{Share}_i = \frac{\text{Shares}_i}{\sum \text{Shares}} \times \text{Total Amount}$$
 5. **Participant-Specific (Itemized) Split:** Individual line items assigned exclusively to specific subsets of members.
 
+### 7.4 Decentralized Multi-Payer Logging & Google Pay Summary Model
+WealthFlow supports a decentralized group expense workflow directly inspired by **Google Pay Groups** and **Splitwise**:
+1. **Decentralized Multi-Payer Logging:**
+   - Any trip member (registered user or guest with link) can record an expense that *they personally paid for* (e.g. Rahul pays ₹4,000 for dinner; Amit pays ₹1,200 for fuel; Neha pays ₹800 for snacks; Rohit pays ₹2,500 for hotel).
+   - The payer selects the participants who enjoyed the expense (defaults to all active members equally).
+   - This creates an open, transparent chronological group feed where each person logs their own payments in real-time.
+2. **Aggregated Group Spending Matrix (Google Pay Summary View):**
+   - The Trip workspace features a live **Group Summary Dashboard**:
+     - **Total Group Cost:** $\sum \text{All Member Expenses}$.
+     - **Per-Member Spending Matrix:** Table showing for each member:
+       - `Total Paid`: Total cash out-of-pocket spent by this person.
+       - `Fair Share`: Total debt share owed by this person across all group expenses.
+       - `Net Balance`: Difference ($\text{Total Paid} - \text{Fair Share}$).
+   - **Personalized Status Hero Banner:**
+     - For current viewer: Prominently highlights their personal financial standing:
+       - *"In this trip, you get back ₹1,875.00"* (if positive net balance).
+       - *"In this trip, you owe ₹625.00"* (if negative net balance).
+       - *"You are all settled up in this trip!"* (if balance is zero).
+3. **Direct "Who Pays Whom" Settlement Instructions:**
+   - The summary translates complex multi-payer webs into minimal direct bilateral repayments:
+     - Card: **Amit** pays **Rahul** `₹625.00`
+     - Card: **Neha** pays **Rahul** `₹1,250.00`
+     - Card: **Neha** pays **Rohit** `₹75.00`
+   - Includes one-tap `[Mark as Settled / Settle Up]` action allowing either debtor or creditor to confirm payment (with optional UPI transaction reference).
+
 ---
 
 ## 8. Travel Advances & Settlement Engine

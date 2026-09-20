@@ -406,11 +406,20 @@ SignalR Core is used strictly where real-time collaboration adds concrete user v
 
 ### 7.1 SignalR Hubs & Groups
 - **`TripHub`:** Clients join a room named `$"Trip_{tripId}"` upon navigating to the trip screen.
-- **Events Broadcasted:**
-  - `ExpenseAdded(TripExpenseDto)`
-  - `ExpenseUpdated(TripExpenseDto)`
+- **Events Broadcasted for Multi-Payer Collaboration:**
+  - `ExpenseAdded(TripExpenseDto)`: Broadcast when any member logs a new payment they made.
+  - `ExpenseUpdated(TripExpenseDto)` / `ExpenseDeleted(Guid expenseId)`
   - `AdvanceRecorded(TripAdvanceDto)`
-  - `SettlementUpdated(IEnumerable<SettlementInstructionDto>)`
+  - `TripSummaryUpdated(TripSummaryDto)`: Real-time Google Pay style aggregated summary:
+    ```csharp
+    public record TripSummaryDto(
+        Guid TripId,
+        decimal TotalGroupSpending,
+        IReadOnlyList<MemberSpendingSummaryDto> MemberSummaries, // [Member, TotalPaid, FairShare, NetBalance]
+        IReadOnlyList<SettlementInstructionDto> SimplifiedRepayments // [FromMember, ToMember, Amount]
+    );
+    ```
+  - `SettlementExecuted(TripSettlementDto)`: Broadcast when a member marks a debt payment as settled.
   - `MemberJoined(TripMemberDto)`
 - REST endpoints remain the authoritative source of truth. If a SignalR connection drops, TanStack Query automatically falls back to standard HTTP polling or refetching on window focus.
 
@@ -430,7 +439,7 @@ Receipts and bill attachments are handled using a decoupled metadata/binary sepa
 ## 9. Background Jobs & Scheduling
 
 Implemented via .NET `IHostedService` / Quartz.NET:
-1. **SIP Auto-Execution Engine:** Runs daily at 00:05 UTC. Inspects active SIP records whose `ExecutionDay` matches the current day, creates the designated `Investment` transaction, and debits the source account.
+1. **SIP Auto-Execution Engine:** Runs daily at 00:05 IST. Inspects active SIP records whose `ExecutionDay` matches the current day, creates the designated `Investment` transaction, and debits the source account.
 2. **Budget Period Rollover:** Computes end-of-month budget utilization snapshots on the 1st of each month.
 3. **Guest Token Expiry Cleanup:** Soft-deletes or flags expired trip guest tokens weekly.
 

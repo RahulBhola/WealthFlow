@@ -172,6 +172,19 @@ Settlement (Owes):     [ - ₹2,000.00  ⚠ ]  (Amber text + Warning Icon)
     - If current device: disabled or opens standard "Log Out" flow.
     - If other device: `[Revoke Session]` button with red outline and confirmation prompt.
 
+### 4.7 `TripSummaryMatrix` & `SettleUpCard` (Google Pay Style)
+- **`TripSummaryMatrix`:**
+  - High-density tabular grid rendered on Trip Summary view.
+  - Displays avatar, member name, `Total Spent` (out-of-pocket cash paid), `Fair Share Owed`, and `Net Balance`.
+  - Visual status pill:
+    - `+ ₹1,875.00` in bold Emerald with `Gets Back` label.
+    - `- ₹625.00` in bold Rose/Amber with `Owes` label.
+    - `₹0.00` in muted Slate with `Settled` checkmark.
+- **`SettleUpCard` (Direct "Who Pays Whom" Card):**
+  - Card layout: Debtor Avatar + Name ──► Arrow Icon ──► Creditor Avatar + Name.
+  - Prominent Amount: e.g., `₹625.00` (`font-mono font-bold text-lg`).
+  - Action CTA: `[Settle Up]` primary button (triggers payment confirmation modal with UPI reference / cash note).
+
 ---
 
 ## 5. Admin & ERP Screen Specifications
