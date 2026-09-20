@@ -230,14 +230,26 @@ Receipt uploads present attack vectors (malware, shell execution, zip bombs, pat
               ▼
 ┌───────────────────────────┐
 │     Storage Processor     │
-│  - Rename to random GUID  │  (e.g., a81f4...-receipt.png)
+│  - Rename to random GUID  │  (e.g., receipt_{Guid}.png)
 │  - Strip EXIF / metadata  │
-│  - Store outside web root │  (or Azure Blob / S3 Private Bucket)
 │  - Save metadata in DB    │
+│  - Stream to Cloud Store: │
+│    * PostgreSQL Deploy ──►│  Google Drive (Private Service Account Folder)
+│    * Azure Deploy      ──►│  Azure Blob Storage (Private Container)
 └───────────────────────────┘
 ```
 
-### 6.1 Download & Serving Security
+### 6.1 Google Drive Storage Security (Active on PostgreSQL Deployment)
+- **Service Account Isolation:** Uploads authenticate via a dedicated Google Cloud Service Account with minimal scope (`https://www.googleapis.com/auth/drive.file`). The service account can only access files created by WealthFlow.
+- **Private Folder Boundary:** All files reside in an access-restricted folder. Files are **never set to "Anyone with link can view"**.
+- **Server-Side Streaming Proxy:** Direct Google Drive URLs (`drive.google.com/...`) are **never** returned to the frontend. File requests route through `GET /api/v1/attachments/{id}/download`, where the backend validates the user's ownership before streaming the file bytes with `Content-Disposition: attachment`.
+
+### 6.2 Azure Blob Storage Security (Active on Azure SQL Deployment)
+- **Complete Google Drive Elimination:** When deployed in Azure, Google Drive credentials, libraries, and tokens are completely disabled.
+- **Managed Identity Authentication:** Connects to Azure Blob Storage using passwordless Azure Managed Identity (`DefaultAzureCredential`).
+- **Private Container & Short-Lived SAS:** Containers are strictly private. Direct access generates time-limited SAS tokens (15-minute validity) or streams directly through the API proxy.
+
+### 6.3 Universal File Serving Rules
 - Files are served with header `Content-Disposition: attachment; filename="sanitized_name.ext"`.
 - Header `X-Content-Type-Options: nosniff` prevents browser MIME sniffing.
 - Files cannot be executed on the server filesystem.

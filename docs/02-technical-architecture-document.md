@@ -425,14 +425,48 @@ SignalR Core is used strictly where real-time collaboration adds concrete user v
 
 ---
 
-## 8. Physical File & Receipt Storage
+## 8. Physical File & Receipt Storage Strategy
 
-Receipts and bill attachments are handled using a decoupled metadata/binary separation:
-- **Database:** Stores metadata in the `Attachment` table (`OriginalFileName`, `MimeType`, `FileSizeBytes`, `StoragePath`, `Sha256Checksum`).
-- **Physical Binary Store:**
-  - *Local Development:* Local file system (`App_Data/uploads/`) with hashed folder partitioning (`/uploads/{yyyy}/{MM}/{guid}.bin`).
-  - *Cloud Production:* Azure Blob Storage / AWS S3 via an abstract `IBlobStorageProvider` interface.
-- Files are validated against a strict MIME whitelist (`image/jpeg`, `image/png`, `image/webp`, `application/pdf`) and inspected for magic-number header validity before saving.
+WealthFlow separates file metadata from actual binary storage using an abstract `IFileStorageService` in `WealthFlow.Application`. The storage provider is dynamically bound in Dependency Injection based on the deployment target:
+
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│                   IFileStorageService (Application)                    │
+│   UploadFileAsync(...)  |  DownloadFileAsync(...)  |  DeleteFileAsync(...)
+└──────────────────────────────────┬─────────────────────────────────────┘
+                                   │
+         ┌─────────────────────────┴─────────────────────────┐
+         │                                                   │
+         ▼                                                   ▼
+┌──────────────────────────────────┐        ┌──────────────────────────────────┐
+│    GoogleDriveStorageService     │        │      AzureBlobStorageService     │
+│   (Active with PostgreSQL)       │        │     (Active with Azure SQL)      │
+│  - Google Drive API v3 (REST)    │        │  - Azure.Storage.Blobs SDK       │
+│  - Google Service Account Auth   │        │  - Azure Managed Identity / SAS  │
+│  - Dedicated App Folder Storage  │        │  - Private Blob Container        │
+└──────────────────────────────────┘        └──────────────────────────────────┘
+```
+
+### 8.1 Deployment-Specific Storage Pairing
+1. **PostgreSQL Deployment (Initial Environment) ➔ Google Drive Storage:**
+   - When `DatabaseProvider == "PostgreSQL"` (or `"FileStorageProvider": "GoogleDrive"`), files (receipt photos, PDFs, bill attachments) are stored directly in **Google Drive**.
+   - **Authentication:** Uses a dedicated Google Cloud Service Account with JSON credentials (injected via environment variable `GOOGLE_APPLICATION_CREDENTIALS` or User Secrets).
+   - **Isolation:** Files are organized inside a designated, private WealthFlow Drive folder (configured by `GoogleDrive:RootFolderId`).
+   - **Metadata Persistence:** The database `Attachment` entity records the Google Drive `FileId` inside `StoragePath`, alongside file size, MIME type, and SHA-256 checksum.
+   - **Secure Retrieval:** Google Drive files are never public. Files are securely proxied and streamed through the authenticated ASP.NET Core API with `Content-Disposition: attachment`.
+2. **Microsoft Azure Deployment (Future Cloud Target) ➔ Azure Blob Storage:**
+   - When deployed to Azure with `DatabaseProvider == "SqlServer"` (or `"FileStorageProvider": "AzureBlob"`), **Google Drive is completely disabled and replaced by Azure Blob Storage**.
+   - Uses native Azure Blob Storage container (`receipts-attachments`) with Azure Managed Identity (passwordless cloud security) or connection strings.
+   - High-throughput streaming and time-limited SAS (Shared Access Signature) tokens for ultra-fast downloads.
+3. **Local Development Fallback:**
+   - For offline local testing without Google or Azure credentials, `LocalStorageService` can optionally stream files to `/App_Data/uploads/`.
+
+### 8.2 File Validation Pipeline
+Prior to uploading to Google Drive or Azure Blob Storage, all incoming files undergo strict validation:
+- Whitelist validation: `image/jpeg`, `image/png`, `image/webp`, `application/pdf`.
+- Magic-number header byte verification (ensuring file extension matches true binary signature).
+- Hard file size cap: 5 MB per attachment.
+- Automatic GUID sanitization: e.g. `receipt_{Guid}.pdf` to prevent path traversal.
 
 ---
 

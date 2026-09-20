@@ -151,12 +151,15 @@ To eliminate the "flat spreadsheet" flaw, WealthFlow categorizes every monetary 
   - Description / Title
   - Merchant / Payee Name
   - Notes / Internal Remarks
-  - Receipt Attachment Link
+  - Receipt Attachment Link (Stored in **Google Drive** when running on PostgreSQL; stored in **Azure Blob Storage** when running on Azure SQL)
   - Tags (array of strings, e.g., `["tax-deductible", "office-reimbursable"]`)
   - Linked Entity Type (`None`, `Trip`, `CreditCard`, `Loan`, `SIP`)
   - Linked Entity ID
   - Sync Status (`Pending`, `Synced`, `Failed`, `Conflict`)
   - Concurrency Token (`xmin` / `RowVersion`)
+- **Deployment-Specific File Storage Rule:**
+  - **PostgreSQL Environment:** Uses Google Drive API v3 via a dedicated Service Account to store receipts/attachments in a private Drive folder.
+  - **Azure Environment:** Completely disables Google Drive and uses native Azure Blob Storage. Business and domain logic remain unchanged.
 
 ### 6.4 Credit Cards (Liability Management)
 Credit cards are explicitly modeled as **Liabilities**, not standard asset bank accounts.

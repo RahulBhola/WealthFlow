@@ -462,6 +462,22 @@
 - **Dependencies:** `WF-EP01-001`, `WF-EP01-002`
 - **Testing Requirements:** Container smoke tests and health check endpoint validation.
 
+### `WF-EP24-002`: Deployment-Specific Storage (Google Drive for PostgreSQL / Azure Blob for Azure)
+- **Priority:** P1
+- **Description:** Implement decoupled `IFileStorageService` that routes receipt/attachment uploads to Google Drive when running on PostgreSQL, and exclusively to Azure Blob Storage when running in Azure.
+- **Requirements:**
+  - `GoogleDriveStorageService` utilizing Google Drive API v3 and Google Service Account authentication to store files in a private app folder.
+  - `AzureBlobStorageService` utilizing `Azure.Storage.Blobs` SDK with Azure Managed Identity.
+  - Dependency Injection registration toggled by `DatabaseProvider` or `FileStorageProvider` configuration setting.
+  - Complete elimination/disabling of Google Drive dependencies when deployed in Azure mode.
+  - Secure streaming download endpoint proxying bytes without exposing direct public URLs.
+- **Acceptance Criteria:**
+  - In PostgreSQL mode, uploading a receipt saves file to designated Google Drive folder and records Google FileId in `Attachment` table.
+  - In Azure mode, uploading a receipt saves file to Azure Blob Container; Google Drive service is not instantiated.
+  - Switching deployment targets does not require modifying controller or application handlers.
+- **Dependencies:** `WF-EP01-001`
+- **Testing Requirements:** Integration tests verifying upload, retrieval, and deletion flows with mocked Google Drive and Azure Blob providers.
+
 ---
 
 ## Epic 25: Database Portability & Azure SQL Migration Verification
