@@ -19,3 +19,4 @@ The project architecture and requirements are specified in the [`docs/`](docs/) 
 - **Backend:** ASP.NET Core Web API (.NET 9+), C# 13, Clean Architecture, Dependency Injection, Repository Pattern with Unit of Work, LINQ
 - **Database:** PostgreSQL (Initial) → Microsoft Azure SQL Database (Future Portability)
 - **Real-Time:** SignalR
+

@@ -216,6 +216,22 @@ Credit cards are explicitly modeled as **Liabilities**, not standard asset bank 
   - Formally differentiated from loans. Gifts do not generate receivables or liabilities.
   - Tracked under dedicated Gift Categories with recipient/donor attribution.
 
+### 6.8 Multi-Device Sessions & Expiration Management
+- **Concurrent Device Support:** A single user can simultaneously log in across multiple devices (e.g., MacBook Chrome, Windows Desktop, iPhone Safari/PWA, Android Tablet) without being prematurely logged out on other devices.
+- **Device Identity Tracking:** Every active login creates an isolated session recording:
+  - Device Name / Label (e.g., "MacBook Pro - Chrome", "iPhone 15 - Safari")
+  - Device Type (`Desktop`, `Mobile`, `Tablet`, `Other`)
+  - Client IP Address & Approximate Geo/Network Info
+  - Last Active Timestamp
+- **Session Expiration Rules:**
+  - **Access Token Expiration:** 15 minutes (short-lived JWT stored in memory).
+  - **Sliding Inactivity Expiration:** If a device is idle and does not communicate with the API for 7 consecutive days, its refresh token expires and requires re-authentication.
+  - **Absolute Expiration:** Maximum session lifetime of 30 days regardless of activity, forcing a fresh credential check for heightened financial security.
+- **Remote Revocation & Session Management:**
+  - Users can view all currently active devices in Settings (`/settings/sessions`).
+  - Current device is flagged with a distinct badge ("This Device").
+  - Users can click **"Revoke Session"** on any specific device or **"Log out of all other devices"**, instantly invalidating the associated refresh tokens.
+
 ---
 
 ## 7. Collaborative Trips & Splitting Specification

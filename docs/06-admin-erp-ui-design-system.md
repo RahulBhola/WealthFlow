@@ -160,6 +160,18 @@ Settlement (Owes):     [ - ₹2,000.00  ⚠ ]  (Amber text + Warning Icon)
   - *Balanced:* Green badge `✓ Total matches expense: ₹4,000.00`.
   - *Unbalanced:* Red warning `⚠ Remaining to allocate: ₹500.00`. Form submit is strictly disabled.
 
+### 4.6 `DeviceSessionCard` (Session Management Component)
+- Renders an individual authorized device card inside `/settings/sessions`:
+  - Device Icon: Desktop/Laptop, Mobile, or Tablet icon based on `DeviceType`.
+  - Header: Device Name & Browser (e.g., *"MacBook Pro — Chrome"*).
+  - Status Indicators:
+    - Current Device: `[This Device]` green badge.
+    - Activity: Green dot with *"Active Now"* or *"Last active: 2 hours ago"*.
+  - Metadata row: IP Address (e.g., `103.21.201.x`), City/Region, Login Date.
+  - Action Button:
+    - If current device: disabled or opens standard "Log Out" flow.
+    - If other device: `[Revoke Session]` button with red outline and confirmation prompt.
+
 ---
 
 ## 5. Admin & ERP Screen Specifications

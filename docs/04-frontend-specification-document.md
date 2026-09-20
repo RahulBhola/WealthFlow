@@ -128,6 +128,7 @@ WealthFlow delivers tailored layouts for desktop and mobile form factors while s
   - `/trips/:tripId`: Complete trip workspace (Expenses, Advances, Members, Settlement).
   - `/analytics`: Deep analytics, burn rate, category sunburst, cash-flow waterfalls.
   - `/settings`: Category customization, data export/import, profile, security.
+  - `/settings/sessions`: Multi-device active session manager, device revocation, and expiration settings.
 - **Admin ERP Routes (Requires Admin Role):**
   - `/admin/users`: User management and tenant status.
   - `/admin/audit-logs`: System-wide audit log inspector with filter by IP/user.
@@ -229,6 +230,19 @@ An interactive split editor embedded in Trip Expense forms:
   - *Unequal:* Real-time counter showing `Remaining to Allocate: ₹0.00`. Form submit is disabled until difference is exactly zero.
   - *Percentage:* Shows running percentage sum. Submit disabled until sum equals `100.00%`.
   - *Shares:* Calculates dynamic proportion $\frac{\text{Member Shares}}{\text{Total Shares}} \times \text{Total Amount}$.
+
+### 4.9 Active Sessions & Device Management UI (`/settings/sessions`)
+- **Device List Screen:** High-density device cards for all authorized active logins:
+  - **Device Type Icon:** Laptop (`Laptop`), Mobile (`Smartphone`), Tablet (`Tablet`).
+  - **Device Metadata:** Device / OS Name (e.g. "MacBook Pro - Chrome 128"), IP Address, Approximate Location, Initial Login Date.
+  - **Activity Indicator:** "Active Now" (green pulse) or "Last active 3 hours ago".
+  - **Current Session Badge:** Bold badge `[This Device]` with revocation disabled for itself (standard logout used instead).
+- **Session Actions:**
+  - `[Revoke Session]` button on individual devices: Prompts confirmation, immediately terminates the remote session.
+  - `[Log Out of All Other Devices]` hero action: One-click security panic button invalidating all sessions across all other phones/laptops except the current one.
+- **Expiration Telemetry:**
+  - Displays remaining session validity (sliding 7-day idle window and absolute 30-day expiry).
+  - Graceful token expiration prompt: When access/refresh tokens expire, an unobtrusive modal notifies: *"Your session has expired. Please enter your password to continue without losing your unsaved work."*
 
 ---
 

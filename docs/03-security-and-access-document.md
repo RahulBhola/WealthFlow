@@ -50,14 +50,27 @@ Financial applications demand defense-in-depth across transport, authentication,
 
 WealthFlow employs a hybrid authentication strategy tailored to its user personas: registered account owners versus temporary trip guests.
 
-### 2.1 Primary User Authentication (JWT + Refresh Tokens)
+### 2.1 Primary User Authentication (Multi-Device JWT + Refresh Tokens)
 1. **Password Security:**
    - Managed via ASP.NET Core Identity with PBKDF2 (SHA-512, minimum 100,000 iterations) or Argon2id.
    - Enforced Password Policy: Minimum 12 characters, requiring uppercase, lowercase, numeric digit, and special symbol. Passwords checked against known breach dictionaries (HaveIBeenPwned API integration ready).
-2. **Token Lifecycle:**
-   - **Access Token:** Short-lived JWT (15 minutes). Contains minimal claims: `sub` (User GUID), `email`, `role`, and `jti`. Signed using HMAC-SHA256 (256-bit key) or RSA-256.
-   - **Refresh Token:** Long-lived (14 days), cryptographically random 64-byte token stored in the database with rotation on every use. Delivered exclusively via `HttpOnly`, `Secure`, `SameSite=Strict` browser cookies to prevent client-side JavaScript theft (XSS mitigation).
-3. **Brute Force Defense & Lockout:**
+2. **Multi-Device Session Architecture:**
+   - A single user account can maintain multiple concurrent active sessions across distinct devices (e.g. Laptop, Mobile PWA, Tablet, Work Desktop).
+   - Each login generates an isolated `UserSession` entity in the database with a unique `SessionId` (GUID) and a dedicated cryptographically random 64-byte refresh token.
+   - Refresh tokens are stored strictly as **SHA-256 hashes** in the database to prevent token extraction if the database is read.
+   - Logging in on a new device does **not** terminate or invalidate existing sessions on other devices.
+3. **Session Expiration & Lifecycle Policy:**
+   - **Access Token Expiration:** Short-lived JWT (15 minutes). Held in application memory; never stored in localStorage.
+   - **Sliding Inactivity Expiration (7 Days):** Each successful API call using a refresh token updates `LastActiveAtUtc` and extends the sliding expiration window by 7 days. If a device remains inactive for 7 consecutive days, the session automatically expires.
+   - **Absolute Session Expiration (30 Days):** Regardless of ongoing activity, an absolute cap (`AbsoluteExpiresAtUtc = CreatedAtUtc + 30 days`) forces full re-authentication every 30 days to re-verify financial authorization.
+4. **Remote Session Revocation:**
+   - Users can query active sessions via `GET /api/v1/auth/sessions` (returns Device Name, Type, IP, Last Active, "This Device" indicator).
+   - Users can invoke `POST /api/v1/auth/sessions/{id}/revoke` to immediately terminate a lost or suspicious device session.
+   - Users can invoke `POST /api/v1/auth/sessions/revoke-all-others` to invalidate all active refresh tokens except the caller's current session.
+   - Revoked sessions reject subsequent refresh requests with `HTTP 401 Unauthorized` and trigger immediate local cache purge.
+5. **Token Reuse & Compromise Detection:**
+   - If an expired or already-rotated refresh token is presented (indicating a potential token replay attack), the system automatically revokes the entire `UserSession` family and logs a high-severity security audit event.
+6. **Brute Force Defense & Lockout:**
    - Account lockout triggered after 5 consecutive failed login attempts within 10 minutes. Lockout duration: 15 minutes.
    - Optional TOTP-based Multi-Factor Authentication (MFA/2FA) utilizing standard RFC 6238 authenticator apps.
 

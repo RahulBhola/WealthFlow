@@ -56,6 +56,24 @@
 - **Dependencies:** `WF-EP01-001`
 - **Testing Requirements:** Integration tests verifying login, token issuance, cookie attributes (`HttpOnly`, `SameSite=Strict`, `Secure`), and lockout.
 
+### `WF-EP02-002`: Multi-Device Session Management & Inactivity Expiration
+- **Priority:** P1
+- **Description:** Enable concurrent logins across multiple laptops, phones, and tablets with device identity tracking, sliding 7-day idle expiration, 30-day absolute expiration, and remote session revocation.
+- **Requirements:**
+  - Entity `UserSession` with `UserId`, `DeviceName`, `DeviceType`, `Browser`, `IpAddress`, `RefreshTokenHash`, `LastActiveAtUtc`, `ExpiresAtUtc`, `AbsoluteExpiresAtUtc`, `IsRevoked`.
+  - Endpoints:
+    - `GET /api/v1/auth/sessions`: List active device sessions for current user.
+    - `POST /api/v1/auth/sessions/{id}/revoke`: Invalidate specific device session.
+    - `POST /api/v1/auth/sessions/revoke-all-others`: Invalidate all device sessions except current.
+  - Middleware enforcing sliding 7-day inactivity and 30-day absolute expiration.
+  - Frontend UI at `/settings/sessions` showing device list, icons, last active time, and revocation actions.
+- **Acceptance Criteria:**
+  - User can log into laptop and phone simultaneously without being logged out of either.
+  - Revoking a device immediately causes that device's next refresh request to fail with HTTP 401.
+  - Inactive sessions expire after 7 days without user activity.
+- **Dependencies:** `WF-EP02-001`
+- **Testing Requirements:** Integration tests verifying multi-device login, independent token rotation per device, remote revocation, and idle expiration evaluation.
+
 ---
 
 ## Epic 3: User Management & Preferences

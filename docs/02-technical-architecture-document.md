@@ -105,6 +105,7 @@ public interface IUnitOfWork : IDisposable
     ICreditCardRepository CreditCards { get; }
     IInvestmentRepository Investments { get; }
     ILoanRepository Loans { get; }
+    IUserSessionRepository Sessions { get; }
 
     Task<int> SaveChangesAsync(CancellationToken ct = default);
     Task<IDbTransactionScope> BeginTransactionAsync(CancellationToken ct = default);
@@ -234,6 +235,7 @@ public abstract class BaseEntity
 16. **`TripSettlement`:** `Id`, `TripId`, `PayerMemberId`, `ReceiverMemberId`, `Amount` (`decimal(18,2)`), `SettledAtUtc`, `SettlementMethod` (e.g. "UPI", "Cash"), `Notes`, `IsConfirmed`.
 17. **`Attachment`:** `Id`, `UserId`, `LinkedEntityType` (`Transaction`, `TripExpense`), `LinkedEntityId`, `OriginalFileName`, `StoredFileName`, `MimeType`, `FileSizeBytes`, `StoragePath`.
 18. **`AuditLog`:** `Id`, `UserId`, `Action`, `EntityName`, `EntityId`, `OldValuesJson`, `NewValuesJson`, `IpAddress`, `TimestampUtc`.
+19. **`UserSession`:** `Id`, `UserId`, `DeviceName`, `DeviceType` (`Desktop`, `Mobile`, `Tablet`), `Browser`, `IpAddress`, `RefreshTokenHash`, `LastActiveAtUtc`, `ExpiresAtUtc`, `AbsoluteExpiresAtUtc`, `IsRevoked`.
 
 ---
 
