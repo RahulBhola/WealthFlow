@@ -263,6 +263,40 @@ An interactive split editor embedded in Trip Expense forms:
   - Displays remaining session validity (sliding 7-day idle window and absolute 30-day expiry).
   - Graceful token expiration prompt: When access/refresh tokens expire, an unobtrusive modal notifies: *"Your session has expired. Please enter your password to continue without losing your unsaved work."*
 
+### 4.10 Investments, SIP Scheduler & Joint SIP Reconciliation UI (`/investments`)
+- **Portfolio Overview Cards:**
+  - `Total Invested` vs `Current Valuation` with overall profit/loss badge (+₹X / +Y.Z%).
+  - Asset class allocation chips: Mutual Funds, Stocks, FDs, PPF, NPS, Gold.
+- **SIP Scheduler & Active Plans:**
+  - Active SIP Cards detailing: Target Scheme Name, Monthly Execution Day (e.g. 5th of month), Source Bank Account, Next Scheduled Date.
+  - Quick action controls: `Pause`, `Resume`, `Edit`, `Stop`.
+- **Joint / Co-Funded SIP Creation & Configuration Modal:**
+  - Checkbox toggle: `[✓] Co-Funded / Joint SIP (Shared with Brother/Partner)`.
+  - Conditional inputs revealed on toggle:
+    - `Co-Investor Name`: (e.g. "Brother", "Rahul").
+    - `Total Monthly SIP Amount`: e.g. ₹15,000.00.
+    - `User Share`: e.g. ₹7,500.00 (50%).
+    - `Co-Investor Share`: e.g. ₹7,500.00 (50%).
+  - **Accounting Clarification Callout:**
+    > *"When this ₹15,000 SIP executes from your bank, ₹7,500 will be added to your personal investment portfolio equity and ₹7,500 will be booked as an active receivable loan from Brother. Your net worth will reflect your true asset ownership without distortion."*
+- **Joint SIP Card Badging:**
+  - Displays dual-ownership badge: `[Joint SIP with Brother • 50/50 Split]`.
+  - Visual breakdown bar: `Your Equity: ₹7,500/mo` | `Brother Share: ₹7,500/mo`.
+- **SIP Bilateral Reconciliation & Settle Up Ledger:**
+  - Dedicated reconciliation card rendered underneath joint SIPs:
+    - **Receivable Hero Banner:** *"Brother owes you ₹15,000.00 across 2 pending monthly cycles"* (Emerald upward indicator).
+    - **Monthly Cycle Audit Table:**
+      - Columns: `Month/Year` | `Executed Date` | `Total Debited` | `Brother Share` | `Repaid / Settled` | `Status` | `Actions`.
+      - Status Pills:
+        - `Pending` (Amber outline + clock icon).
+        - `Partially Settled` (Blue outline + progress meter e.g. "₹4,000 / ₹7,500").
+        - `Settled` (Emerald checkmark + date).
+    - **`[Record Partner Repayment]` Action Dialog:**
+      - Input: Repayment Amount (defaults to total pending balance), Destination Account (e.g. Bank Account / Cash), Repayment Date, Payment Mode (UPI / GPay / Bank / Cash).
+      - **"Offset Against Mutual Expense" Toggle:**
+        - Allows user to offset co-investor's SIP contribution against existing personal debt (e.g. offsetting ₹2,000 grocery bill paid earlier by Brother, settling net ₹5,500 cash).
+      - Automatically decrements the loan receivable asset and synchronizes real-time status.
+
 ---
 
 ## 5. Offline UI & Synchronization Telemetry

@@ -224,7 +224,7 @@ public abstract class BaseEntity
 5. **`Transfer`:** `Id`, `UserId`, `SourceAccountId`, `DestinationAccountId`, `Amount` (`decimal(18,2)`), `FeeAmount` (`decimal(18,2)`), `TransferDate`, `Notes`.
 6. **`CreditCard`:** `Id`, `UserId`, `CardName`, `Issuer`, `Last4Digits`, `CreditLimit` (`decimal(18,2)`), `BillingCycleDay` (int), `DueDay` (int), `CurrentOutstanding` (`decimal(18,2)`), `IsActive`.
 7. **`Investment`:** `Id`, `UserId`, `Name`, `AssetClass` (`MutualFund`, `Stock`, `FixedDeposit`, `PPF`, `NPS`, `Gold`), `InvestedAmount` (`decimal(18,2)`), `CurrentValue` (`decimal(18,2)`), `Units` (`decimal(18,4)`), `LastValuationDate`.
-8. **`SIP`:** `Id`, `UserId`, `InvestmentId`, `SourceAccountId`, `Name`, `Amount` (`decimal(18,2)`), `ExecutionDay` (int 1-31), `StartDate`, `EndDate` (nullable), `Status` (`Active`, `Paused`, `Stopped`).
+8. **`SIP`:** `Id`, `UserId`, `InvestmentId`, `SourceAccountId`, `Name`, `Amount` (`decimal(18,2)`), `ExecutionDay` (int 1-31), `StartDate`, `EndDate` (nullable), `Status` (`Active`, `Paused`, `Stopped`), `IsJoint` (bool), `UserShare` (`decimal(18,2)`), `CoInvestorShare` (`decimal(18,2)`), `CoInvestorName` (string).
 9. **`Loan`:** `Id`, `UserId`, `Direction` (`Given`, `Received`), `CounterpartyName`, `CounterpartyContact`, `PrincipalAmount` (`decimal(18,2)`), `OutstandingBalance` (`decimal(18,2)`), `DueDate` (nullable), `IsSettled`.
 10. **`LoanRepayment`:** `Id`, `LoanId`, `AccountId`, `Amount` (`decimal(18,2)`), `RepaymentDate`, `Notes`.
 11. **`Trip`:** `Id`, `HostUserId`, `Name`, `Destination`, `StartDate`, `EndDate`, `Budget` (`decimal(18,2)`), `Status` (`Planning`, `Active`, `Archived`, `Settled`).
@@ -236,6 +236,7 @@ public abstract class BaseEntity
 17. **`Attachment`:** `Id`, `UserId`, `LinkedEntityType` (`Transaction`, `TripExpense`), `LinkedEntityId`, `OriginalFileName`, `StoredFileName`, `MimeType`, `FileSizeBytes`, `StoragePath`.
 18. **`AuditLog`:** `Id`, `UserId`, `Action`, `EntityName`, `EntityId`, `OldValuesJson`, `NewValuesJson`, `IpAddress`, `TimestampUtc`.
 19. **`UserSession`:** `Id`, `UserId`, `DeviceName`, `DeviceType` (`Desktop`, `Mobile`, `Tablet`), `Browser`, `IpAddress`, `RefreshTokenHash`, `LastActiveAtUtc`, `ExpiresAtUtc`, `AbsoluteExpiresAtUtc`, `IsRevoked`.
+20. **`JointSipReconciliation`:** `Id`, `SIPId`, `UserId`, `Month` (int), `Year` (int), `ExecutionDateUtc`, `TotalAmount` (`decimal(18,2)`), `UserShare` (`decimal(18,2)`), `CoInvestorShare` (`decimal(18,2)`), `AmountSettled` (`decimal(18,2)`), `SettlementStatus` (`Pending`, `PartiallySettled`, `Settled`), `SettlementDateUtc` (nullable), `Notes`.
 
 ---
 

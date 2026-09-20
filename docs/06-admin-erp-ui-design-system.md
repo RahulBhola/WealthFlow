@@ -120,6 +120,7 @@ Settlement (Owes):     [ - ₹2,000.00  ⚠ ]  (Amber text + Warning Icon)
 │ - CategorySelect  │ - TransactionRow  │ - TripMemberBadge               │
 │ - QuickAddModal   │ - BudgetProgress  │ - SyncStatusPill                │
 │ - ConfirmDialog   │ - CreditCardCard  │ - DataTable (ERP High-Density)  │
+│                   │ - JointSipCard    │ - SipReconciliationRow          │
 └───────────────────┴───────────────────┴─────────────────────────────────┘
 ```
 
@@ -184,6 +185,26 @@ Settlement (Owes):     [ - ₹2,000.00  ⚠ ]  (Amber text + Warning Icon)
   - Card layout: Debtor Avatar + Name ──► Arrow Icon ──► Creditor Avatar + Name.
   - Prominent Amount: e.g., `₹625.00` (`font-mono font-bold text-lg`).
   - Action CTA: `[Settle Up]` primary button (triggers payment confirmation modal with UPI reference / cash note).
+
+### 4.8 `JointSipCard` & `SipReconciliationRow` (Co-Funded Investment Visualizer)
+- **`JointSipCard` (Shared Asset Visualizer):**
+  - Card Header: Target Fund Name, Active Status Pill (`Active` in Emerald / `Paused` in Amber), and Dual-Ownership Badge: `bg-violet-100 text-violet-800 dark:bg-violet-900/30 dark:text-violet-300` with `Users` icon.
+  - Contribution Split Meter: Visual segmented bar:
+    - User Equity: Indigo segment (`₹7,500 / 50%`) with tooltip *"Your true portfolio asset"*.
+    - Co-Investor Share: Violet segment (`₹7,500 / 50%`) with tooltip *"Booked as receivable from Brother"*.
+  - Metadata: Next debit date, source bank account name, total monthly debit.
+- **`SipReconciliationRow` (Bilateral Cycle Ledger):**
+  - Rendered in high-density table inside joint SIP detail view:
+    - `Cycle / Month`: `font-medium text-slate-800 dark:text-slate-100` (e.g., "October 2026").
+    - `Execution Date`: `font-mono text-xs text-slate-500` (e.g., "05-10-2026").
+    - `Total Debited`: `font-mono text-slate-700` (`₹15,000.00`).
+    - `Partner Share Due`: `font-mono font-semibold text-rose-600 dark:text-rose-400` (`₹7,500.00`).
+    - `Amount Settled`: `font-mono text-emerald-600 dark:text-emerald-400` (e.g. `₹7,500.00` or `₹0.00`).
+    - `Status Badges`:
+      - `Pending`: Amber pill (`bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300`) with clock icon.
+      - `Partially Settled`: Sky pill (`bg-sky-100 text-sky-800 dark:bg-sky-900/30 dark:text-sky-300`) with progress text.
+      - `Settled`: Emerald pill (`bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300`) with checkmark.
+    - `Action`: One-click `[Record Repayment]` CTA button triggering modal with UPI reference input and mutual debt offset selector.
 
 ---
 

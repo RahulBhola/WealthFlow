@@ -220,6 +220,31 @@ Every implementation ticket across all 26 epics must strictly adhere to the foll
 - **Dependencies:** `WF-EP09-001`
 - **Testing Requirements:** Mock clock unit tests validating execution triggers on designated monthly dates (including 28th-31st month-end cases).
 
+### `WF-EP10-002`: Joint / Co-Funded SIPs & Bilateral Contribution Tracking
+- **Priority:** P1
+- **Description:** Support SIPs co-funded with another individual (e.g. Brother, Partner). Prevent portfolio and net worth distortion when the full SIP executes from the user's bank account by automatically splitting into user investment equity and a co-investor receivable. Provide bilateral ledger tracking for asynchronous repayments and offsets against mutual debts.
+- **Requirements:**
+  - Enhance entity `SIP` with properties: `IsJoint`, `UserShare`, `CoInvestorShare`, `CoInvestorName`.
+  - Add entity `JointSipReconciliation` with properties: `SIPId`, `UserId`, `Month`, `Year`, `ExecutionDateUtc`, `TotalAmount`, `UserShare`, `CoInvestorShare`, `AmountSettled`, `SettlementStatus` (`Pending`, `PartiallySettled`, `Settled`), `SettlementDateUtc`, `Notes`.
+  - Background SIP execution handler detects `IsJoint == true`:
+    - Debits full amount (e.g. ₹15,000) from source bank account.
+    - Credits UserShare (e.g. ₹7,500) to Investment portfolio equity.
+    - Automatically records `JointSipReconciliation` cycle and creates/updates a Loan Receivable asset of ₹7,500 owed by co-investor.
+    - Preserves Net Worth invariant ($\Delta \text{Net Worth} = 0$ on execution).
+  - Repayment API handles full or partial settlements:
+    - Debits receivable and credits chosen bank/cash account.
+    - Supports offsetting mutual bilateral debts (e.g., deducting ₹2,000 brother paid for groceries).
+  - Endpoints:
+    - `GET /api/v1/sips/{id}/reconciliations`
+    - `POST /api/v1/sips/{id}/reconciliations/{recId}/settle`
+    - `GET /api/v1/sips/joint/summary`
+- **Acceptance Criteria:**
+  - Monthly ₹15,000 execution for a 50/50 joint SIP creates an investment transaction for ₹7,500 and a receivable of ₹7,500.
+  - Asynchronous repayment logs update reconciliation status from `Pending` $\rightarrow$ `PartiallySettled` or `Settled`.
+  - Net Worth calculation incorporates only the user's share of investments and accurately reflects outstanding co-investor receivables.
+- **Dependencies:** `WF-EP10-001`, `WF-EP11-001`
+- **Testing Requirements:** Unit tests validating the 3-way split ledger invariant ($\text{Bank Outflow} = \text{Investment Asset} + \text{Receivable Asset}$), zero net worth change, and partial repayment math.
+
 ---
 
 ## Epic 11: Loans & Bilateral Receivables/Payables

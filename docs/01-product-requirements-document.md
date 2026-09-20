@@ -201,11 +201,29 @@ Credit cards are explicitly modeled as **Liabilities**, not standard asset bank 
   - SIP Name (e.g., "Nifty 50 Index Fund SIP")
   - Target Investment Asset ID
   - Monthly Execution Day (e.g., 5th of month)
-  - SIP Amount (e.g., ₹10,000.00)
+  - Total SIP Amount (e.g., ₹15,000.00)
   - Source Debit Account (e.g., HDFC Salary)
   - Start Date & Optional End Date
   - Status (`Active`, `Paused`, `Stopped`)
   - Execution History & Next Scheduled Date
+- **Joint & Co-Funded SIP Tracking (CRITICAL BUSINESS RULE):**
+  - Support for SIPs co-funded with another individual (e.g., Brother, Partner, Family Member).
+  - **Split Definition:** User defines contribution shares (e.g. Total: ₹15,000; User Share: ₹7,500; Co-Investor Share: ₹7,500; Co-Investor Name: "Brother").
+  - **Automated Double-Counting & Equity Distortion Prevention:**
+    - When ₹15,000 debits from the user's bank account on execution day, the system does **NOT** count the full ₹15,000 as the user's personal portfolio equity.
+    - **Ledger Impact:**
+      - Bank Account: Debited by `-₹15,000.00`
+      - User Investment Portfolio: Credited by `+₹7,500.00` (User's true asset share)
+      - Co-Investor Receivable: Automatically logged as `+₹7,500.00` owed by Brother (Active Loan / Receivable Asset)
+      - Net Balance Sheet change = ₹0 (Asset redistribution without distorting personal wealth).
+  - **Asynchronous Reconciliation & Settling Up:**
+    - The co-investor may pay earlier, later, in partial installments, or offset against mutual expenses.
+    - Includes a dedicated **SIP Reconciliation Ledger**:
+      - Shows total due from co-investor across all monthly cycles.
+      - One-tap `[Record Partner Contribution]` button to log repayments (e.g., "Brother transferred ₹7,500 via UPI"), which debits the receivable and credits the user's bank account.
+      - Allows offsetting against other debts (e.g. if user owed brother ₹2,000 for groceries, settle net ₹5,500).
+
+---
 
 ### 6.7 Loans & Gifts
 - **Loans (Bilateral Debt Management):**
