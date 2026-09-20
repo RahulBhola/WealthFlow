@@ -16,6 +16,7 @@ WealthFlow is built as a decoupled, offline-first client-server system. The fron
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                           CLIENT LAYER (PWA)                            │
 │  React 19 + TypeScript + Vite + Tailwind CSS + TanStack Query v5        │
+│  Component-Based Architecture (CBA: Atoms, Molecules, Organisms, Pages) │
 │  ┌───────────────────────────────┐     ┌─────────────────────────────┐  │
 │  │   Service Worker (PWA Shell)  │     │   IndexedDB Cache & Queue   │  │
 │  └───────────────────────────────┘     └─────────────────────────────┘  │
@@ -135,6 +136,13 @@ WealthFlow enforces **LINQ (Language Integrated Query)** as the exclusive, datab
        }
    }
    ```
+
+### 1.4 Frontend Component-Based Architecture (CBA)
+Just as the backend enforces Clean Architecture with strict separation between Domain, Application, and Infrastructure, the React frontend enforces **Component-Based Architecture (CBA)**:
+1. **Separation of Presentation & Data:** UI components (Atoms, Molecules, Organisms) are pure functional presentation layers (`Props -> JSX`). Data fetching, caching, and mutations are decoupled into dedicated container custom hooks (`useTransactions`, `useJointSips`) backed by TanStack Query and IndexedDB.
+2. **Atomic Layering:** UI elements are stratified into 5 distinct tiers: Atoms (`components/ui`), Molecules (`components/common`), Organisms (`features/*/components`), Templates (`components/layout`), and Pages (`features/*/pages`).
+3. **Compound Components & Slot Composition:** Complex dialogs and widgets compose declaratively using compound components (`Modal.Header`, `Modal.Body`) and layout slots rather than bloated configuration prop bags.
+4. **Strict Prop Contracts:** All components enforce immutable, strongly-typed TypeScript interfaces with zero `any` usage.
 
 ---
 

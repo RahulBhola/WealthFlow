@@ -107,20 +107,23 @@ Settlement (Owes):     [ - ₹2,000.00  ⚠ ]  (Amber text + Warning Icon)
 
 ---
 
-## 4. Core Reusable Component Library
+## 4. Core Reusable Component Library (Component-Based Architecture)
+
+All components are strictly built using **Component-Based Architecture (CBA)**, categorized by atomic responsibility:
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                    WEALTHFLOW CORE COMPONENT SUITE                      │
+│                    WEALTHFLOW CORE COMPONENT SUITE (CBA)                │
 ├───────────────────┬───────────────────┬─────────────────────────────────┤
-│ Input & Capture   │ Display & Cards   │ Collaborative & Split           │
+│ Tier 1: Atoms     │ Tier 2: Molecules │ Tier 3: Organisms & Templates   │
 ├───────────────────┼───────────────────┼─────────────────────────────────┤
-│ - MoneyInput      │ - MoneyDisplay    │ - SplitEditor                   │
-│ - DatePicker      │ - BalanceCard     │ - SettlementRow                 │
-│ - CategorySelect  │ - TransactionRow  │ - TripMemberBadge               │
-│ - QuickAddModal   │ - BudgetProgress  │ - SyncStatusPill                │
-│ - ConfirmDialog   │ - CreditCardCard  │ - DataTable (ERP High-Density)  │
-│                   │ - JointSipCard    │ - SipReconciliationRow          │
+│ - Button          │ - MoneyInput      │ - TransactionRow (Organism)     │
+│ - Input           │ - FormField       │ - JointSipCard (Organism)       │
+│ - MoneyDisplay    │ - DateRangePicker │ - SipReconciliationRow (Organism│
+│ - Badge           │ - SearchInput     │ - SplitEditor (Organism)        │
+│ - Icon            │ - ConfirmDialog   │ - CreditCardCard (Organism)     │
+│ - ProgressBar     │ - CategorySelect  │ - DataTable (ERP High-Density)  │
+│ - SyncStatusPill  │ - TripMemberBadge │ - AppLayout (Template)          │
 └───────────────────┴───────────────────┴─────────────────────────────────┘
 ```
 

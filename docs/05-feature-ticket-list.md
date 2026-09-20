@@ -39,18 +39,21 @@ Every implementation ticket across all 26 epics must strictly adhere to the foll
 - **Dependencies:** None
 - **Testing Requirements:** Architectural unit test using NetArchTest or reflection verifying project dependency rules and DI resolution smoke test.
 
-### `WF-EP01-002`: Initialize Frontend Vite + React 19 + TypeScript Application
+### `WF-EP01-002`: Initialize Frontend Vite + React 19 + TypeScript with Component-Based Architecture
 - **Priority:** P0 (Blocker)
-- **Description:** Scaffold the frontend PWA application using Vite, TypeScript, Tailwind CSS, Lucide icons, and React Router.
+- **Description:** Scaffold the frontend PWA application using Vite, TypeScript, Tailwind CSS, Lucide icons, and React Router, strictly architected around Component-Based Architecture (CBA).
 - **Requirements:**
-  - Configure `vite.config.ts` with path aliases (`@/features`, `@/components`, etc.).
-  - Install and configure Tailwind CSS with custom color palette (Emerald, Rose, Sky, Amber).
-  - Setup ESLint and Prettier configurations.
+  - Configure `vite.config.ts` with path aliases (`@/features`, `@/components`, `@/hooks`, `@/lib`, `@/types`).
+  - Establish 5-tier component layering: Atoms/Molecules in `components/ui/`, Layout Templates in `components/layout/`, Domain Organisms in `features/*/components/`, and Route View Pages in `features/*/pages/`.
+  - Enforce Container/Presentational pattern: visual components receive immutable typed props (`Props -> JSX`), while state, network calls, and mutations are encapsulated in dedicated custom container hooks (`hooks/`).
+  - Setup ESLint, Prettier, and TypeScript strict mode configurations (zero `any` types permitted).
+  - Install and configure Tailwind CSS with custom color palette (Emerald, Rose, Sky, Amber, Violet).
 - **Acceptance Criteria:**
   - `npm run build` and `npm run dev` execute cleanly.
+  - Component library directory structure compiles with sample Atom (`Button`), Molecule (`FormField`), and Layout Shell (`AppLayout`).
   - Tailwind utilities and custom CSS variables load without styling conflicts.
 - **Dependencies:** None
-- **Testing Requirements:** Vitest setup verifying smoke render of `App.tsx`.
+- **Testing Requirements:** Vitest setup verifying smoke render of atomic components and `App.tsx`.
 
 ---
 

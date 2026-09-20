@@ -27,43 +27,121 @@ WealthFlow is built as a lightning-fast, offline-first Progressive Web Applicati
 
 ---
 
-## 2. Directory & Feature-Based Architecture
+## 2. Component-Based Architecture (CBA) & Directory Structure
 
-The source tree follows a strictly modular **feature-based structure** where each functional domain encapsulates its own components, hooks, api queries, and types:
+WealthFlow's frontend is strictly engineered around **Component-Based Architecture (CBA)**. Every visual and interactive element is decomposed into self-contained, highly reusable, composable, and independently testable building blocks.
+
+### 2.1 Component Taxonomy & Atomic Layering
+To prevent monolithic components and maintain clean boundaries, components are categorized into a 5-tier atomic hierarchy:
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    COMPONENT-BASED TAXONOMY (CBA)                       │
+├───────────────────┬───────────────────┬─────────────────────────────────┤
+│ Tier              │ Directory Path    │ Responsibility & Characteristics│
+├───────────────────┼───────────────────┼─────────────────────────────────┤
+│ 1. Atoms          │ `components/ui/`  │ Pure primitive presentation:    │
+│    (Primitives)   │                   │ `Button`, `Input`, `Badge`,     │
+│                   │                   │ `MoneyDisplay`, `Icon`.         │
+│                   │                   │ Zero business logic, stateless. │
+├───────────────────┼───────────────────┼─────────────────────────────────┤
+│ 2. Molecules      │ `components/ui/`  │ Composed multi-atom controls:   │
+│    (Composites)   │ `components/common`│ `FormField` (Label+Input+Error),│
+│                   │                   │ `SearchInput`, `DateRangePicker`│
+│                   │                   │ `MoneyInput` (INR auto-comma).  │
+├───────────────────┼───────────────────┼─────────────────────────────────┤
+│ 3. Organisms      │ `features/*/`     │ Self-contained domain widgets:  │
+│    (Domain Blocks)│ `components/`     │ `TransactionRow`, `JointSipCard`│
+│                   │                   │ `SettleUpCard`, `BudgetMeter`.  │
+│                   │                   │ Compose atoms & molecules.      │
+├───────────────────┼───────────────────┼─────────────────────────────────┤
+│ 4. Templates      │ `components/`     │ Structural layout frames:       │
+│    (Layout Shells)│ `layout/`         │ `AppLayout`, `Sidebar`, `Header`│
+│                   │                   │ `ModalShell`, `ResponsiveGrid`. │
+├───────────────────┼───────────────────┼─────────────────────────────────┤
+│ 5. Pages          │ `features/*/`     │ Route endpoints & orchestrators:│
+│    (Route Views)  │ `pages/`          │ `DashboardPage`, `TripsPage`.   │
+│                   │                   │ Binds hooks & passes pure props.│
+└───────────────────┴───────────────────┴─────────────────────────────────┘
+```
+
+### 2.2 Core Architectural Principles & Component Patterns
+
+1. **Container / Presentational Pattern (Separation of Concerns):**
+   - **Presentational Components (Dumb):** 100% pure functional components that take data and callbacks exclusively via props (`Props -> JSX`). They never invoke TanStack Query, fetch APIs, or touch global store directly.
+   - **Container Hooks (Smart):** Custom React hooks (e.g., `useJointSips()`, `useTripSettlement(tripId)`) encapsulate all query fetching, mutations, optimistic cache updates, and error handling. Pages and containers consume these hooks and pass pristine data down to presentational components.
+2. **Compound Component Pattern:**
+   - Used for complex, multi-part UI elements to guarantee declarative flexibility without prop bloat:
+     ```tsx
+     <Modal isOpen={isOpen} onClose={closeModal}>
+       <Modal.Header title="Record Partner Contribution" />
+       <Modal.Body><JointSipRepaymentForm sipId={sipId} /></Modal.Body>
+       <Modal.Footer><Button variant="secondary">Cancel</Button></Modal.Footer>
+     </Modal>
+     ```
+3. **Slot & Composition Pattern:**
+   - Components favor composition over inheritance and configuration props. Flexible slots (`headerSlot`, `actionsSlot`, `children`) enable parent components to inject contextual buttons and badges without polluting child component APIs.
+4. **Single Responsibility Principle (SRP):**
+   - Every component has exactly one reason to exist and change. A tabular row component renders a formatted row; it does not calculate tax depreciation or orchestrate network requests.
+5. **Strict TypeScript Prop Contracts:**
+   - Every component exposes an explicitly named, strongly typed interface (`interface JointSipCardProps`).
+   - `any` types are strictly prohibited.
+   - Props are treated as immutable (`Readonly<Props>`).
+6. **Performance & Memoization Optimization:**
+   - High-density list items (`TransactionRow`, `SipReconciliationRow`, `TripMemberRow`) are wrapped with `React.memo` to eliminate unnecessary parent re-renders.
+   - Event handlers passed to child components utilize `useCallback`.
+   - Heavy financial calculations (running totals, balance sheets, debt minimization trees) use `useMemo`.
+
+### 2.3 Modular Directory Structure
 
 ```
 frontend/src/
 ├── app/                        # Application Shell, Providers, Router Configuration
-│   ├── App.tsx
-│   ├── routes.tsx
+│   ├── App.tsx                 # Root component with providers tree
+│   ├── routes.tsx              # Lazy-loaded route definitions
 │   └── rootReducer.ts
 ├── components/                 # Shared Generic UI Library (Pure, Feature-Agnostic)
-│   ├── ui/
+│   ├── ui/                     # Tier 1 & 2: Atoms and Molecules
 │   │   ├── Button.tsx
-│   │   ├── MoneyInput.tsx      # INR auto-formatting input
+│   │   ├── Input.tsx
+│   │   ├── MoneyInput.tsx      # INR auto-formatting currency input
 │   │   ├── MoneyDisplay.tsx    # Semantic color & icon financial text
-│   │   ├── DataTable.tsx       # Virtualized, sortable, filterable table
-│   │   ├── Modal.tsx
+│   │   ├── FormField.tsx       # Composite Label + Control + Error message
+│   │   ├── DataTable.tsx       # Virtualized, sortable, filterable ERP table
+│   │   ├── Modal.tsx           # Compound dialog component
 │   │   ├── Drawer.tsx
 │   │   ├── ProgressBar.tsx
 │   │   ├── Badge.tsx
 │   │   └── Toast.tsx
-│   └── layout/
-│       ├── AppLayout.tsx       # Desktop & Mobile shell switcher
-│       ├── Sidebar.tsx
-│       ├── Header.tsx
-│       ├── BottomNav.tsx       # Mobile bottom navigation
-│       └── QuickAddFAB.tsx     # Floating Action Button
-├── features/                   # Domain-Specific Feature Modules
-│   ├── auth/                   # Login, Register, Password Reset
-│   ├── dashboard/              # Net worth card, cash flow overview, widget grid
-│   ├── transactions/           # Transaction ledger, filters, quick-entry modals
+│   ├── layout/                 # Tier 4: Layout Templates & Shells
+│   │   ├── AppLayout.tsx       # Responsive desktop/mobile shell switcher
+│   │   ├── Sidebar.tsx
+│   │   ├── Header.tsx
+│   │   ├── BottomNav.tsx       # Mobile bottom navigation bar
+│   │   └── QuickAddFAB.tsx     # Floating Action Button
+│   └── feedback/               # ErrorBoundaries, LoadingSkeletons, EmptyStates
+├── features/                   # Domain-Specific Feature Modules (Encapsulated)
+│   ├── auth/                   # Authentication & Session Management
+│   │   ├── components/         # LoginForm, DeviceSessionCard, RevokeModal
+│   │   ├── hooks/              # useAuth, useActiveSessions
+│   │   ├── pages/              # LoginPage, SessionsPage
+│   │   └── types/              # Auth DTOs & session interfaces
+│   ├── dashboard/              # Executive Dashboard widgets
+│   ├── transactions/           # Transaction ledger, quick add, filters
 │   ├── accounts/               # Bank, cash, wallet management, transfer modal
 │   ├── budgets/                # Budget progress bars, food/protein sub-trackers
 │   ├── creditCards/            # Card visualizer, billing cycle meter, pay bill modal
 │   ├── investments/            # Portfolio tracker, P&L badge, SIP scheduler
+│   │   ├── components/         # PortfolioCard, JointSipCard, SipReconciliationRow
+│   │   ├── hooks/              # useInvestments, useJointSips, useSipReconciliation
+│   │   ├── pages/              # InvestmentsPage, SipSchedulePage
+│   │   └── types/              # Investment DTOs, JointSip interfaces
 │   ├── loans/                  # Given/Received debt tracker, repayment recorder
-│   ├── trips/                  # Trip dashboard, members, split editor, settlement
+│   ├── trips/                  # Collaborative trips workspace
+│   │   ├── components/         # TripSummaryMatrix, SettleUpCard, SplitEditor
+│   │   ├── hooks/              # useTrip, useTripExpenses, useTripSettlement
+│   │   ├── pages/              # TripsListPage, TripWorkspacePage, GuestTripPage
+│   │   └── types/              # Trip DTOs, settlement graph contracts
 │   ├── analytics/              # Recharts trends, category donut, cash flow waterfall
 │   └── sync/                   # Offline queue drawer, sync status pill, conflict modal
 ├── hooks/                      # Shared utility hooks (useOffline, useMedia, useKeybind)
