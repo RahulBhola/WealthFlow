@@ -523,5 +523,26 @@ Implemented via .NET `IHostedService` / Quartz.NET:
 
 ---
 
+## 12. Code Documentation & In-Source Commenting Standards
+
+To ensure long-term maintainability, developer ergonomics, and clear architectural handover, all implementation source code must adhere to strict in-source documentation standards:
+
+### 12.1 Backend (.NET 9 / C#) Commenting Standards
+1. **XML Documentation Comments (`/// <summary>`):**
+   - Mandatory on all public classes, records, interfaces, methods, and entity properties across `Domain`, `Application`, `Infrastructure`, and `Api`.
+   - Explicitly document method parameters (`<param>`), return values (`<returns>`), and potential domain/business exceptions (`<exception>`).
+2. **Financial Invariant & Mathematical Explanations:**
+   - Complex business calculations—including `SettlementEngine` (greedy debt simplification), `BalanceCalculationService`, non-expense travel advances, and credit card liability updates—must contain clear inline step-by-step comments explaining the accounting formula and invariant being preserved.
+3. **Architectural & Design Decision Rationale:**
+   - Where a specific pattern is used (e.g. why an advance is excluded from trip totals, why LINQ is used instead of provider-specific SQL, why client-generated GUIDs are required for offline sync), include explanatory comments detailing the *architectural rationale*.
+
+### 12.2 Frontend (React 19 / TypeScript) Commenting Standards
+1. **TSDoc / JSDoc Comments:**
+   - Applied to all reusable UI components (describing props, variants, and accessibility behavior), custom hooks (`useOfflineSync`, `useTripSettlement`), and Dexie.js database schema tables.
+2. **Complex State & Edge Case Annotations:**
+   - Offline mutation queue transitions, split editor remainder allocation logic, and SignalR reconnect lifecycle handlers must contain inline commentary explaining the edge case handling.
+
+---
+
 *End of Technical Architecture Document.*
 

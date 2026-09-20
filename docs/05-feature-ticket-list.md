@@ -7,6 +7,19 @@
 
 ---
 
+## Ticket Execution Standards & Definition of Done
+
+Every implementation ticket across all 26 epics must strictly adhere to the following completion standards:
+1. **Mandatory In-Source Code Comments:**
+   - All C# public classes, interfaces, entities, handlers, and methods must include XML documentation comments (`/// <summary>`, `<param>`, `<returns>`).
+   - Non-obvious domain logic, financial formulas (e.g., greedy debt minimization, advance exclusion, credit card liability mechanics), and edge cases must contain detailed inline explanatory comments.
+   - Frontend React components, custom hooks, and Zod schemas must include TSDoc/JSDoc annotations.
+2. **Type Safety & Precision:** Authoritative financial amounts use `decimal(18,2)`. Identifiers use GUIDs.
+3. **Database Portability:** Pure LINQ queries—zero raw SQL strings or provider-specific syntax in business logic.
+4. **Testing & Verification:** Comprehensive unit and integration tests passing before ticket completion.
+
+---
+
 ## Epic 1: Project Foundation & Clean Architecture Skeleton
 
 ### `WF-EP01-001`: Initialize Backend Clean Architecture Solution Structure & Data Abstractions
