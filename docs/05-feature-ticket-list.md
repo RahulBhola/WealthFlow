@@ -46,16 +46,17 @@ Every implementation ticket across all 26 epics must strictly adhere to the foll
 - **Requirements:**
   - Configure `vite.config.ts` with path aliases (`@/features`, `@/components`, `@/hooks`, `@/lib`, `@/types`).
   - Establish 5-tier component layering: Atoms/Molecules in `components/ui/`, Layout Templates in `components/layout/`, Domain Organisms in `features/*/components/`, and Route View Pages in `features/*/pages/`.
-  - Implement the universal master shell `AppLayout.tsx` and 5-tier Page Blueprint (`PageHeader`, `MetricCard`, 12-column responsive grid, `Card`, `DataTable`).
+  - Implement the universal master shell `AppLayout.tsx`, responsive `Sidebar.tsx`, top `Header.tsx`, mobile slide-over `MobileNavDrawer.tsx` (triggered by hamburger menu containing all navigation links), and 5-tier Page Blueprint (`PageHeader`, `MetricCard`, 12-column responsive grid, `Card`, `DataTable`).
   - Enforce Container/Presentational pattern: visual components receive immutable typed props (`Props -> JSX`), while state, network calls, and mutations are encapsulated in dedicated custom container hooks (`hooks/`).
   - Setup ESLint, Prettier, and TypeScript strict mode configurations (zero `any` types permitted).
   - Install and configure Tailwind CSS with custom color palette (Emerald, Rose, Sky, Amber, Violet).
 - **Acceptance Criteria:**
   - `npm run build` and `npm run dev` execute cleanly.
-  - Component library directory structure compiles with sample Atom (`Button`), Molecule (`FormField`), Layout Shell (`AppLayout`), and Page Blueprint.
+  - Component library directory structure compiles with sample Atom (`Button`), Molecule (`FormField`), Layout Shell (`AppLayout`), Mobile Drawer (`MobileNavDrawer`), and Page Blueprint.
+  - Mobile header features hamburger button that slides over full navigation drawer with all sidebar links.
   - Tailwind utilities and custom CSS variables load without styling conflicts.
 - **Dependencies:** None
-- **Testing Requirements:** Vitest setup verifying smoke render of atomic components, `AppLayout`, and `App.tsx`.
+- **Testing Requirements:** Vitest setup verifying smoke render of atomic components, `AppLayout`, `MobileNavDrawer`, and `App.tsx`.
 
 ---
 

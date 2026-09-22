@@ -125,6 +125,7 @@ All components are strictly built using **Component-Based Architecture (CBA)**, 
 │ - Icon            │ - ConfirmDialog   │ - CreditCardCard (Organism)     │
 │ - ProgressBar     │ - CategorySelect  │ - DataTable (ERP High-Density)  │
 │ - SyncStatusPill  │ - TripMemberBadge │ - AppLayout (Template)          │
+│                   │                   │ - MobileNavDrawer (Template)    │
 └───────────────────┴───────────────────┴─────────────────────────────────┘
 ```
 
@@ -240,6 +241,17 @@ To ensure the user experiences a cohesive and predictable UI throughout the enti
   - Header (`CardHeader`): `px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between`
   - Body (`CardBody`): `p-6`
   - Footer (`CardFooter`): `px-6 py-3 bg-slate-50 dark:bg-slate-800/40 border-t border-slate-200 dark:border-slate-800 flex justify-end gap-3`
+
+### 5.2 Mobile Navigation Drawer Specification (`MobileNavDrawer`)
+- **Trigger:** Accessible Hamburger menu button (`[≡]`) positioned on the top left of the mobile header.
+- **Backdrop:** `fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 transition-opacity duration-300`.
+- **Drawer Container:** `fixed inset-y-0 left-0 w-72 max-w-[85vw] bg-white dark:bg-slate-900 shadow-2xl z-50 flex flex-col transform transition-transform duration-300 ease-in-out`.
+- **Anatomy:**
+  - Header: Application brand logo + bold title + `[✕ Close]` button.
+  - User Profile Snippet: Avatar + Name + Email + Role Badge (`Admin` / `User`).
+  - Navigation Scroll Area: Complete list of all application links matching the desktop sidebar (Dashboard, Ledger, Accounts, Budgets, Credit Cards, Investments, Loans, Trips, Analytics, Settings, Sessions, Admin ERP).
+  - Footer: Online status pill and explicit `[Log Out]` button.
+- **Screen Benefit:** Completely replaces cluttered mobile bottom tab bars, reclaiming 100% of vertical mobile viewport height for financial data and ledger inspection while keeping all navigation items 1-tap accessible.
 
 ---
 

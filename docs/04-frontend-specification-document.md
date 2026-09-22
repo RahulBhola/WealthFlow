@@ -117,7 +117,7 @@ frontend/src/
 │   │   ├── AppLayout.tsx       # Responsive desktop/mobile shell switcher
 │   │   ├── Sidebar.tsx
 │   │   ├── Header.tsx
-│   │   ├── BottomNav.tsx       # Mobile bottom navigation bar
+│   │   ├── MobileNavDrawer.tsx # Slide-over navigation drawer with complete sidebar links
 │   │   └── QuickAddFAB.tsx     # Floating Action Button
 │   └── feedback/               # ErrorBoundaries, LoadingSkeletons, EmptyStates
 ├── features/                   # Domain-Specific Feature Modules (Encapsulated)
@@ -218,15 +218,38 @@ Every route without exception renders inside the master **`AppLayout.tsx`** comp
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                       MOBILE SHELL (< 1024px)                           │
 ├─────────────────────────────────────────────────────────────────────────┤
-│ TOP HEADER: App Logo | Offline/Sync Pill | Search | Profile             │
+│ TOP HEADER: [≡ Menu] | App Logo | Sync Pill | Search | Profile          │
 ├─────────────────────────────────────────────────────────────────────────┤
 │ MAIN VIEWPORT (Touch-optimized scrollable container, px-4 py-4)         │
 │ - 12-column grid collapses to single column (`grid-cols-1 gap-4`)       │
+│ - Maximize vertical screen real estate for pure financial data          │
 │                                           ┌───────────┐                 │
 │                                           │  (+) FAB  │                 │
 │                                           └───────────┘                 │
+└─────────────────────────────────────────────────────────────────────────┘
+        │
+        ▼ (Tapping [≡ Menu] opens full-height slide-over drawer)
+┌─────────────────────────────────────────────────────────────────────────┐
+│         MOBILE NAVIGATION DRAWER (`MobileNavDrawer.tsx`)                │
 ├─────────────────────────────────────────────────────────────────────────┤
-│ BOTTOM NAV: [Home]  [Ledger]  [(+) Quick Add]  [Trips]  [More...]       │
+│ HEADER: App Logo & Brand                          [✕ Close]             │
+├─────────────────────────────────────────────────────────────────────────┤
+│ USER PROFILE STRIP: User Avatar, Name, Email, Role Pill [Admin / User]  │
+├─────────────────────────────────────────────────────────────────────────┤
+│ ALL NAVIGATION LINKS (Identical to Desktop Sidebar):                    │
+│   📊 Dashboard                                                          │
+│   💳 Ledger / Transactions                                              │
+│   🏦 Accounts & Wallets                                                 │
+│   🎯 Budgets (with Protein Sub-tracker)                                 │
+│   💳 Credit Cards                                                       │
+│   📈 Investments & Joint SIPs                                           │
+│   🤝 Loans & Gifts                                                      │
+│   ✈️ Collaborative Trips & Google Pay Splits                            │
+│   📉 Analytics & Reporting                                              │
+│   ⚙️ Settings & Active Device Sessions                                  │
+│   🛡️ Admin ERP (Audit Logs, Sync Telemetry)  [Visible to Admins only]   │
+├─────────────────────────────────────────────────────────────────────────┤
+│ FOOTER: App Version | Online/Offline Status Pill | [Log Out] Action     │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -248,6 +271,7 @@ Every route without exception renders inside the master **`AppLayout.tsx`** comp
   - `/trips/:tripId`: Complete trip workspace (Expenses, Advances, Members, Settlement).
   - `/analytics`: Deep analytics, burn rate, category sunburst, cash-flow waterfalls.
   - `/settings`: Category customization, data export/import, profile, security.
+  - `/settings/sessions`: Multi-device active session manager, device revocation, and expiration settings.
 - **Admin ERP Routes (Guarded by `<RoleGuard requiredRole="Admin">`):**
   - `/admin/users`: User management and tenant status.
   - `/admin/audit-logs`: System-wide audit log inspector with filter by IP/user.
