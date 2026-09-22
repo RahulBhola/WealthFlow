@@ -109,6 +109,24 @@ To eliminate the "flat spreadsheet" flaw, WealthFlow categorizes every monetary 
 
 ## 6. Functional Requirements
 
+### 6.0 User Roles & Role-Based Access Control (RBAC)
+WealthFlow implements a structured Role-Based Access Control (RBAC) model to distinguish between standard financial tracking and system-wide administration:
+- **Defined User Roles:**
+  1. **`User` (Standard Role):**
+     - Full management of personal finances (Accounts, Transactions, Budgets, Credit Cards, Investments, Joint SIPs, Loans, and Gifts).
+     - Full access to participate in and host collaborative Trips.
+     - Device session management for their own logins (`/settings/sessions`).
+     - **Strict Boundary:** No access to system audit logs, server sync telemetry, or other users' profiles.
+  2. **`Admin` (Superuser / System Administrator):**
+     - Inherits all `User` capabilities for personal finances.
+     - Full access to the **Admin ERP Console**:
+       - System-wide Audit Logs (`/admin/audit-logs`) with before/after JSON diffs.
+       - Sync Queue Monitor (`/admin/sync-monitor`) tracking offline mutations, latency, and conflict resolutions.
+       - User & Session Management (`/admin/users`) for monitoring account status, locks, and active sessions.
+- **Initial Setup & Admin Seeding Rule:**
+  - The very first user account registered during system installation is **automatically granted the `Admin` role**.
+  - Subsequent registered accounts default to the `User` role, but an existing Admin can promote/demote users via the Admin ERP console.
+
 ### 6.1 Accounts Module
 - **Core Concept & Boundary:** In WealthFlow, an "Account" is strictly an internal **bookkeeping profile / tracking container** (similar to a column or tab in an Excel workbook) to track where money flows. WealthFlow **never** prompts for, connects to, or stores sensitive net banking credentials, bank login passwords, OTPs, debit card PINs, CVVs, or full bank account numbers. All records are user-managed or imported via spreadsheet.
 - **Supported Account Types:** Savings Bank Account, Current Account, Cash-in-Hand, Digital Wallets (Paytm, Amazon Pay, PhonePe), Fixed Deposit/Savings Schemes.

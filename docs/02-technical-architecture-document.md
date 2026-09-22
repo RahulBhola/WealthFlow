@@ -225,7 +225,7 @@ public abstract class BaseEntity
 ```
 
 #### Detailed Entity Attributes:
-1. **`User`:** `Id` (GUID), `Email`, `PasswordHash`, `FirstName`, `LastName`, `CurrencyCode` ("INR"), `CreatedAtUtc`.
+1. **`User`:** `Id` (GUID), `Email`, `PasswordHash`, `FirstName`, `LastName`, `Role` (`Admin`, `User`), `CurrencyCode` ("INR"), `CreatedAtUtc` *(Implements `ApplicationUser : IdentityUser<Guid>` with `ApplicationRole : IdentityRole<Guid>`)*.
 2. **`Account`:** `Id`, `UserId`, `Name`, `AccountType` (`Bank`, `Cash`, `Wallet`, `Other`), `OpeningBalance` (`decimal(18,2)`), `CurrentBalance` (`decimal(18,2)`), `AccountNumberMask`, `IsActive`, `SortOrder`.
 3. **`Category`:** `Id`, `UserId` (nullable for system categories), `ParentCategoryId` (nullable for top-level), `Name`, `Icon`, `ColorHex`, `IsSpecialProtein`, `IsSpecialClothing`, `IsActive`.
 4. **`Transaction`:** `Id`, `UserId`, `AccountId`, `CategoryId`, `Amount` (`decimal(18,2)`), `TransactionDate` (UTC), `EventType` (`Income`, `Expense`, `Transfer`, `Investment`, `LoanGiven`, `LoanReceived`, `Gift`, `Refund`, `CreditCardPayment`, `TripSettlement`), `Description`, `Merchant`, `Notes`, `Tags` (stringified CSV or JSON array), `LinkedEntityId` (nullable GUID), `IdempotencyKey` (GUID), `SyncStatus` (`Synced`, `Pending`, `Failed`).
@@ -391,6 +391,26 @@ WealthFlow treats the browser client as an active, local-first node. It uses **I
 
 ### 6.1 Idempotency & Duplicate Prevention
 Every state mutation created on the client receives an immutable `ClientMutationId` (GUID) and `IdempotencyKey`. The backend stores processed idempotency keys in a fast lookup index. If a network blip causes the client to retransmit a transaction, the server recognizes the key and responds with `HTTP 200 OK` without applying the financial event twice.
+
+### 6.2 Role-Based Access Control (RBAC) & Authorization Architecture
+WealthFlow secures APIs through ASP.NET Core Identity with structured role evaluation:
+1. **Roles:** `Admin` and `User` (backed by `ApplicationRole : IdentityRole<Guid>`).
+2. **JWT Claims:** The issued JWT contains standard identity claims:
+   - `sub`: User GUID
+   - `email`: User email
+   - `ClaimTypes.Role` / `"role"`: `"Admin"` or `"User"`
+   - `jti`: Token identifier
+3. **Endpoint Authorization Policies:**
+   - **General Financial APIs:** Protected by default policy requiring an authenticated user (`[Authorize]`). Handlers automatically scope queries to the authenticated user's `UserId` via `ICurrentUserService`.
+   - **Admin ERP APIs:** Protected by role policy (`[Authorize(Roles = "Admin")]`):
+     - `GET /api/v1/admin/audit-logs`
+     - `GET /api/v1/admin/sync-monitor`
+     - `GET /api/v1/admin/users`
+   - **Guest Endpoints:** Publicly accessible endpoints for trip participants (`/api/v1/trips/{id}/guest/...`) validated via cryptographically hashed `GuestSecureToken`.
+4. **First-User Admin Seeding:**
+   - During user registration (`POST /api/v1/auth/register`), the service checks `await userManager.Users.AnyAsync()`.
+   - If no users exist, the registering user is automatically assigned the `Admin` role via `await userManager.AddToRoleAsync(user, "Admin")`.
+   - All subsequent registrations default to the `User` role.
 
 ---
 

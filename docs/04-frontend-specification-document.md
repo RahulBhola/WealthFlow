@@ -248,11 +248,11 @@ Every route without exception renders inside the master **`AppLayout.tsx`** comp
   - `/trips/:tripId`: Complete trip workspace (Expenses, Advances, Members, Settlement).
   - `/analytics`: Deep analytics, burn rate, category sunburst, cash-flow waterfalls.
   - `/settings`: Category customization, data export/import, profile, security.
-  - `/settings/sessions`: Multi-device active session manager, device revocation, and expiration settings.
-- **Admin ERP Routes (Rendered strictly inside `AppLayout` with Admin Navigation badge):**
+- **Admin ERP Routes (Guarded by `<RoleGuard requiredRole="Admin">`):**
   - `/admin/users`: User management and tenant status.
   - `/admin/audit-logs`: System-wide audit log inspector with filter by IP/user.
   - `/admin/sync-monitor`: Real-time telemetry on sync queue latency and errors.
+  - *UI Navigation Rule:* The "Admin ERP" section and badge in `Sidebar.tsx` is conditionally rendered only if `currentUser.role === 'Admin'`. If a standard `User` attempts direct URL access, `RoleGuard` intercepts the request and redirects to `/` with an alert: *"Access Denied: Admin privileges required."*
 
 ---
 
