@@ -6,6 +6,7 @@ namespace WealthFlow.Application.Common.Interfaces;
 public interface IUnitOfWork : IDisposable
 {
     IAccountRepository Accounts { get; }
+    ICategoryRepository Categories { get; }
     ITransactionRepository Transactions { get; }
     ITripRepository Trips { get; }
     ISipRepository Sips { get; }

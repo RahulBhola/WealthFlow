@@ -13,14 +13,26 @@ public class AccountRepository : Repository<Account>, IAccountRepository
 {
     public AccountRepository(ApplicationDbContext dbContext) : base(dbContext) { }
 
-    public async Task<IReadOnlyList<Account>> GetActiveAccountsByUserAsync(Guid userId, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<Account>> GetAccountsByUserAsync(Guid userId, bool includeArchived = false, CancellationToken cancellationToken = default)
     {
-        return await _dbSet
+        var query = _dbSet
             .AsNoTracking()
-            .Where(a => a.UserId == userId && a.IsActive)
+            .Where(a => a.UserId == userId);
+
+        if (!includeArchived)
+        {
+            query = query.Where(a => a.IsActive);
+        }
+
+        return await query
             .OrderBy(a => a.SortOrder)
             .ThenBy(a => a.Name)
             .ToListAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<Account>> GetActiveAccountsByUserAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        return await GetAccountsByUserAsync(userId, includeArchived: false, cancellationToken);
     }
 
     public async Task<decimal> GetTotalLiquidBalanceByUserAsync(Guid userId, CancellationToken cancellationToken = default)
@@ -29,6 +41,50 @@ public class AccountRepository : Repository<Account>, IAccountRepository
             .AsNoTracking()
             .Where(a => a.UserId == userId && a.IsActive && (a.AccountType == AccountType.Bank || a.AccountType == AccountType.Cash || a.AccountType == AccountType.Wallet))
             .SumAsync(a => a.CurrentBalance, cancellationToken);
+    }
+
+    public async Task<bool> HasTransactionsAsync(Guid accountId, CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.Transactions
+            .AnyAsync(t => t.AccountId == accountId || t.LinkedEntityId == accountId, cancellationToken);
+    }
+}
+
+/// <summary>
+/// Specialized Category repository implementing queries using pure LINQ.
+/// </summary>
+public class CategoryRepository : Repository<Category>, ICategoryRepository
+{
+    public CategoryRepository(ApplicationDbContext dbContext) : base(dbContext) { }
+
+    public async Task<IReadOnlyList<Category>> GetCategoriesByUserAsync(Guid? userId, CancellationToken cancellationToken = default)
+    {
+        var query = _dbSet
+            .AsNoTracking()
+            .Where(c => c.IsActive);
+
+        if (userId.HasValue)
+        {
+            query = query.Where(c => c.UserId == null || c.UserId == userId.Value);
+        }
+        else
+        {
+            query = query.Where(c => c.UserId == null);
+        }
+
+        return await query
+            .OrderBy(c => c.ParentCategoryId)
+            .ThenBy(c => c.Name)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<Category>> GetSubcategoriesAsync(Guid parentCategoryId, CancellationToken cancellationToken = default)
+    {
+        return await _dbSet
+            .AsNoTracking()
+            .Where(c => c.ParentCategoryId == parentCategoryId && c.IsActive)
+            .OrderBy(c => c.Name)
+            .ToListAsync(cancellationToken);
     }
 }
 

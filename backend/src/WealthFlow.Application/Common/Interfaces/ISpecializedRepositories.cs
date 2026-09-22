@@ -7,8 +7,19 @@ namespace WealthFlow.Application.Common.Interfaces;
 /// </summary>
 public interface IAccountRepository : IRepository<Account>
 {
+    Task<IReadOnlyList<Account>> GetAccountsByUserAsync(Guid userId, bool includeArchived = false, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<Account>> GetActiveAccountsByUserAsync(Guid userId, CancellationToken cancellationToken = default);
     Task<decimal> GetTotalLiquidBalanceByUserAsync(Guid userId, CancellationToken cancellationToken = default);
+    Task<bool> HasTransactionsAsync(Guid accountId, CancellationToken cancellationToken = default);
+}
+
+/// <summary>
+/// Specialized repository contract for Category domain entities.
+/// </summary>
+public interface ICategoryRepository : IRepository<Category>
+{
+    Task<IReadOnlyList<Category>> GetCategoriesByUserAsync(Guid? userId, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<Category>> GetSubcategoriesAsync(Guid parentCategoryId, CancellationToken cancellationToken = default);
 }
 
 /// <summary>

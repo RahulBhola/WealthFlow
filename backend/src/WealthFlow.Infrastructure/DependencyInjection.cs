@@ -6,8 +6,11 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using WealthFlow.Application.Common.Interfaces;
+using WealthFlow.Application.Features.Accounts.Interfaces;
 using WealthFlow.Application.Features.Auth.Interfaces;
+using WealthFlow.Application.Features.Categories.Interfaces;
 using WealthFlow.Domain.Common;
+using WealthFlow.Domain.Services;
 using WealthFlow.Infrastructure.Identity;
 using WealthFlow.Infrastructure.Persistence;
 using WealthFlow.Infrastructure.Persistence.Repositories;
@@ -85,8 +88,12 @@ public static class DependencyInjection
         // Services & Repositories Registration
         services.AddSingleton<ITokenService, TokenService>();
         services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<BalanceCalculationService>();
+        services.AddScoped<IAccountService, AccountService>();
+        services.AddScoped<ICategoryService, CategoryService>();
         services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
         services.AddScoped<IAccountRepository, AccountRepository>();
+        services.AddScoped<ICategoryRepository, CategoryRepository>();
         services.AddScoped<ITransactionRepository, TransactionRepository>();
         services.AddScoped<ITripRepository, TripRepository>();
         services.AddScoped<ISipRepository, SipRepository>();

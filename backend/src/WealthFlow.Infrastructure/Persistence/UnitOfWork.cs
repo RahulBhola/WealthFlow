@@ -13,6 +13,7 @@ public class UnitOfWork : IUnitOfWork
     private IDbContextTransaction? _currentTransaction;
 
     private IAccountRepository? _accountRepository;
+    private ICategoryRepository? _categoryRepository;
     private ITransactionRepository? _transactionRepository;
     private ITripRepository? _tripRepository;
     private ISipRepository? _sipRepository;
@@ -23,6 +24,7 @@ public class UnitOfWork : IUnitOfWork
     }
 
     public IAccountRepository Accounts => _accountRepository ??= new AccountRepository(_dbContext);
+    public ICategoryRepository Categories => _categoryRepository ??= new CategoryRepository(_dbContext);
     public ITransactionRepository Transactions => _transactionRepository ??= new TransactionRepository(_dbContext);
     public ITripRepository Trips => _tripRepository ??= new TripRepository(_dbContext);
     public ISipRepository Sips => _sipRepository ??= new SipRepository(_dbContext);

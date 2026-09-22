@@ -8,7 +8,8 @@ public enum AccountType
     Bank = 1,
     Cash = 2,
     Wallet = 3,
-    Other = 4
+    Savings = 4,
+    Other = 5
 }
 
 /// <summary>
