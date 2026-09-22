@@ -41,6 +41,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
     public DbSet<UserSession> UserSessions => Set<UserSession>();
     public DbSet<JointSipReconciliation> JointSipReconciliations => Set<JointSipReconciliation>();
+    public DbSet<Budget> Budgets => Set<Budget>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -85,5 +86,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
         builder.Entity<TripExpense>().HasQueryFilter(e => !e.IsDeleted);
         builder.Entity<TripAdvance>().HasQueryFilter(e => !e.IsDeleted);
         builder.Entity<TripSettlement>().HasQueryFilter(e => !e.IsDeleted);
+        builder.Entity<Budget>().HasQueryFilter(e => !e.IsDeleted);
     }
 }

@@ -122,3 +122,24 @@ public enum UserRole
     User = 1,
     Admin = 2
 }
+
+/// <summary>
+/// Timeframe period for financial budget caps.
+/// </summary>
+public enum BudgetPeriod
+{
+    Month = 1,
+    Year = 2
+}
+
+/// <summary>
+/// Real-time health threshold indicator for budget utilization.
+/// </summary>
+public enum BudgetThresholdStatus
+{
+    Normal = 1,   // < 80% (Green)
+    Warning = 2,  // 80% - 89.9% (Amber)
+    Critical = 3, // 90% - 99.9% (Orange)
+    Exceeded = 4  // >= 100% (Rose)
+}
+

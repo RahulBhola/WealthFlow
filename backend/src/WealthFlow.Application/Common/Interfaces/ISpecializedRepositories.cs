@@ -30,6 +30,31 @@ public interface ITransactionRepository : IRepository<Transaction>
     Task<IReadOnlyList<Transaction>> GetRecentTransactionsAsync(Guid userId, int count, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<Transaction>> GetByAccountAsync(Guid accountId, CancellationToken cancellationToken = default);
     Task<bool> ExistsByIdempotencyKeyAsync(Guid idempotencyKey, CancellationToken cancellationToken = default);
+    Task<(IReadOnlyList<Transaction> Items, int TotalCount)> GetPagedTransactionsAsync(
+        Guid userId,
+        int page,
+        int pageSize,
+        DateTime? startDate = null,
+        DateTime? endDate = null,
+        Guid? accountId = null,
+        Guid? categoryId = null,
+        WealthFlow.Domain.Enums.TransactionEventType? eventType = null,
+        string? search = null,
+        CancellationToken cancellationToken = default);
+    Task<IReadOnlyDictionary<Guid, decimal>> GetMonthlyCategorySpendingAsync(
+        Guid userId,
+        int year,
+        int month,
+        CancellationToken cancellationToken = default);
+}
+
+/// <summary>
+/// Specialized repository contract for Budget threshold entities.
+/// </summary>
+public interface IBudgetRepository : IRepository<Budget>
+{
+    Task<IReadOnlyList<Budget>> GetBudgetsByUserAsync(Guid userId, CancellationToken cancellationToken = default);
+    Task<Budget?> GetBudgetByCategoryAsync(Guid userId, Guid categoryId, CancellationToken cancellationToken = default);
 }
 
 /// <summary>

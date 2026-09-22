@@ -11,6 +11,7 @@ import { SessionsPage } from '@/features/auth/pages/SessionsPage'
 import { AdminDashboardPage } from '@/features/admin/pages/AdminDashboardPage'
 import { DashboardPage } from '@/features/dashboard/pages/DashboardPage'
 import { AccountsPage } from '@/features/accounts/pages/AccountsPage'
+import { LedgerPage } from '@/features/transactions/pages/LedgerPage'
 
 export const AuthenticatedShell: React.FC = () => {
   const { user, logout } = useAuth()
@@ -53,6 +54,9 @@ export const App: React.FC = () => {
           >
             <Route path="/" element={<DashboardPage />} />
             <Route path="/accounts" element={<AccountsPage />} />
+            <Route path="/transactions" element={<LedgerPage />} />
+            <Route path="/ledger" element={<LedgerPage />} />
+            <Route path="/budgets" element={<LedgerPage />} />
             <Route path="/settings/sessions" element={<SessionsPage />} />
             <Route
               path="/admin"

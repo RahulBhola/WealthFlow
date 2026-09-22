@@ -118,6 +118,115 @@ public class TransactionRepository : Repository<Transaction>, ITransactionReposi
     {
         return await _dbSet.AnyAsync(t => t.IdempotencyKey == idempotencyKey, cancellationToken);
     }
+
+    public async Task<(IReadOnlyList<Transaction> Items, int TotalCount)> GetPagedTransactionsAsync(
+        Guid userId,
+        int page,
+        int pageSize,
+        DateTime? startDate = null,
+        DateTime? endDate = null,
+        Guid? accountId = null,
+        Guid? categoryId = null,
+        TransactionEventType? eventType = null,
+        string? search = null,
+        CancellationToken cancellationToken = default)
+    {
+        var query = _dbSet
+            .AsNoTracking()
+            .Where(t => t.UserId == userId);
+
+        if (startDate.HasValue)
+        {
+            query = query.Where(t => t.TransactionDate >= startDate.Value);
+        }
+
+        if (endDate.HasValue)
+        {
+            query = query.Where(t => t.TransactionDate <= endDate.Value);
+        }
+
+        if (accountId.HasValue)
+        {
+            query = query.Where(t => t.AccountId == accountId.Value || t.LinkedEntityId == accountId.Value);
+        }
+
+        if (categoryId.HasValue)
+        {
+            query = query.Where(t => t.CategoryId == categoryId.Value);
+        }
+
+        if (eventType.HasValue)
+        {
+            query = query.Where(t => t.EventType == eventType.Value);
+        }
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var searchLower = search.Trim().ToLower();
+            query = query.Where(t => t.Description.ToLower().Contains(searchLower) || (t.Merchant != null && t.Merchant.ToLower().Contains(searchLower)));
+        }
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var safePage = page < 1 ? 1 : page;
+        var safePageSize = pageSize < 1 ? 20 : (pageSize > 100 ? 100 : pageSize);
+
+        var items = await query
+            .OrderByDescending(t => t.TransactionDate)
+            .ThenByDescending(t => t.CreatedAtUtc)
+            .Skip((safePage - 1) * safePageSize)
+            .Take(safePageSize)
+            .ToListAsync(cancellationToken);
+
+        return (items, totalCount);
+    }
+
+    public async Task<IReadOnlyDictionary<Guid, decimal>> GetMonthlyCategorySpendingAsync(
+        Guid userId,
+        int year,
+        int month,
+        CancellationToken cancellationToken = default)
+    {
+        var startDate = new DateTime(year, month, 1, 0, 0, 0, DateTimeKind.Utc);
+        var endDate = startDate.AddMonths(1);
+
+        var spending = await _dbSet
+            .AsNoTracking()
+            .Where(t => t.UserId == userId
+                && t.EventType == TransactionEventType.Expense
+                && t.CategoryId != null
+                && t.TransactionDate >= startDate
+                && t.TransactionDate < endDate)
+            .GroupBy(t => t.CategoryId!.Value)
+            .Select(g => new { CategoryId = g.Key, TotalAmount = g.Sum(t => t.Amount) })
+            .ToListAsync(cancellationToken);
+
+        return spending.ToDictionary(x => x.CategoryId, x => x.TotalAmount);
+    }
+}
+
+/// <summary>
+/// Specialized Budget repository implementing queries using pure LINQ.
+/// </summary>
+public class BudgetRepository : Repository<Budget>, IBudgetRepository
+{
+    public BudgetRepository(ApplicationDbContext dbContext) : base(dbContext) { }
+
+    public async Task<IReadOnlyList<Budget>> GetBudgetsByUserAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        return await _dbSet
+            .AsNoTracking()
+            .Where(b => b.UserId == userId && b.IsActive)
+            .OrderBy(b => b.CategoryId)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<Budget?> GetBudgetByCategoryAsync(Guid userId, Guid categoryId, CancellationToken cancellationToken = default)
+    {
+        return await _dbSet
+            .AsNoTracking()
+            .FirstOrDefaultAsync(b => b.UserId == userId && b.CategoryId == categoryId && b.IsActive, cancellationToken);
+    }
 }
 
 /// <summary>
