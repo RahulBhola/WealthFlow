@@ -93,22 +93,25 @@ Every implementation ticket across all 26 epics must strictly adhere to the foll
 - **Dependencies:** `WF-EP02-001`
 - **Testing Requirements:** Integration tests verifying multi-device login, independent token rotation per device, remote revocation, and idle expiration evaluation.
 
-### `WF-EP02-003`: Role-Based Access Control (RBAC) & First-User Admin Seeding
+### `WF-EP02-003`: Role-Based Access Control (RBAC) & Manual Singleton Admin Invariant
 - **Priority:** P0 (Blocker)
-- **Description:** Implement Role-Based Access Control (RBAC) supporting `Admin` and `User` roles using ASP.NET Core Identity. Automatically grant the `Admin` role to the first registered user during initial setup, inject role claims into JWTs, secure Admin ERP endpoints, and enforce frontend role guards.
+- **Description:** Implement Role-Based Access Control (RBAC) supporting `Admin` and `User` roles. Guarantee that self-service registration strictly assigns the `User` role. Enforce the hard singleton admin invariant ($\text{AdminCount} \le 1$) where the sole Admin account is manually seeded/inserted into PostgreSQL by the owner. Inject role claims into JWTs, secure Admin ERP endpoints, and enforce frontend role guards.
 - **Requirements:**
-  - Seed roles `Admin` and `User` via `RoleManager<IdentityRole<Guid>>`.
-  - User registration service checks `await userManager.Users.AnyAsync()`. If database has zero users, register as `Admin`; all subsequent users register as `User`.
+  - Configure ASP.NET Core Identity roles `Admin` and `User`.
+  - Self-service registration endpoint (`POST /api/v1/auth/register`) strictly assigns `User` role to all registrants; any attempt to request `Admin` role is rejected.
+  - Provide a dedicated SQL script / tooling for the owner to manually insert their single `Admin` account credentials into PostgreSQL.
+  - Enforce database filtered unique index ensuring at most one admin exists: `CREATE UNIQUE INDEX UX_Users_SingleAdmin ON "AspNetUsers" ("Role") WHERE "Role" = 'Admin'`.
   - Include `ClaimTypes.Role` ("Admin" / "User") in the generated JWT token claims.
   - Apply `[Authorize(Roles = "Admin")]` on all `/api/v1/admin/*` endpoints (`AuditLogs`, `SyncMonitor`, `Users`).
-  - Frontend: Implement `<RoleGuard requiredRole="Admin">` wrapper in React Router and conditionally render Admin navigation in `Sidebar.tsx`.
+  - Frontend: Implement `<RoleGuard requiredRole="Admin">` wrapper in React Router and conditionally render Admin navigation in `Sidebar.tsx` and `MobileNavDrawer.tsx`.
 - **Acceptance Criteria:**
-  - The first registered user in a new database gets the `Admin` role automatically.
-  - Subsequent registered users get the `User` role.
+  - Public registration only creates standard `User` accounts. Zero automatic promotion of first user.
+  - The database strictly permits at most one Admin account; creating or promoting a second admin violates database/domain invariants.
+  - Manually seeded Admin account successfully authenticates and receives the `"role": "Admin"` JWT claim.
   - Non-admin API requests to `/api/v1/admin/*` return `HTTP 403 Forbidden`.
   - Non-admin frontend users cannot see Admin links and are redirected if accessing `/admin/*` directly.
 - **Dependencies:** `WF-EP02-001`
-- **Testing Requirements:** Integration tests verifying automatic admin seeding, standard user role assignment, JWT role claim verification, and 403 Forbidden enforcement on admin endpoints.
+- **Testing Requirements:** Integration tests verifying standard user registration role enforcement, singleton admin database constraint, JWT role claim verification, and 403 Forbidden enforcement on admin endpoints.
 
 ---
 

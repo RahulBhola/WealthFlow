@@ -407,10 +407,11 @@ WealthFlow secures APIs through ASP.NET Core Identity with structured role evalu
      - `GET /api/v1/admin/sync-monitor`
      - `GET /api/v1/admin/users`
    - **Guest Endpoints:** Publicly accessible endpoints for trip participants (`/api/v1/trips/{id}/guest/...`) validated via cryptographically hashed `GuestSecureToken`.
-4. **First-User Admin Seeding:**
-   - During user registration (`POST /api/v1/auth/register`), the service checks `await userManager.Users.AnyAsync()`.
-   - If no users exist, the registering user is automatically assigned the `Admin` role via `await userManager.AddToRoleAsync(user, "Admin")`.
-   - All subsequent registrations default to the `User` role.
+4. **Manual Admin Provisioning & Singleton Admin Invariant (CRITICAL):**
+   - **Self-Service Registration Isolation:** Public registration (`POST /api/v1/auth/register`) strictly assigns the `User` role to all registrants. It **never** assigns or accepts an `Admin` role.
+   - **Singleton Admin Invariant:** Exactly **one (1) Admin account** is permitted in the database (`WHERE Role == 'Admin'`). The system enforces this constraint at both the database level (filtered unique index on `Role = 'Admin'`) and application validation layer.
+   - **Manual Database Credentials Injection:** The Admin account credentials (email, PBKDF2/Argon2 password hash, GUID, role `Admin`) are manually created and seeded directly into PostgreSQL by the owner via secure SQL insertion.
+   - **Protection:** All elevation or promotion pathways to `Admin` via API endpoints are strictly rejected with `HTTP 403 Forbidden`.
 
 ---
 

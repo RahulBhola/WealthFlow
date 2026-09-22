@@ -123,9 +123,11 @@ WealthFlow implements a structured Role-Based Access Control (RBAC) model to dis
        - System-wide Audit Logs (`/admin/audit-logs`) with before/after JSON diffs.
        - Sync Queue Monitor (`/admin/sync-monitor`) tracking offline mutations, latency, and conflict resolutions.
        - User & Session Management (`/admin/users`) for monitoring account status, locks, and active sessions.
-- **Initial Setup & Admin Seeding Rule:**
-  - The very first user account registered during system installation is **automatically granted the `Admin` role**.
-  - Subsequent registered accounts default to the `User` role, but an existing Admin can promote/demote users via the Admin ERP console.
+- **Singleton Admin & Manual Provisioning Policy (CRITICAL SECURITY RULE):**
+  - **Zero Auto-Promotion:** Self-service user registration via the web application strictly provisions standard **`User`** accounts only. The system **never** grants the `Admin` role automatically to any registered user.
+  - **Singleton Admin Invariant:** Exactly **one (1) Admin account** exists throughout the entire application. Multiple admin accounts are strictly prohibited.
+  - **Manual Database Provisioning:** The sole Admin account credentials (email, password hash, GUID, role `Admin`) are manually created/inserted directly into the database (PostgreSQL) by the system owner.
+  - **Protection:** API endpoints strictly reject any attempt to self-register or promote any account to `Admin`.
 
 ### 6.1 Accounts Module
 - **Core Concept & Boundary:** In WealthFlow, an "Account" is strictly an internal **bookkeeping profile / tracking container** (similar to a column or tab in an Excel workbook) to track where money flows. WealthFlow **never** prompts for, connects to, or stores sensitive net banking credentials, bank login passwords, OTPs, debit card PINs, CVVs, or full bank account numbers. All records are user-managed or imported via spreadsheet.
