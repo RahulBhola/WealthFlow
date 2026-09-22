@@ -20,6 +20,11 @@ WealthFlow's design system bridges personal financial clarity with enterprise ER
 
 ---
 
+### Reference Architecture & Visual Blueprint
+![WealthFlow Executive Financial Dashboard Mockup](./assets/wealthflow_dashboard_ui.jpg)
+
+---
+
 ## 2. Design Tokens
 
 ### 2.1 Color Palette & Semantic System
