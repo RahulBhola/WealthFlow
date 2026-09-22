@@ -117,7 +117,7 @@ frontend/src/
 │   │   ├── AppLayout.tsx       # Responsive desktop/mobile shell switcher
 │   │   ├── Sidebar.tsx
 │   │   ├── Header.tsx
-│   │   ├── MobileNavDrawer.tsx # Slide-over navigation drawer with complete sidebar links
+│   │   ├── BottomNav.tsx       # Mobile bottom navigation bar
 │   │   └── QuickAddFAB.tsx     # Floating Action Button
 │   └── feedback/               # ErrorBoundaries, LoadingSkeletons, EmptyStates
 ├── features/                   # Domain-Specific Feature Modules (Encapsulated)
@@ -218,38 +218,15 @@ Every route without exception renders inside the master **`AppLayout.tsx`** comp
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                       MOBILE SHELL (< 1024px)                           │
 ├─────────────────────────────────────────────────────────────────────────┤
-│ TOP HEADER: [≡ Menu] | App Logo | Sync Pill | Search | Profile          │
+│ TOP HEADER: App Logo | Offline/Sync Pill | Search | Profile             │
 ├─────────────────────────────────────────────────────────────────────────┤
 │ MAIN VIEWPORT (Touch-optimized scrollable container, px-4 py-4)         │
 │ - 12-column grid collapses to single column (`grid-cols-1 gap-4`)       │
-│ - Maximize vertical screen real estate for pure financial data          │
 │                                           ┌───────────┐                 │
 │                                           │  (+) FAB  │                 │
 │                                           └───────────┘                 │
-└─────────────────────────────────────────────────────────────────────────┘
-        │
-        ▼ (Tapping [≡ Menu] opens full-height slide-over drawer)
-┌─────────────────────────────────────────────────────────────────────────┐
-│         MOBILE NAVIGATION DRAWER (`MobileNavDrawer.tsx`)                │
 ├─────────────────────────────────────────────────────────────────────────┤
-│ HEADER: App Logo & Brand                          [✕ Close]             │
-├─────────────────────────────────────────────────────────────────────────┤
-│ USER PROFILE STRIP: User Avatar, Name, Email, Role Pill [Admin / User]  │
-├─────────────────────────────────────────────────────────────────────────┤
-│ ALL NAVIGATION LINKS (Identical to Desktop Sidebar):                    │
-│   📊 Dashboard                                                          │
-│   💳 Ledger / Transactions                                              │
-│   🏦 Accounts & Wallets                                                 │
-│   🎯 Budgets (with Protein Sub-tracker)                                 │
-│   💳 Credit Cards                                                       │
-│   📈 Investments & Joint SIPs                                           │
-│   🤝 Loans & Gifts                                                      │
-│   ✈️ Collaborative Trips & Google Pay Splits                            │
-│   📉 Analytics & Reporting                                              │
-│   ⚙️ Settings & Active Device Sessions                                  │
-│   🛡️ Admin ERP (Audit Logs, Sync Telemetry)  [Visible to Admins only]   │
-├─────────────────────────────────────────────────────────────────────────┤
-│ FOOTER: App Version | Online/Offline Status Pill | [Log Out] Action     │
+│ BOTTOM NAV: [Home]  [Ledger]  [(+) Quick Add]  [Trips]  [More...]       │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -271,7 +248,6 @@ Every route without exception renders inside the master **`AppLayout.tsx`** comp
   - `/trips/:tripId`: Complete trip workspace (Expenses, Advances, Members, Settlement).
   - `/analytics`: Deep analytics, burn rate, category sunburst, cash-flow waterfalls.
   - `/settings`: Category customization, data export/import, profile, security.
-  - `/settings/sessions`: Multi-device active session manager, device revocation, and expiration settings.
 - **Admin ERP Routes (Guarded by `<RoleGuard requiredRole="Admin">`):**
   - `/admin/users`: User management and tenant status.
   - `/admin/audit-logs`: System-wide audit log inspector with filter by IP/user.
@@ -372,10 +348,11 @@ A premier feature containing five dedicated tabs built around a decentralized gr
      - Card: **Amit** pays **Rahul** `₹625.00`
      - Card: **Neha** pays **Rahul** `₹1,250.00`
      - Card: **Neha** pays **Rohit** `₹75.00`
-   - **One-Tap "Settle Up" Action:**
-     - Tapping `[Settle Up]` opens a quick settlement confirmation modal.
-     - Options: Payment Method (UPI / Google Pay / Cash), Payment Date, Transaction Note (e.g., "Paid via GPay UPI Ref #8291").
-     - Instantly updates group balances in real-time across all connected devices via SignalR.
+   - **One-Tap "Settle Up" Action (Pure Informational Bookkeeping):**
+     - Tapping `[Settle Up]` opens a quick settlement recording dialog.
+     - **Zero External Payment Integration / Zero UPI Intent:** WealthFlow strictly operates as an informational ledger (like Splitwise). It does **not** trigger external payment gateways, launch banking apps, or execute `upi://pay` deep links (preventing VPA spoofing, fake payment exploits, and browser sandbox risks). Payment occurs independently via the user's preferred banking app.
+     - **Dialog Fields:** Amount (pre-filled with simplified debt), Payment Mode tag (`Cash`, `UPI / Bank Transfer`, `Mutual Offset`), Payment Date (defaults to today), and optional Reference Note (e.g., "Paid via GPay UPI Ref #8291").
+     - Instantly updates group balances in real-time across all connected devices via SignalR upon confirmation.
 
 ### 4.7 Guest Trip View (`/trip/:tripId/guest/:token`)
 - A streamlined, distraction-free portal for invited friends:
@@ -440,6 +417,69 @@ An interactive split editor embedded in Trip Expense forms:
       - **"Offset Against Mutual Expense" Toggle:**
         - Allows user to offset co-investor's SIP contribution against existing personal debt (e.g. offsetting ₹2,000 grocery bill paid earlier by Brother, settling net ₹5,500 cash).
       - Automatically decrements the loan receivable asset and synchronizes real-time status.
+
+### 4.11 Admin Command Center & ERP Console UI (`/admin`)
+
+The Admin ERP interfaces provide operational governance, security auditing, and offline synchronization telemetry. In accordance with the **Universal Single Styling Layout Invariant**, all admin screens mount directly inside `AppLayout` (wrapped in `<RoleGuard requiredRole="Admin">`) and strictly reuse the exact same 5-tier page blueprint, color tokens, 4px spacing scale, and card containers as personal finance modules.
+
+#### 4.11.1 Universal Single Styling Layout Compliance
+- **Layout Shell:** Uses universal `AppLayout.tsx`. The desktop `Sidebar.tsx` and mobile `MobileNavDrawer.tsx` display the dedicated "Admin ERP" navigation group (Dashboard, Users, Audit Logs, Sync Monitor) only when `currentUser.role === 'Admin'`.
+- **Page Container:** `w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6`.
+- **Component Geometry:** Utilizes standard `PageHeader`, `MetricCard` KPI strips, 12-column responsive layout (`col-span-8` primary workspace + `col-span-4` operational sidebar), standard `Card` containers, and the high-density ERP `DataTable`.
+
+#### 4.11.2 Admin Overview Dashboard (`/admin` or `/admin/dashboard`)
+- **PageHeader:**
+  - Title: `Admin Command Center`
+  - Subtitle: `System health, live telemetry, and operational ERP governance`
+  - Status Badge: `All Systems Operational` (Emerald pill) or `Degraded Performance` (Amber pill).
+  - Action Slot: Button group: `[Trigger Sync Sweep]`, `[Export System Audit Log]`, `[System Diagnostics]`.
+- **Top Metric / KPI Strip (4 Standard Cards):**
+  1. **Users & Active Sessions:** Total registered users count, active JWT sessions right now, and Singleton Admin Invariant status badge (`✓ Singleton Admin Verified`).
+  2. **Database Health & Latency:** Active provider (`PostgreSQL 16`), connection pool stats (`4 / 50 active`), p95 query latency (`12ms`), storage size (`42.8 MB`).
+  3. **Sync Throughput & Conflict Rate:** Operations processed today (`1,420`), average batch latency (`145ms`), conflict rate (`0.04%`), pending dead-letter count (`0`).
+  4. **24h Security & Audit Events:** Mutating operations logged today (`284`), failed login attempts (`0`), IP-mismatched token revocations (`0`).
+- **12-Column Responsive Operational Workspace:**
+  - **Col 8 (Primary Diagnostic Workspace):**
+    - **Live Mutation & Sync Feed:** Real-time high-density stream of incoming sync operations across clients:
+      - Columns: `Time` (`tabular-nums`), `Actor` (User Email / GUID), `Entity` (`Transaction`, `Account`, `TripMember`), `Op Type` (`INSERT`, `UPDATE`, `DELETE`), `Batch Latency` (ms), `Status` (`Synced` in Emerald, `Staged` in Amber, `Conflict` in Rose), `Client Device` (`Chrome macOS`, `PWA Android`).
+    - **Subsystems Infrastructure Telemetry Panel:**
+      - PostgreSQL Engine: Active pool connections, connection timeout, migration version.
+      - Cloud File Storage: Active provider (`Google Drive API v3` with Service Account / `Azure Blob Storage`), quota used, last receipt upload.
+      - Background Daemons: Token Cleanup Daemon (`Running`, next run in 35m), SIP Auto-Reconciliation Worker (`Idle`, scheduled for 1st of month).
+  - **Col 4 (Secondary Operational Sidebar):**
+    - **Singleton Admin Security Monitor Card:**
+      - Confirms database-level unique index invariant: $\text{AdminCount} = 1$.
+      - Displays Admin Email mask (`adm***@wealthflow.local`), last login timestamp, session IP.
+      - Prominently notes: *"Elevation disabled by domain invariant"*.
+    - **Quick ERP Operations Panel:**
+      - `[Export Full Audit Log (JSON/CSV)]`: Downloads system-wide encrypted event log.
+      - `[Re-evaluate Stale Sync Conflicts]`: Re-runs server-wins resolution logic across pending conflict batches.
+      - `[Prune Revoked Refresh Tokens]`: Manually triggers garbage collection on expired session tokens.
+
+#### 4.11.3 User & Tenant Administration (`/admin/users`)
+- **Top Metric Strip:** Total Registered Users, Active JWT Sessions, Locked Accounts, Total Attachment Storage Footprint.
+- **Search & Filter Toolbar:** Filter by account status (`All`, `Active`, `Locked`), search input by email or GUID, date picker for registration period.
+- **High-Density ERP User Table (36px Row Height):**
+  - Columns: `Avatar`, `Email`, `User GUID` (truncated with copy button), `Role` (`User` / `Admin`), `Created Date`, `Accounts Count`, `Trips Count`, `Active Devices`, `Status` (`Active` in Emerald / `Locked` in Rose), `Actions`.
+  - Row Actions: `[Lock / Unlock Account]`, `[Revoke All Sessions]`, `[Inspect Audit Trail]`.
+  - *Hard Security Invariant:* The UI provides **zero option to elevate any user to `Admin`**, strictly upholding the manual singleton admin constraint.
+- **`UserSessionInspectorModal`:** Clicking "Active Devices" opens a side modal showing all authorized client sessions for that user with IP, device name, login timestamp, and individual `[Revoke Session]` action.
+
+#### 4.11.4 System Audit Log Inspector (`/admin/audit-logs`)
+- **Filter Toolbar:** Multi-select Entity Type (`Account`, `Transaction`, `Trip`, `Budget`, `Session`), Action Type (`CREATE`, `UPDATE`, `DELETE`, `AUTH`), Actor (Admin / User GUID), Date Range, and Full-Text JSON search.
+- **High-Density Audit Event Grid:**
+  - Columns: `Timestamp` (`tabular-nums`), `Actor Email`, `Action` (colored badges: Green `CREATE`, Blue `UPDATE`, Red `DELETE`, Amber `AUTH`), `Entity Name`, `Entity ID`, `Client IP`, `Changes Diff Trigger`.
+- **Slide-Over `AuditDiffDrawer`:**
+  - Clicking any audit log row triggers a 480px slide-over sheet.
+  - Renders a colorized JSON diff comparing `OldValuesJson` against `NewValuesJson` (Emerald highlighting for added fields, Rose for deleted/modified fields, Slate for unchanged context).
+
+#### 4.11.5 Offline Sync & Conflict Queue Monitor (`/admin/sync-monitor`)
+- **Top Metric Strip:** Queue Depth, Average Processing Latency (ms), Conflict Rate %, Dead-Letter Queue Count.
+- **Client Sync Telemetry Grid:** Real-time breakdown of connected PWA clients, pending mutations in flight, and SignalR connection status.
+- **Conflict Resolution & Dead-Letter Table:**
+  - Displays any sync conflicts where client mutation collided with concurrent server state.
+  - Columns: `Client Device`, `User`, `Entity`, `Client Timestamp`, `Server Timestamp`, `Conflict Type` (`ConcurrentEdit`, `MissingParent`), `Resolution Applied` (`ServerWins`), `Actions`.
+  - Actions: `[Inspect Inbound Payload]`, `[Force Client Version Override]`, `[Discard Conflict]`.
 
 ---
 

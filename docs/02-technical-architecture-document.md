@@ -574,5 +574,26 @@ To ensure long-term maintainability, developer ergonomics, and clear architectur
 
 ---
 
+## 13. Testing Architecture & Single Universal Test Account Invariant
+
+To ensure deterministic, ultra-fast test execution and eliminate database state pollution, WealthFlow enforces strict rules governing integration and end-to-end testing:
+
+### 13.1 Single Universal Test Account Invariant (CRITICAL)
+- **Zero Dynamic User Provisioning:** Integration tests (`WealthFlow.IntegrationTests`), E2E suites, and test seeders must **never** dynamically register, generate, or spawn arbitrary user accounts (e.g. `testuser1`, `temp_guid@test.com`) during test execution.
+- **The Designated Test Account:** All testing suites, fixtures, API test clients, and seed data must strictly provision and reference **exactly one (1) designated test user account**:
+  - **Email:** `test@wealthflow.local`
+  - **Fixed User GUID:** `11111111-1111-1111-1111-111111111111`
+  - **Role:** `User`
+  - **Default Password:** `Test@123456`
+- **Testing Invariant Rule:** Every test case that tests personal finance, accounts, transactions, investments, trips, or settings must authenticate as and reference this single universal account.
+
+### 13.2 Test Environment Isolation & Reset Strategy
+- **Fixture Topology:** Tests utilize `CustomWebApplicationFactory<Program>` with an isolated test database (PostgreSQL container via Testcontainers or isolated test schema).
+- **State Reset via Transaction Rollbacks / Respawn:** Rather than registering fresh users between test classes, tests utilize `Respawn` or transaction rollback scopes to clean child records (`Transactions`, `Accounts`, `Trips`) while preserving the single seeded `test@wealthflow.local` user.
+- **Multi-Participant Testing (Trips):** When testing collaborative trips involving multiple members, tests use the universal test user as the primary trip owner/member and associate additional participants as **Guest Participants** (via `GuestSecureToken`) or predefined static guest fixtures, without creating additional registered user accounts.
+- **Admin Endpoint Verification:** Admin API tests reference the manually seeded singleton Admin account (`admin@wealthflow.local`, GUID: `00000000-0000-0000-0000-000000000001`), verifying that `test@wealthflow.local` strictly receives `HTTP 403 Forbidden` on `/api/v1/admin/*`.
+
+---
+
 *End of Technical Architecture Document.*
 

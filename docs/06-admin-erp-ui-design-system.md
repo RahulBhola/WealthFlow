@@ -257,33 +257,106 @@ To ensure the user experiences a cohesive and predictable UI throughout the enti
 
 ## 6. Admin & ERP Screen Specifications
 
-WealthFlow's administrative and operational interfaces **share the exact same `AppLayout`, color palette, typography scale, and card containers** as consumer features, ensuring zero visual disconnect.
+WealthFlow's administrative and operational interfaces **strictly share the exact same `AppLayout`, 4px spacing scale, color palette, typography tokens, and card container geometry** as consumer features, ensuring a unified visual identity and zero design divergence.
 
 ```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                      ADMIN ERP CONSOLE LAYOUT                           │
-├──────────────┬──────────────────────────────────────────────────────────┤
-│ ADMIN NAV    │ TOP BAR: System Status | DB Provider: PostgreSQL | User  │
-│ - Telemetry  ├──────────────────────────────────────────────────────────┤
-│ - Audit Logs │ HIGH-DENSITY AUDIT DATA GRID                             │
-│ - Sync Queue │ [Filters: User | Action | Date Range | Search JSON]      │
-│ - Migration  │ ┌──────┬────────┬────────┬──────────────┬──────────────┐ │
-│ - Settings   │ │ Time │ Actor  │ Action │ Entity (ID)  │ Changes Diff │ │
-│              │ ├──────┼────────┼────────┼──────────────┼──────────────┤ │
-│              │ │11:20 │ rahul  │ UPDATE │ Account (01) │ +₹2,000 diff │ │
-│              │ └──────┴────────┴────────┴──────────────┴──────────────┘ │
-└──────────────┴──────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│                                       ADMIN COMMAND CENTER (`/admin/dashboard`)                                 │
+├─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ TOP HEADER: App Logo | System Status: [● Operational] | DB: PostgreSQL 16 | Admin: rahul | [≡ Drawer]           │
+├─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ PAGE HEADER: Admin Command Center — System Health, Live Telemetry & ERP Operations                              │
+│ Action Buttons: [Trigger Sync Sweep]  [Export Audit Logs]  [Diagnostics]                                        │
+├─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ STANDARDIZED SYSTEM METRIC / KPI STRIP (4 Standard Metric Cards)                                                │
+│ ┌──────────────────────┐ ┌──────────────────────┐ ┌──────────────────────┐ ┌──────────────────────────────────┐ │
+│ │ Total Users & Sess.  │ │ PostgreSQL DB Health │ │ Sync Throughput      │ │ 24h Security & Audit Events      │ │
+│ │ 1 User / 3 Sessions  │ │ Pool: 4/50 | p95:12ms│ │ 1,420 msgs | 145ms lt│ │ 284 Mutations | 0 Failures    │ │
+│ │ [✓ Singleton Admin]  │ │ Size: 42.8 MB        │ │ Conflict: 0.04% (0 DL│ │ [● 0 Failed Logins]              │ │
+│ └──────────────────────┘ └──────────────────────┘ └──────────────────────┘ └──────────────────────────────────┘ │
+├─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ 12-COLUMN RESPONSIVE OPERATIONAL WORKSPACE                                                                      │
+│ ┌─────────────────────────────────────────────────────────────┐ ┌─────────────────────────────────────────────┐ │
+│ │ PRIMARY WORKSPACE (lg:col-span-8)                           │ │ OPERATIONAL SIDEBAR (lg:col-span-4)         │ │
+│ │ ┌─────────────────────────────────────────────────────────┐ │ │ ┌─────────────────────────────────────────┐ │ │
+│ │ │ LIVE MUTATION & CLIENT SYNC STREAM                      │ │ │ │ SINGLETON ADMIN INVARIANT MONITOR         │ │ │
+│ │ │ [Filters: All Entities | All Statuses | Search Actor]   │ │ │ │ Status: [✓ Invariant Enforced (Count = 1)]│ │ │
+│ │ │ ┌────────┬─────────────┬──────────┬──────────┬────────┐ │ │ │ │ Admin: adm***@wealthflow.local            │ │ │
+│ │ │ │ Time   │ Actor       │ Entity   │ Op Type  │ Status │ │ │ │ DB Constraint: UX_Users_SingleAdmin     │ │ │
+│ │ │ ├────────┼─────────────┼──────────┼──────────┼────────┤ │ │ │ │ Elevation Route: Disabled / 403 Hard  │ │ │
+│ │ │ │ 11:24  │ test@local  │ Txn #82  │ INSERT   │ Synced │ │ │ └─────────────────────────────────────────┘ │ │
+│ │ │ │ 11:22  │ test@local  │ Account  │ UPDATE   │ Synced │ │ │ ┌─────────────────────────────────────────┐ │ │
+│ │ │ │ 11:15  │ test@local  │ Trip #03 │ INSERT   │ Synced │ │ │ │ QUICK ERP OPERATIONS                      │ │ │
+│ │ │ └────────┴─────────────┴──────────┴──────────┴────────┘ │ │ │ │ [Export System Audit Log (JSON)]          │ │ │
+│ │ └─────────────────────────────────────────────────────────┘ │ │ │ [Sweep Stale Sync Conflicts]              │ │ │
+│ │ ┌─────────────────────────────────────────────────────────┐ │ │ │ [Prune Expired Refresh Tokens]           │ │ │
+│ │ │ SUBSYSTEMS INFRASTRUCTURE TELEMETRY                     │ │ │ │ [Inspect Database Index Latency]          │ │ │
+│ │ │ - PostgreSQL 16: Active Pool 4/50, Migration V1 Verified│ │ │ └─────────────────────────────────────────┘ │ │
+│ │ │ - Cloud Storage: Google Drive API v3 (PostgreSQL Mode)  │ │ │ ┌─────────────────────────────────────────┐ │ │
+│ │ │ - Background Jobs: Token Cleanup (Active, next in 35m)  │ │ │ │ RECENT SECURITY ALERTS                    │ │ │
+│ │ │ - SIP Auto-Reconciler: Standby (Scheduled: 1st of month)│ │ │ │ [●] 0 Flagged IP-Mismatches (Last 24h)   │ │ │
+│ │ └─────────────────────────────────────────────────────────┘ │ │ └─────────────────────────────────────────┘ │ │
+│ └─────────────────────────────────────────────────────────────┘ └─────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### 6.1 ERP Data Table Requirements
-- **Row Height:** Compact 36px height to display up to 25 rows per screen without scrolling.
-- **Features:** Sticky column headers, sorting, multi-column search, column visibility toggle, and CSV export.
-- **Audit Diff Inspector:** Clicking an audit log row opens a side drawer rendering a colorized JSON diff comparing `OldValuesJson` against `NewValuesJson`.
+### 6.1 ERP High-Density Data Table (`DataTable`) Specifications
+All operational tables across `/admin/users`, `/admin/audit-logs`, and `/admin/sync-monitor` utilize the high-density ERP `DataTable` component:
+- **Row Height:** Compact 36px height (allowing up to 25 rows per screen without vertical pagination scroll).
+- **Typography:**
+  - Column Headers: `text-xs font-semibold text-slate-500 uppercase tracking-wider`.
+  - Cell Text: `text-sm font-normal text-slate-800 dark:text-slate-200`.
+  - Identifiers, Dates & Quantities: `font-mono tabular-nums text-xs`.
+- **Interactive Features:** Sticky table header (`sticky top-0 bg-white dark:bg-slate-900 z-10`), multi-column sorting indicators, inline search filter bar, and CSV/JSON export action.
+- **Semantic Badging Tokens:**
+  - `Synced` / `Active` / `Create`: Emerald pill (`bg-emerald-50 text-emerald-700 border-emerald-200`).
+  - `Pending` / `Staged` / `Update`: Sky pill (`bg-sky-50 text-sky-700 border-sky-200`).
+  - `Warning` / `Auth`: Amber pill (`bg-amber-50 text-amber-700 border-amber-200`).
+  - `Locked` / `Conflict` / `Delete`: Rose pill (`bg-rose-50 text-rose-700 border-rose-200`).
 
-### 6.2 Synchronization Queue Monitor
-- Visualizes real-time offline sync operations across active clients:
-  - Metrics: Total Operations Synced Today, Average Processing Latency, Conflict Rate %, Failed Queue Count.
-  - Manual action to trigger server-side re-evaluation or discard stale conflict records.
+### 6.2 Slide-Over Audit Diff Inspector (`AuditDiffDrawer`)
+Clicking any row in `/admin/audit-logs` slides in a full-height inspection drawer from the right viewport edge:
+
+```
+┌──────────────────────────────────────────────────────────┐
+│ AUDIT LOG INSPECTOR: Event #82914                        │
+│ Action: UPDATE | Entity: Account (HDFC Salary) | [✕ Close│
+├──────────────────────────────────────────────────────────┤
+│ Metadata:                                                │
+│ - Actor: rahul (admin) | IP: 103.21.201.44               │
+│ - Timestamp: 2026-09-23 00:35:12 UTC                     │
+│ - User Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X)    │
+├──────────────────────────────────────────────────────────┤
+│ JSON CHANGES DIFF (OldValues vs. NewValues):             │
+│ ┌──────────────────────────────────────────────────────┐ │
+│ │ {                                                    │ │
+│ │   "Id": "018f2b31-...",                              │ │
+│ │ - "Balance": 24500.00,        (Rose - Removed)       │ │
+│ │ + "Balance": 26500.00,        (Emerald - Added)      │ │
+│ │ - "UpdatedAt": "2026-09-20",  (Rose - Removed)       │ │
+│ │ + "UpdatedAt": "2026-09-23"   (Emerald - Added)      │ │
+│ │ }                                                    │ │
+│ └──────────────────────────────────────────────────────┘ │
+├──────────────────────────────────────────────────────────┤
+│ Actions: [Copy Raw JSON]  [Filter by this Entity]        │
+└──────────────────────────────────────────────────────────┘
+```
+- **Width:** 480px fixed on desktop (`w-full sm:max-w-lg`), full-screen on mobile.
+- **Diff Presentation:** Unified colorized JSON diff view with line-by-line syntax highlighting (Rose background for deleted keys, Emerald for inserted/modified keys).
+
+### 6.3 Synchronization Queue & Conflict Resolution Center
+Visualizes real-time offline mutation sync operations across all connected clients:
+- **Telemetry Metrics:** Total Operations Processed Today, Average Client-to-Server Latency, Conflict Rate %, Dead-Letter Queue Depth.
+- **Dead-Letter / Conflict Action Center:** When a client-side mutation collides with server state (e.g. concurrent balance adjustment), the admin can:
+  - Inspect raw JSON client payload vs server snapshot.
+  - Choose `[Enforce Server State]` (default rule) or `[Force Client Version Override]`.
+  - Discard stale conflict records with a single click.
+
+### 6.4 User & Tenant Administration (`/admin/users`)
+- **Top Metric Strip:** Total Registered Users, Active JWT Sessions, Locked Accounts, Total Attachment Storage Footprint.
+- **ERP Table Columns:** Avatar, Email, User GUID, Role (`User` / `Admin`), Created Date, Accounts Count, Trips Count, Active Devices, Status (`Active` / `Locked`), Actions.
+- **UserSessionInspectorModal:** Renders all active devices for a target user (IP, device name, login timestamp, refresh token expiration) with an immediate remote `[Revoke Session]` action.
+- **Hard Invariant:** The user table strictly disables any role promotion/elevation controls to preserve the **Manual Singleton Admin Invariant**.
 
 ---
 

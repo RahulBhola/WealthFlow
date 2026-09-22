@@ -38,7 +38,7 @@ Every implementation ticket across all 26 epics must strictly adhere to the foll
   - Dependency verification test ensures `Domain` has no dependencies on other projects.
   - DI container cleanly resolves `IUnitOfWork` and all repositories.
 - **Dependencies:** None
-- **Testing Requirements:** Architectural unit test using NetArchTest or reflection verifying project dependency rules and DI resolution smoke test.
+- **Testing Requirements:** Architectural unit test using NetArchTest or reflection verifying project dependency rules and DI resolution smoke test. Establish base test fixture infrastructure (`CustomWebApplicationFactory`) enforcing the **Single Universal Test Account Invariant** (`test@wealthflow.local`, GUID `11111111-1111-1111-1111-111111111111`) to prevent dynamic test user registration and database pollution.
 
 ### `WF-EP01-002`: Initialize Frontend Vite + React 19 + TypeScript with Component-Based Architecture & Unified Layout
 - **Priority:** P0 (Blocker)
@@ -73,7 +73,7 @@ Every implementation ticket across all 26 epics must strictly adhere to the foll
   - Refresh tokens rotate on every invocation; replaying an old refresh token invalidates the session family.
   - Brute force protection locks account after 5 consecutive failed attempts.
 - **Dependencies:** `WF-EP01-001`
-- **Testing Requirements:** Integration tests verifying login, token issuance, cookie attributes (`HttpOnly`, `SameSite=Strict`, `Secure`), and lockout.
+- **Testing Requirements:** Integration tests verifying login, token issuance, cookie attributes (`HttpOnly`, `SameSite=Strict`, `Secure`), and lockout using strictly the single universal test user account (`test@wealthflow.local`). Tests must not dynamically register random accounts.
 
 ### `WF-EP02-002`: Multi-Device Session Management & Inactivity Expiration
 - **Priority:** P1
@@ -426,7 +426,23 @@ Every implementation ticket across all 26 epics must strictly adhere to the foll
 - **Acceptance Criteria:**
   - Loads under 150ms with database indexes.
 - **Dependencies:** `WF-EP05-001`, `WF-EP06-001`, `WF-EP07-001`, `WF-EP08-001`
-- **Testing Requirements:** Integration test verifying aggregation accuracy against known seeded transactions.
+- **Testing Requirements:** Integration test verifying aggregation accuracy against known seeded transactions using the single universal test user account (`test@wealthflow.local`).
+
+### `WF-EP18-002`: Admin Command Center & ERP Console UI
+- **Priority:** P1
+- **Description:** Implement the Admin ERP Console (`/admin/dashboard`, `/admin/users`, `/admin/audit-logs`, `/admin/sync-monitor`) adhering strictly to the Universal Single Styling Layout Invariant and Component-Based Architecture.
+- **Requirements:**
+  - Route configuration protected by `<RoleGuard requiredRole="Admin">`.
+  - Admin Command Center (`/admin/dashboard`): 4-card system metric strip (Users & Sessions, PostgreSQL DB Health, Sync Throughput & Conflict Rate, 24h Security/Audit Events), Col-8 Live Mutation Stream & Subsystems Telemetry, Col-4 Singleton Admin Security Monitor & Quick ERP Operations panel.
+  - User & Tenant Administration (`/admin/users`): High-density ERP DataTable (36px rows), session count badges, lock/unlock actions, remote session revocation modal (`UserSessionInspectorModal`). Strictly zero role elevation options.
+  - System Audit Log Inspector (`/admin/audit-logs`): High-density event table, filter toolbar, slide-over `AuditDiffDrawer` displaying colorized before/after JSON diffs.
+  - Offline Sync & Conflict Monitor (`/admin/sync-monitor`): Real-time queue telemetry, latency charts, conflict dead-letter inspection and resolution controls.
+- **Acceptance Criteria:**
+  - Non-admin users are prevented from viewing or accessing any `/admin/*` routes.
+  - Admin UI mounts seamlessly inside `AppLayout.tsx` using identical Tailwind tokens and card geometry.
+  - High-density table renders smoothly with sorting, filtering, and JSON diff inspection.
+- **Dependencies:** `WF-EP01-002`, `WF-EP02-003`
+- **Testing Requirements:** Frontend Vitest component tests verifying role-guard redirection, metric strip rendering, and audit diff drawer interaction.
 
 ---
 

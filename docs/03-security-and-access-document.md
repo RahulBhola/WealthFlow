@@ -283,5 +283,24 @@ Because WealthFlow operates offline using IndexedDB:
 
 ---
 
+## 10. Testing Security & Zero Payment Integration Security Rationale
+
+### 10.1 Testing Environment Isolation & Single Universal Test Account
+- **Single Test Account Invariant:** All automated integration tests, unit test fixtures, and E2E suites are strictly restricted to **one (1) designated test user account**:
+  - Email: `test@wealthflow.local`
+  - Fixed User ID: `11111111-1111-1111-1111-111111111111`
+  - Role: `User`
+- **Zero Database Pollution:** Tests never dynamically spawn or register arbitrary user accounts. All test assertions, seed data, and fixtures refer exclusively to this single account.
+- **State Cleanup:** Test execution isolates state using transaction rollbacks or database cleaner utilities (`Respawn`), preserving the single test user account while wiping child records between tests.
+
+### 10.2 Zero Payment Integration & Pure Bookkeeping Security Rationale
+WealthFlow strictly rejects integrating payment gateways, banking APIs, or native UPI intent deep-linking (`upi://pay`), preserving a pure manual informational ledger model:
+1. **Payee VPA Spoofing / Tampering Defense:** In collaborative trips, accepting user-entered UPI VPAs (e.g. `user@okhdfcbank`) introduces phishing vulnerabilities where a malicious participant could swap a group member's VPA to their own. Clicking external links would pre-fill the attacker's VPA in native banking apps. By remaining a pure ledger, WealthFlow eliminates VPA injection risks.
+2. **Fake Payment Exploit Prevention:** Browser sandboxes cannot cryptographically verify native app execution without heavy payment gateway backends. A user could trigger an intent, cancel the prompt in Google Pay, and falsely claim payment occurred. Pure manual logging requires explicit mutual confirmation.
+3. **Data Protection & Regulatory Immunity (DPDP Act):** WealthFlow stores zero banking credentials, zero OTPs, zero debit card PINs, and zero payment tokens, remaining legally classified as personal bookkeeping software exempt from payment aggregator regulations.
+4. **Absolute Zero-Trust Asset Security:** Even in the event of an infrastructure breach, **no funds can ever be stolen or transferred**, as WealthFlow possesses zero money-movement capabilities.
+
+---
+
 *End of Security and Access Specification.*
 
