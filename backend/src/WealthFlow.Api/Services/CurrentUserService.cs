@@ -19,8 +19,18 @@ public class CurrentUserService : ICurrentUserService
     {
         get
         {
-            var userIdStr = _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userIdStr = _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier)
+                ?? _httpContextAccessor.HttpContext?.User?.FindFirstValue("sub");
             return Guid.TryParse(userIdStr, out var userId) ? userId : null;
+        }
+    }
+
+    public Guid? SessionId
+    {
+        get
+        {
+            var sidStr = _httpContextAccessor.HttpContext?.User?.FindFirstValue("sid");
+            return Guid.TryParse(sidStr, out var sid) ? sid : null;
         }
     }
 

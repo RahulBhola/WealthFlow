@@ -19,6 +19,7 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
     public const string TestUserEmail = "test@wealthflow.local";
     public const string TestUserRole = "User";
     public const string TestUserPassword = "Test@123456";
+    private readonly string _databaseName = $"WealthFlow_TestDb_{Guid.NewGuid():N}";
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -29,7 +30,11 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
             config.AddInMemoryCollection(new Dictionary<string, string?>
             {
                 ["DatabaseProvider"] = "InMemory",
-                ["ConnectionStrings:DefaultConnection"] = "WealthFlow_IntegrationTests_Db"
+                ["ConnectionStrings:DefaultConnection"] = _databaseName,
+                ["Jwt:Secret"] = "WealthFlowSuperSecretKeyMustBeAtLeast32BytesLong!",
+                ["Jwt:Issuer"] = "WealthFlow",
+                ["Jwt:Audience"] = "WealthFlowClient",
+                ["Jwt:AccessTokenExpirationMinutes"] = "15"
             });
         });
     }
@@ -58,6 +63,11 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
         if (!await roleManager.RoleExistsAsync(TestUserRole))
         {
             await roleManager.CreateAsync(new ApplicationRole(TestUserRole));
+        }
+
+        if (!await roleManager.RoleExistsAsync("Admin"))
+        {
+            await roleManager.CreateAsync(new ApplicationRole("Admin"));
         }
 
         var existingUser = await userManager.FindByIdAsync(TestUserId.ToString());

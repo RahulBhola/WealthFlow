@@ -15,6 +15,7 @@ public class UserSession : BaseEntity, IAggregateRoot
     public string? Browser { get; private set; }
     public string? IpAddress { get; private set; }
     public string RefreshTokenHash { get; private set; } = string.Empty;
+    public string? PreviousRefreshTokenHash { get; private set; }
     public DateTime LastActiveAtUtc { get; private set; } = DateTime.UtcNow;
     public DateTime ExpiresAtUtc { get; private set; }
     public DateTime AbsoluteExpiresAtUtc { get; private set; }
@@ -36,6 +37,7 @@ public class UserSession : BaseEntity, IAggregateRoot
         DeviceName = deviceName;
         DeviceType = deviceType;
         RefreshTokenHash = refreshTokenHash;
+        PreviousRefreshTokenHash = null;
         ExpiresAtUtc = expiresAtUtc.Kind == DateTimeKind.Utc ? expiresAtUtc : DateTime.SpecifyKind(expiresAtUtc, DateTimeKind.Utc);
         AbsoluteExpiresAtUtc = absoluteExpiresAtUtc.Kind == DateTimeKind.Utc ? absoluteExpiresAtUtc : DateTime.SpecifyKind(absoluteExpiresAtUtc, DateTimeKind.Utc);
         LastActiveAtUtc = DateTime.UtcNow;
@@ -59,6 +61,7 @@ public class UserSession : BaseEntity, IAggregateRoot
 
     public void RotateToken(string newRefreshTokenHash, DateTime newExpiresAtUtc)
     {
+        PreviousRefreshTokenHash = RefreshTokenHash;
         RefreshTokenHash = newRefreshTokenHash;
         Touch(newExpiresAtUtc);
     }

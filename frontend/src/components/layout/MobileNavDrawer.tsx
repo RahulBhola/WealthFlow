@@ -1,6 +1,6 @@
 import React from 'react'
 import { cn } from '@/lib/utils'
-import { navigationItems } from './Sidebar'
+import { navigationItems } from './navItems'
 import { X, LogOut, CheckCircle2 } from 'lucide-react'
 
 export interface MobileNavDrawerProps {

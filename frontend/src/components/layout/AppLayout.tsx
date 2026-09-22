@@ -58,6 +58,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
           onOpenMobileNav={() => setIsMobileNavOpen(true)}
           userEmail={userEmail}
           userRole={userRole}
+          onLogout={onLogout}
         />
 
         {/* Universal Page Blueprint Container */}

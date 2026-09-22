@@ -1,11 +1,12 @@
 import React from 'react'
 import { cn } from '@/lib/utils'
-import { Menu, Search, Bell, CheckCircle2 } from 'lucide-react'
+import { Menu, Search, Bell, CheckCircle2, LogOut } from 'lucide-react'
 
 export interface HeaderProps {
   onOpenMobileNav: () => void
   userEmail?: string
   userRole?: string
+  onLogout?: () => void
   className?: string
 }
 
@@ -17,6 +18,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenMobileNav,
   userEmail = 'test@wealthflow.local',
   userRole = 'User',
+  onLogout,
   className,
 }) => {
   return (
@@ -92,6 +94,18 @@ export const Header: React.FC<HeaderProps> = ({
               Role: {userRole}
             </span>
           </div>
+
+          {onLogout && (
+            <button
+              type="button"
+              onClick={onLogout}
+              title="Sign Out"
+              aria-label="Sign Out"
+              className="p-1.5 ml-1 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+          )}
         </div>
       </div>
     </header>
