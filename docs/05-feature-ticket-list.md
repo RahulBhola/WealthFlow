@@ -17,6 +17,7 @@ Every implementation ticket across all 26 epics must strictly adhere to the foll
 2. **Type Safety & Precision:** Authoritative financial amounts use `decimal(18,2)`. Identifiers use GUIDs.
 3. **Database Portability:** Pure LINQ queries—zero raw SQL strings or provider-specific syntax in business logic.
 4. **Testing & Verification:** Comprehensive unit and integration tests passing before ticket completion.
+5. **Universal Single Styling Layout Compliance:** All screens across every feature and module must mount inside the unified `AppLayout.tsx` shell and strictly conform to the 5-tier Universal Page Blueprint (`PageHeader` -> `Metric KPI Strip` -> `12-Column Responsive Grid` -> `Card / DataTable`). Ad-hoc styling systems, custom page layouts, or conflicting CSS classes are strictly prohibited.
 
 ---
 
@@ -39,21 +40,22 @@ Every implementation ticket across all 26 epics must strictly adhere to the foll
 - **Dependencies:** None
 - **Testing Requirements:** Architectural unit test using NetArchTest or reflection verifying project dependency rules and DI resolution smoke test.
 
-### `WF-EP01-002`: Initialize Frontend Vite + React 19 + TypeScript with Component-Based Architecture
+### `WF-EP01-002`: Initialize Frontend Vite + React 19 + TypeScript with Component-Based Architecture & Unified Layout
 - **Priority:** P0 (Blocker)
-- **Description:** Scaffold the frontend PWA application using Vite, TypeScript, Tailwind CSS, Lucide icons, and React Router, strictly architected around Component-Based Architecture (CBA).
+- **Description:** Scaffold the frontend PWA application using Vite, TypeScript, Tailwind CSS, Lucide icons, and React Router, strictly architected around Component-Based Architecture (CBA) and enforcing a single unified styling layout across all pages.
 - **Requirements:**
   - Configure `vite.config.ts` with path aliases (`@/features`, `@/components`, `@/hooks`, `@/lib`, `@/types`).
   - Establish 5-tier component layering: Atoms/Molecules in `components/ui/`, Layout Templates in `components/layout/`, Domain Organisms in `features/*/components/`, and Route View Pages in `features/*/pages/`.
+  - Implement the universal master shell `AppLayout.tsx` and 5-tier Page Blueprint (`PageHeader`, `MetricCard`, 12-column responsive grid, `Card`, `DataTable`).
   - Enforce Container/Presentational pattern: visual components receive immutable typed props (`Props -> JSX`), while state, network calls, and mutations are encapsulated in dedicated custom container hooks (`hooks/`).
   - Setup ESLint, Prettier, and TypeScript strict mode configurations (zero `any` types permitted).
   - Install and configure Tailwind CSS with custom color palette (Emerald, Rose, Sky, Amber, Violet).
 - **Acceptance Criteria:**
   - `npm run build` and `npm run dev` execute cleanly.
-  - Component library directory structure compiles with sample Atom (`Button`), Molecule (`FormField`), and Layout Shell (`AppLayout`).
+  - Component library directory structure compiles with sample Atom (`Button`), Molecule (`FormField`), Layout Shell (`AppLayout`), and Page Blueprint.
   - Tailwind utilities and custom CSS variables load without styling conflicts.
 - **Dependencies:** None
-- **Testing Requirements:** Vitest setup verifying smoke render of atomic components and `App.tsx`.
+- **Testing Requirements:** Vitest setup verifying smoke render of atomic components, `AppLayout`, and `App.tsx`.
 
 ---
 

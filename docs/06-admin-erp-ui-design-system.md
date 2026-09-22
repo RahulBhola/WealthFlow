@@ -16,6 +16,7 @@ WealthFlow's design system bridges personal financial clarity with enterprise ER
 3. **Non-Color Reliance (Accessibility First):** Colors reinforce semantic meaning, but **never convey information alone**. Every positive, negative, warning, or pending state is accompanied by directional icons, symbols (`+`, `-`, `↔`), and explicit ARIA labels.
 4. **Ergonomic Speed & Frictionless Entry:** Frequent tasks (e.g., recording a ₹40 coffee or splitting a dinner bill) must require fewer than three taps/clicks or a single keyboard shortcut (`Ctrl+K`).
 5. **Deterministic Visual Hierarchy:** High-impact metrics (Net Worth, Total Liquid Cash, Budget Breaches) dominate the primary focal plane, while granular transaction metadata recedes gracefully.
+6. **Universal Single Styling Layout Invariant:** Exactly **one styling layout is enforced across the entire application**. Bespoke card styling, ad-hoc font scales, diverging margins, or custom page shells are strictly forbidden. All personal finance views, collaborative trips, user settings, and Admin ERP consoles share the exact same `AppLayout`, `PageHeader`, 12-column grid, and card/table token geometry.
 
 ---
 
@@ -211,9 +212,40 @@ All components are strictly built using **Component-Based Architecture (CBA)**, 
 
 ---
 
-## 5. Admin & ERP Screen Specifications
+## 5. Universal Layout & Page Anatomy Blueprint
 
-WealthFlow includes dedicated administrative and operational interfaces for deep data inspection and system health monitoring.
+To ensure the user experiences a cohesive and predictable UI throughout the entire application, every single view strictly implements the **Universal Page Blueprint**:
+
+### 5.1 Page Shell Tokens & Geometry
+- **Outer Shell Wrapper (`PageContainer`):**
+  - CSS Classes: `w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6`
+  - Ensures identical horizontal gutters and vertical rhythmic cadence across all viewports.
+- **Unified Header (`PageHeader`):**
+  - Container: `flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800`
+  - Title: `text-2xl font-bold tracking-tight text-slate-900 dark:text-white`
+  - Subtitle: `text-sm text-slate-500 dark:text-slate-400 mt-1`
+  - Action Slot: Right-aligned button group for primary and secondary actions (e.g. `(+) Add Transaction`, `[Export CSV]`).
+- **Standardized Metric / KPI Strip:**
+  - Container: `grid grid-cols-2 lg:grid-cols-4 gap-4`
+  - Card: `bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 shadow-sm`
+  - Value: `text-xl sm:text-2xl font-bold font-mono tabular-nums text-slate-900 dark:text-white`
+  - Delta / Badge: Semantic pills (`bg-emerald-50 text-emerald-700` or `bg-rose-50 text-rose-700`).
+- **Standardized 12-Column Responsive Content Grid:**
+  - Container: `grid grid-cols-1 lg:grid-cols-12 gap-6 items-start`
+  - Primary Workspace: `lg:col-span-8 space-y-6` (hosts primary data table, transaction feed, or chart visualizer).
+  - Secondary Workspace: `lg:col-span-4 space-y-6` (hosts filter widgets, summary cards, or quick mutation forms).
+  - Full-Width Variant: `lg:col-span-12` (used for comprehensive high-density ERP data tables).
+- **Universal Card Container Anatomy (`Card`):**
+  - Container: `bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm overflow-hidden`
+  - Header (`CardHeader`): `px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between`
+  - Body (`CardBody`): `p-6`
+  - Footer (`CardFooter`): `px-6 py-3 bg-slate-50 dark:bg-slate-800/40 border-t border-slate-200 dark:border-slate-800 flex justify-end gap-3`
+
+---
+
+## 6. Admin & ERP Screen Specifications
+
+WealthFlow's administrative and operational interfaces **share the exact same `AppLayout`, color palette, typography scale, and card containers** as consumer features, ensuring zero visual disconnect.
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
@@ -231,19 +263,19 @@ WealthFlow includes dedicated administrative and operational interfaces for deep
 └──────────────┴──────────────────────────────────────────────────────────┘
 ```
 
-### 5.1 ERP Data Table Requirements
+### 6.1 ERP Data Table Requirements
 - **Row Height:** Compact 36px height to display up to 25 rows per screen without scrolling.
 - **Features:** Sticky column headers, sorting, multi-column search, column visibility toggle, and CSV export.
 - **Audit Diff Inspector:** Clicking an audit log row opens a side drawer rendering a colorized JSON diff comparing `OldValuesJson` against `NewValuesJson`.
 
-### 5.2 Synchronization Queue Monitor
+### 6.2 Synchronization Queue Monitor
 - Visualizes real-time offline sync operations across active clients:
   - Metrics: Total Operations Synced Today, Average Processing Latency, Conflict Rate %, Failed Queue Count.
   - Manual action to trigger server-side re-evaluation or discard stale conflict records.
 
 ---
 
-## 6. Accessibility & Responsive Touch Standards
+## 7. Accessibility & Responsive Touch Standards
 
 - **Target Standard:** WCAG 2.1 Level AA.
 - **Contrast Ratios:** Text against background exceeds $4.5 : 1$; large headers and UI controls exceed $3 : 1$.

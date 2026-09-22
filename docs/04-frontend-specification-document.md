@@ -152,18 +152,59 @@ frontend/src/
 
 ---
 
-## 3. Application Layout & Navigation Flow
+## 3. Unified Application Styling Layout & Navigation Flow
 
-WealthFlow delivers tailored layouts for desktop and mobile form factors while sharing the underlying logic:
+WealthFlow strictly enforces **one universal styling layout across the entire application**. No feature, screen, or module is permitted to implement custom layouts, divergent spacing scales, ad-hoc card borders, or standalone CSS systems. Every view—from daily expense logging to group trip workspaces, settings, and Admin ERP consoles—strictly mounts within the exact same visual shell.
+
+### 3.1 The "Single Styling Layout Across All Application" Standard
+
+Every route without exception renders inside the master **`AppLayout.tsx`** component and adheres to a standardized 5-tier page anatomy:
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                      DESKTOP LAYOUT (>= 1024px)                         │
+│                       UNIVERSAL PAGE ANATOMY                            │
+├─────────────────────────────────────────────────────────────────────────┤
+│ Tier 1: PageHeader                                                      │
+│ ┌─────────────────────────────────────────────────────────────────────┐ │
+│ │ Breadcrumb > Section                                                │ │
+│ │ Page Title (24px bold)                     [Action Button Group]    │ │
+│ │ Descriptive Subtitle (14px slate-500)                               │ │
+│ └─────────────────────────────────────────────────────────────────────┘ │
+├─────────────────────────────────────────────────────────────────────────┤
+│ Tier 2: Metric / KPI Strip (3-4 Uniform Metric Cards)                   │
+│ ┌───────────────┐ ┌───────────────┐ ┌───────────────┐ ┌───────────────┐ │
+│ │ Icon Metric 1 │ │ Icon Metric 2 │ │ Icon Metric 3 │ │ Icon Metric 4 │ │
+│ │ ₹1,45,200.00  │ │ ₹24,800.00    │ │ +12.4% ↑      │ │ 3 Pending ⚠   │ │
+│ └───────────────┘ └───────────────┘ └───────────────┘ └───────────────┘ │
+├─────────────────────────────────────────────────────────────────────────┤
+│ Tier 3: 12-Column Responsive Layout Grid (gap-6)                        │
+│ ┌──────────────────────────────────────────────┬──────────────────────┐ │
+│ │ Primary Content Region (Col-Span-8)          │ Secondary Region     │ │
+│ │ - High-Density ERP DataTable                 │ (Col-Span-4)         │ │
+│ │ - Interactive Recharts Financial Visualizer  │ - Summary Card       │ │
+│ │ - Transaction Feed / Ledger                  │ - Quick Action Form  │ │
+│ │                                              │ - Filters / Context  │ │
+│ └──────────────────────────────────────────────┴──────────────────────┘ │
+├─────────────────────────────────────────────────────────────────────────┤
+│ Tier 4: Standardized Card Architecture (Card, CardHeader, CardBody)     │
+│ - Shared Canvas: `bg-white dark:bg-slate-900 border border-slate-200`  │
+│ - Shared Radius: `rounded-xl` (12px) | Shared Elevation: `shadow-sm`    │
+│ - Shared Padding: `p-4 sm:p-6` across every card in the product        │
+├─────────────────────────────────────────────────────────────────────────┤
+│ Tier 5: Standardized Dialogs (Modal & Drawer)                           │
+│ - Backdrop: `backdrop-blur-sm bg-slate-900/50` | Corners: `rounded-2xl`│
+│ - Standard Action Footer: `[Cancel]` Secondary + `[Confirm]` Primary    │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                      DESKTOP SHELL (>= 1024px)                          │
 ├──────────────┬──────────────────────────────────────────────────────────┤
-│ SIDEBAR      │ HEADER: Search Bar | Sync Status | Quick Add | Profile   │
+│ SIDEBAR      │ HEADER: Global Search | Sync Pill | Quick Add | Profile  │
 │ - Dashboard  ├──────────────────────────────────────────────────────────┤
-│ - Ledger     │ MAIN VIEWPORT (Scrollable)                               │
-│ - Accounts   │                                                          │
+│ - Ledger     │ MAIN VIEWPORT (`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8`) │
+│ - Accounts   │ Scrollable container hosting the Universal Page Anatomy  │
 │ - Budgets    │                                                          │
 │ - Cards      │                                                          │
 │ - Invest/SIP │                                                          │
@@ -171,15 +212,16 @@ WealthFlow delivers tailored layouts for desktop and mobile form factors while s
 │ - Trips      │                                                          │
 │ - Analytics  │                                                          │
 │ - Settings   │                                                          │
+│ - Admin ERP  │                                                          │
 └──────────────┴──────────────────────────────────────────────────────────┘
 
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                       MOBILE LAYOUT (< 1024px)                          │
+│                       MOBILE SHELL (< 1024px)                           │
 ├─────────────────────────────────────────────────────────────────────────┤
 │ TOP HEADER: App Logo | Offline/Sync Pill | Search | Profile             │
 ├─────────────────────────────────────────────────────────────────────────┤
-│ MAIN VIEWPORT (Touch-optimized scrollable content)                      │
-│                                                                         │
+│ MAIN VIEWPORT (Touch-optimized scrollable container, px-4 py-4)         │
+│ - 12-column grid collapses to single column (`grid-cols-1 gap-4`)       │
 │                                           ┌───────────┐                 │
 │                                           │  (+) FAB  │                 │
 │                                           └───────────┘                 │
@@ -188,13 +230,13 @@ WealthFlow delivers tailored layouts for desktop and mobile form factors while s
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 
-### 3.1 Route Hierarchy
-- **Public Routes:**
+### 3.2 Route Hierarchy
+- **Public Routes (Rendered within minimal auth layout with centered card):**
   - `/login`: Email and password authentication with lockout notification.
   - `/register`: User onboarding and default currency selection (INR).
   - `/forgot-password`: Password reset request flow.
-  - `/trip/:tripId/guest/:token`: Standalone secure guest portal for collaborative trips.
-- **Protected App Routes (Requires JWT):**
+  - `/trip/:tripId/guest/:token`: Standalone guest portal (shares identical card, typography, and button styling).
+- **Protected App Routes (Rendered strictly inside `AppLayout`):**
   - `/`: Executive Financial Dashboard.
   - `/transactions`: Full transaction ledger with search, category filtering, and bulk tools.
   - `/accounts`: Bank accounts, digital wallets, cash-in-hand cards, and transfer modal.
@@ -207,7 +249,7 @@ WealthFlow delivers tailored layouts for desktop and mobile form factors while s
   - `/analytics`: Deep analytics, burn rate, category sunburst, cash-flow waterfalls.
   - `/settings`: Category customization, data export/import, profile, security.
   - `/settings/sessions`: Multi-device active session manager, device revocation, and expiration settings.
-- **Admin ERP Routes (Requires Admin Role):**
+- **Admin ERP Routes (Rendered strictly inside `AppLayout` with Admin Navigation badge):**
   - `/admin/users`: User management and tenant status.
   - `/admin/audit-logs`: System-wide audit log inspector with filter by IP/user.
   - `/admin/sync-monitor`: Real-time telemetry on sync queue latency and errors.

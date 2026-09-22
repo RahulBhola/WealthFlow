@@ -49,6 +49,7 @@ The user currently tracks personal finances using a legacy Microsoft Excel workb
 - **Zero-Friction Guest Participation:** Allow non-registered friends to view trip balances and record their expenses via cryptographically secure, time-bounded guest links without creating an account or seeing the host's private finances.
 - **Offline-First Resilience:** Provide instant read/write capabilities via IndexedDB and Service Worker (PWA) with deterministic, idempotent background synchronization.
 - **Strict Database Portability:** Build against a decoupled EF Core abstraction that runs seamlessly on **PostgreSQL** initially and can migrate to **Azure SQL Database** with zero changes to domain, entities, or business logic.
+- **Single Unified Styling Layout:** Guarantee an intuitive, non-fragmented user experience by strictly enforcing one universal styling layout across all application screens (personal finance, group trips, settings, and administration) without custom or conflicting UI layouts.
 
 ### 3.2 Non-Goals (V1 Scope Exclusions)
 - **Direct Banking APIs / Account Aggregator:** V1 will not connect directly to banking APIs or Open Banking/AA aggregators. All data is entered manually or via Excel/CSV import.
