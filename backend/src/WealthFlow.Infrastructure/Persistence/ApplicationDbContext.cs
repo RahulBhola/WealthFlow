@@ -43,10 +43,18 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     public DbSet<JointSipReconciliation> JointSipReconciliations => Set<JointSipReconciliation>();
     public DbSet<Budget> Budgets => Set<Budget>();
     public DbSet<Gift> Gifts => Set<Gift>();
+    public DbSet<SyncOperationLog> SyncOperationLogs => Set<SyncOperationLog>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
+
+        // Configure indexes on SyncOperationLog for deduplication and admin queries
+        builder.Entity<SyncOperationLog>()
+            .HasIndex(s => s.IdempotencyKey);
+
+        builder.Entity<SyncOperationLog>()
+            .HasIndex(s => new { s.UserId, s.Status });
 
         // Core Invariant 4: Manual Singleton Admin Invariant (AdminCount <= 1)
         // Enforce filtered unique index ensuring at most one Admin exists in AspNetUsers

@@ -15,6 +15,9 @@ import { LedgerPage } from '@/features/transactions/pages/LedgerPage'
 import { CreditCardsPage } from '@/features/credit-cards/pages/CreditCardsPage'
 import { LoansPage } from '@/features/loans/pages/LoansPage'
 import { InvestmentsPage } from '@/features/investments/pages/InvestmentsPage'
+import { TripsListPage } from '@/features/trips/pages/TripsListPage'
+import { TripWorkspacePage } from '@/features/trips/pages/TripWorkspacePage'
+import { GuestTripViewPage } from '@/features/trips/pages/GuestTripViewPage'
 
 export const AuthenticatedShell: React.FC = () => {
   const { user, logout } = useAuth()
@@ -46,6 +49,8 @@ export const App: React.FC = () => {
           {/* Public Routes */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/trip/:tripId/guest/:token" element={<GuestTripViewPage />} />
+          <Route path="/trips/:tripId/guest/:token" element={<GuestTripViewPage />} />
 
           {/* Protected Routes enforcing Single Layout & Role Guards */}
           <Route
@@ -63,6 +68,8 @@ export const App: React.FC = () => {
             <Route path="/credit-cards" element={<CreditCardsPage />} />
             <Route path="/loans" element={<LoansPage />} />
             <Route path="/investments" element={<InvestmentsPage />} />
+            <Route path="/trips" element={<TripsListPage />} />
+            <Route path="/trips/:tripId" element={<TripWorkspacePage />} />
             <Route path="/settings/sessions" element={<SessionsPage />} />
             <Route
               path="/admin"

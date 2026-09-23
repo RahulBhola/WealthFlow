@@ -5,7 +5,7 @@ namespace WealthFlow.Domain.Entities;
 /// <summary>
 /// Individual allocated financial portion of a trip expense assigned to a specific participant.
 /// </summary>
-public class TripExpenseSplit : BaseEntity
+public class TripExpenseSplit : BaseEntity, IAggregateRoot
 {
     public Guid TripExpenseId { get; private set; }
     public Guid MemberId { get; private set; }

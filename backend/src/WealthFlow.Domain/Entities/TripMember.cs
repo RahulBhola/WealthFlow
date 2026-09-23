@@ -6,7 +6,7 @@ namespace WealthFlow.Domain.Entities;
 /// Participant in a collaborative trip workspace.
 /// Can be a registered user or an anonymous invited guest authenticated via cryptographic URL token.
 /// </summary>
-public class TripMember : BaseEntity
+public class TripMember : BaseEntity, IAggregateRoot
 {
     public Guid TripId { get; private set; }
     public Guid? RegisteredUserId { get; private set; }

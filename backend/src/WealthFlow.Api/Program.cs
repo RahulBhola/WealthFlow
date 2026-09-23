@@ -1,6 +1,8 @@
+using WealthFlow.Api.Hubs;
 using WealthFlow.Api.Services;
 using WealthFlow.Application;
 using WealthFlow.Application.Common.Interfaces;
+using WealthFlow.Application.Features.Trips.Interfaces;
 using WealthFlow.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,6 +15,10 @@ builder.Services.AddSingleton<IDateTimeService, DateTimeService>();
 // Register Application & Infrastructure layers
 builder.Services.AddApplicationServices();
 builder.Services.AddInfrastructureServices(builder.Configuration);
+
+// Register Real-time SignalR & Trip notification service
+builder.Services.AddSignalR();
+builder.Services.AddScoped<ITripNotificationService, TripNotificationService>();
 
 // CORS configuration
 builder.Services.AddCors(options =>
@@ -46,6 +52,9 @@ app.UseCors("DefaultPolicy");
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+// Map SignalR TripHub
+app.MapHub<TripHub>("/hubs/trip");
 
 // Health check endpoint
 app.MapGet("/health", () => Results.Ok(new

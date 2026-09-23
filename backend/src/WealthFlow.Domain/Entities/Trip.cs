@@ -25,8 +25,14 @@ public class Trip : BaseEntity, IAggregateRoot
         DateTime startDate,
         DateTime endDate,
         decimal? budget = null,
-        TripStatus status = TripStatus.Planning)
+        TripStatus status = TripStatus.Planning,
+        Guid? id = null)
     {
+        if (id.HasValue && id.Value != Guid.Empty)
+        {
+            Id = id.Value;
+        }
+
         HostUserId = hostUserId;
         Name = name;
         Destination = destination;

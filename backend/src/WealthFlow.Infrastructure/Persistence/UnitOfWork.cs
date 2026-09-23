@@ -17,6 +17,11 @@ public class UnitOfWork : IUnitOfWork
     private ITransactionRepository? _transactionRepository;
     private IBudgetRepository? _budgetRepository;
     private ITripRepository? _tripRepository;
+    private ITripMemberRepository? _tripMemberRepository;
+    private ITripExpenseRepository? _tripExpenseRepository;
+    private ITripExpenseSplitRepository? _tripExpenseSplitRepository;
+    private ITripAdvanceRepository? _tripAdvanceRepository;
+    private ITripSettlementRepository? _tripSettlementRepository;
     private ISipRepository? _sipRepository;
     private IInvestmentRepository? _investmentRepository;
     private IJointSipReconciliationRepository? _jointSipReconciliationRepository;
@@ -24,6 +29,7 @@ public class UnitOfWork : IUnitOfWork
     private ILoanRepository? _loanRepository;
     private IRepository<WealthFlow.Domain.Entities.LoanRepayment>? _loanRepaymentRepository;
     private IGiftRepository? _giftRepository;
+    private ISyncOperationLogRepository? _syncOperationLogRepository;
 
     public UnitOfWork(ApplicationDbContext dbContext)
     {
@@ -35,6 +41,11 @@ public class UnitOfWork : IUnitOfWork
     public ITransactionRepository Transactions => _transactionRepository ??= new TransactionRepository(_dbContext);
     public IBudgetRepository Budgets => _budgetRepository ??= new BudgetRepository(_dbContext);
     public ITripRepository Trips => _tripRepository ??= new TripRepository(_dbContext);
+    public ITripMemberRepository TripMembers => _tripMemberRepository ??= new TripMemberRepository(_dbContext);
+    public ITripExpenseRepository TripExpenses => _tripExpenseRepository ??= new TripExpenseRepository(_dbContext);
+    public ITripExpenseSplitRepository TripExpenseSplits => _tripExpenseSplitRepository ??= new TripExpenseSplitRepository(_dbContext);
+    public ITripAdvanceRepository TripAdvances => _tripAdvanceRepository ??= new TripAdvanceRepository(_dbContext);
+    public ITripSettlementRepository TripSettlements => _tripSettlementRepository ??= new TripSettlementRepository(_dbContext);
     public ISipRepository Sips => _sipRepository ??= new SipRepository(_dbContext);
     public IInvestmentRepository Investments => _investmentRepository ??= new InvestmentRepository(_dbContext);
     public IJointSipReconciliationRepository JointSipReconciliations => _jointSipReconciliationRepository ??= new JointSipReconciliationRepository(_dbContext);
@@ -42,6 +53,7 @@ public class UnitOfWork : IUnitOfWork
     public ILoanRepository Loans => _loanRepository ??= new LoanRepository(_dbContext);
     public IRepository<WealthFlow.Domain.Entities.LoanRepayment> LoanRepayments => _loanRepaymentRepository ??= new Repository<WealthFlow.Domain.Entities.LoanRepayment>(_dbContext);
     public IGiftRepository Gifts => _giftRepository ??= new GiftRepository(_dbContext);
+    public ISyncOperationLogRepository SyncOperationLogs => _syncOperationLogRepository ??= new SyncOperationLogRepository(_dbContext);
 
     public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {

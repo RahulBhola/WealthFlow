@@ -37,8 +37,14 @@ public class Transaction : BaseEntity, IAggregateRoot
         string? tags = null,
         Guid? linkedEntityId = null,
         Guid? idempotencyKey = null,
-        SyncStatus syncStatus = SyncStatus.Synced)
+        SyncStatus syncStatus = SyncStatus.Synced,
+        Guid? id = null)
     {
+        if (id.HasValue && id.Value != Guid.Empty)
+        {
+            Id = id.Value;
+        }
+
         UserId = userId;
         AccountId = accountId;
         Amount = amount;

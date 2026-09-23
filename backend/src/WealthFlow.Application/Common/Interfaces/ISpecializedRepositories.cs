@@ -122,4 +122,57 @@ public interface IGiftRepository : IRepository<Gift>
     Task<IReadOnlyList<Gift>> GetGiftsByUserAsync(Guid userId, CancellationToken cancellationToken = default);
 }
 
+/// <summary>
+/// Specialized repository contract for Trip Members.
+/// </summary>
+public interface ITripMemberRepository : IRepository<TripMember>
+{
+    Task<IReadOnlyList<TripMember>> GetMembersByTripAsync(Guid tripId, CancellationToken cancellationToken = default);
+    Task<TripMember?> GetMemberByGuestTokenHashAsync(Guid tripId, string tokenHash, CancellationToken cancellationToken = default);
+}
+
+/// <summary>
+/// Specialized repository contract for Trip Expenses.
+/// </summary>
+public interface ITripExpenseRepository : IRepository<TripExpense>
+{
+    Task<IReadOnlyList<TripExpense>> GetExpensesByTripAsync(Guid tripId, CancellationToken cancellationToken = default);
+}
+
+/// <summary>
+/// Specialized repository contract for Trip Expense Splits.
+/// </summary>
+public interface ITripExpenseSplitRepository : IRepository<TripExpenseSplit>
+{
+    Task<IReadOnlyList<TripExpenseSplit>> GetSplitsByExpenseAsync(Guid expenseId, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<TripExpenseSplit>> GetSplitsByTripAsync(Guid tripId, CancellationToken cancellationToken = default);
+}
+
+/// <summary>
+/// Specialized repository contract for Travel Advances.
+/// </summary>
+public interface ITripAdvanceRepository : IRepository<TripAdvance>
+{
+    Task<IReadOnlyList<TripAdvance>> GetAdvancesByTripAsync(Guid tripId, CancellationToken cancellationToken = default);
+}
+
+/// <summary>
+/// Specialized repository contract for Trip Settlements.
+/// </summary>
+public interface ITripSettlementRepository : IRepository<TripSettlement>
+{
+    Task<IReadOnlyList<TripSettlement>> GetSettlementsByTripAsync(Guid tripId, CancellationToken cancellationToken = default);
+}
+
+/// <summary>
+/// Specialized repository contract for Synchronization Operation Logs.
+/// </summary>
+public interface ISyncOperationLogRepository : IRepository<SyncOperationLog>
+{
+    Task<SyncOperationLog?> GetByIdempotencyKeyAsync(Guid idempotencyKey, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<SyncOperationLog>> GetConflictLogsByUserAsync(Guid userId, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<SyncOperationLog>> GetRecentLogsAsync(int count, CancellationToken cancellationToken = default);
+    Task<(int TotalProcessedToday, int ConflictCountToday, int DeadLetterCount)> GetTelemetryStatsAsync(CancellationToken cancellationToken = default);
+}
+
 

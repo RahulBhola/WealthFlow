@@ -1,6 +1,7 @@
 import React from 'react'
 import { cn } from '@/lib/utils'
-import { Menu, Search, Bell, CheckCircle2, LogOut } from 'lucide-react'
+import { Menu, Search, Bell, LogOut } from 'lucide-react'
+import { SyncPill } from '@/features/sync/components/SyncPill'
 
 export interface HeaderProps {
   onOpenMobileNav: () => void
@@ -66,9 +67,8 @@ export const Header: React.FC<HeaderProps> = ({
       {/* Right Slot: Sync Status Pill, Notifications, & User Profile */}
       <div className="flex items-center gap-3">
         {/* Offline Sync Status Pill */}
-        <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800">
-          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
-          <span className="font-mono text-[11px]">Synced</span>
+        <div className="hidden sm:flex">
+          <SyncPill />
         </div>
 
         {/* Notification Bell */}

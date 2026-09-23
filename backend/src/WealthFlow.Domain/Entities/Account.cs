@@ -30,8 +30,14 @@ public class Account : BaseEntity, IAggregateRoot
         string? accountNumberMask = null,
         int sortOrder = 0,
         string? colorTag = null,
-        string currency = "INR")
+        string currency = "INR",
+        Guid? id = null)
     {
+        if (id.HasValue && id.Value != Guid.Empty)
+        {
+            Id = id.Value;
+        }
+
         UserId = userId;
         Name = name;
         AccountType = accountType;

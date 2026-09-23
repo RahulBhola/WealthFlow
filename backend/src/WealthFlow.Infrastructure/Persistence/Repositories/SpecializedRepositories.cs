@@ -247,6 +247,107 @@ public class TripRepository : Repository<Trip>, ITripRepository
 }
 
 /// <summary>
+/// Specialized TripMember repository implementing queries using pure LINQ.
+/// </summary>
+public class TripMemberRepository : Repository<TripMember>, ITripMemberRepository
+{
+    public TripMemberRepository(ApplicationDbContext dbContext) : base(dbContext) { }
+
+    public async Task<IReadOnlyList<TripMember>> GetMembersByTripAsync(Guid tripId, CancellationToken cancellationToken = default)
+    {
+        return await _dbSet
+            .AsNoTracking()
+            .Where(m => m.TripId == tripId)
+            .OrderBy(m => m.CreatedAtUtc)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<TripMember?> GetMemberByGuestTokenHashAsync(Guid tripId, string tokenHash, CancellationToken cancellationToken = default)
+    {
+        return await _dbSet
+            .FirstOrDefaultAsync(m => m.TripId == tripId && m.GuestSecureTokenHash == tokenHash, cancellationToken);
+    }
+}
+
+/// <summary>
+/// Specialized TripExpense repository implementing queries using pure LINQ.
+/// </summary>
+public class TripExpenseRepository : Repository<TripExpense>, ITripExpenseRepository
+{
+    public TripExpenseRepository(ApplicationDbContext dbContext) : base(dbContext) { }
+
+    public async Task<IReadOnlyList<TripExpense>> GetExpensesByTripAsync(Guid tripId, CancellationToken cancellationToken = default)
+    {
+        return await _dbSet
+            .AsNoTracking()
+            .Where(e => e.TripId == tripId)
+            .OrderByDescending(e => e.ExpenseDate)
+            .ToListAsync(cancellationToken);
+    }
+}
+
+/// <summary>
+/// Specialized TripExpenseSplit repository implementing queries using pure LINQ.
+/// </summary>
+public class TripExpenseSplitRepository : Repository<TripExpenseSplit>, ITripExpenseSplitRepository
+{
+    public TripExpenseSplitRepository(ApplicationDbContext dbContext) : base(dbContext) { }
+
+    public async Task<IReadOnlyList<TripExpenseSplit>> GetSplitsByExpenseAsync(Guid expenseId, CancellationToken cancellationToken = default)
+    {
+        return await _dbSet
+            .AsNoTracking()
+            .Where(s => s.TripExpenseId == expenseId)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<TripExpenseSplit>> GetSplitsByTripAsync(Guid tripId, CancellationToken cancellationToken = default)
+    {
+        return await (from s in _dbContext.TripExpenseSplits
+                      join e in _dbContext.TripExpenses on s.TripExpenseId equals e.Id
+                      where e.TripId == tripId
+                      select s)
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+    }
+}
+
+/// <summary>
+/// Specialized TripAdvance repository implementing queries using pure LINQ.
+/// </summary>
+public class TripAdvanceRepository : Repository<TripAdvance>, ITripAdvanceRepository
+{
+    public TripAdvanceRepository(ApplicationDbContext dbContext) : base(dbContext) { }
+
+    public async Task<IReadOnlyList<TripAdvance>> GetAdvancesByTripAsync(Guid tripId, CancellationToken cancellationToken = default)
+    {
+        return await _dbSet
+            .AsNoTracking()
+            .Where(a => a.TripId == tripId)
+            .OrderByDescending(a => a.AdvanceDate)
+            .ToListAsync(cancellationToken);
+    }
+}
+
+/// <summary>
+/// Specialized TripSettlement repository implementing queries using pure LINQ.
+/// </summary>
+public class TripSettlementRepository : Repository<TripSettlement>, ITripSettlementRepository
+{
+    public TripSettlementRepository(ApplicationDbContext dbContext) : base(dbContext) { }
+
+    public async Task<IReadOnlyList<TripSettlement>> GetSettlementsByTripAsync(Guid tripId, CancellationToken cancellationToken = default)
+    {
+        return await _dbSet
+            .AsNoTracking()
+            .Where(s => s.TripId == tripId)
+            .OrderByDescending(s => s.SettledAtUtc)
+            .ToListAsync(cancellationToken);
+    }
+}
+
+
+/// <summary>
 /// Specialized SIP repository implementing queries using pure LINQ.
 /// </summary>
 public class SipRepository : Repository<SIP>, ISipRepository
@@ -406,6 +507,46 @@ public class GiftRepository : Repository<Gift>, IGiftRepository
             .Where(g => g.UserId == userId)
             .OrderByDescending(g => g.Date)
             .ToListAsync(cancellationToken);
+    }
+}
+
+/// <summary>
+/// Specialized SyncOperationLog repository implementing pure LINQ queries for background sync, idempotency, and conflicts.
+/// </summary>
+public class SyncOperationLogRepository : Repository<SyncOperationLog>, ISyncOperationLogRepository
+{
+    public SyncOperationLogRepository(ApplicationDbContext dbContext) : base(dbContext) { }
+
+    public async Task<SyncOperationLog?> GetByIdempotencyKeyAsync(Guid idempotencyKey, CancellationToken cancellationToken = default)
+    {
+        return await _dbSet
+            .FirstOrDefaultAsync(s => s.IdempotencyKey == idempotencyKey, cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<SyncOperationLog>> GetConflictLogsByUserAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        return await _dbSet
+            .Where(s => s.UserId == userId && s.Status == "Conflict")
+            .OrderByDescending(s => s.ServerTimestampUtc)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<SyncOperationLog>> GetRecentLogsAsync(int count, CancellationToken cancellationToken = default)
+    {
+        return await _dbSet
+            .OrderByDescending(s => s.ServerTimestampUtc)
+            .Take(count)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<(int TotalProcessedToday, int ConflictCountToday, int DeadLetterCount)> GetTelemetryStatsAsync(CancellationToken cancellationToken = default)
+    {
+        var todayUtc = DateTime.UtcNow.Date;
+        var totalToday = await _dbSet.CountAsync(s => s.ServerTimestampUtc >= todayUtc, cancellationToken);
+        var conflictToday = await _dbSet.CountAsync(s => s.ServerTimestampUtc >= todayUtc && s.Status == "Conflict", cancellationToken);
+        var deadLetter = await _dbSet.CountAsync(s => s.Status == "Failed", cancellationToken);
+
+        return (totalToday, conflictToday, deadLetter);
     }
 }
 

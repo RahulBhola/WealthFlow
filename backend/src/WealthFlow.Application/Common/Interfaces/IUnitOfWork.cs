@@ -10,6 +10,11 @@ public interface IUnitOfWork : IDisposable
     ITransactionRepository Transactions { get; }
     IBudgetRepository Budgets { get; }
     ITripRepository Trips { get; }
+    ITripMemberRepository TripMembers { get; }
+    ITripExpenseRepository TripExpenses { get; }
+    ITripExpenseSplitRepository TripExpenseSplits { get; }
+    ITripAdvanceRepository TripAdvances { get; }
+    ITripSettlementRepository TripSettlements { get; }
     ISipRepository Sips { get; }
     IInvestmentRepository Investments { get; }
     IJointSipReconciliationRepository JointSipReconciliations { get; }
@@ -17,6 +22,7 @@ public interface IUnitOfWork : IDisposable
     ILoanRepository Loans { get; }
     IRepository<WealthFlow.Domain.Entities.LoanRepayment> LoanRepayments { get; }
     IGiftRepository Gifts { get; }
+    ISyncOperationLogRepository SyncOperationLogs { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     Task BeginTransactionAsync(CancellationToken cancellationToken = default);

@@ -26,8 +26,14 @@ public class Category : BaseEntity, IAggregateRoot
         string? icon = null,
         string? colorHex = null,
         bool isSpecialProtein = false,
-        bool isSpecialClothing = false)
+        bool isSpecialClothing = false,
+        Guid? id = null)
     {
+        if (id.HasValue && id.Value != Guid.Empty)
+        {
+            Id = id.Value;
+        }
+
         Name = name;
         UserId = userId;
         ParentCategoryId = parentCategoryId;
