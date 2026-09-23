@@ -5,7 +5,7 @@ namespace WealthFlow.Domain.Entities;
 /// <summary>
 /// Individual repayment transaction applied towards a peer loan.
 /// </summary>
-public class LoanRepayment : BaseEntity
+public class LoanRepayment : BaseEntity, IAggregateRoot
 {
     public Guid LoanId { get; private set; }
     public Guid AccountId { get; private set; }

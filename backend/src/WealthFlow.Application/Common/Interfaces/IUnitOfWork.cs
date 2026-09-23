@@ -11,6 +11,10 @@ public interface IUnitOfWork : IDisposable
     IBudgetRepository Budgets { get; }
     ITripRepository Trips { get; }
     ISipRepository Sips { get; }
+    ICreditCardRepository CreditCards { get; }
+    ILoanRepository Loans { get; }
+    IRepository<WealthFlow.Domain.Entities.LoanRepayment> LoanRepayments { get; }
+    IGiftRepository Gifts { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     Task BeginTransactionAsync(CancellationToken cancellationToken = default);

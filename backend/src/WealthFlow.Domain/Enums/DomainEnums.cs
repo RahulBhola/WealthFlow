@@ -143,3 +143,33 @@ public enum BudgetThresholdStatus
     Exceeded = 4  // >= 100% (Rose)
 }
 
+/// <summary>
+/// Direction of a one-way gift transfer.
+/// </summary>
+public enum GiftDirection
+{
+    Given = 1,
+    Received = 2
+}
+
+/// <summary>
+/// Status of a bilateral peer loan.
+/// </summary>
+public enum LoanStatus
+{
+    Open = 1,
+    PartiallyRepaid = 2,
+    FullySettled = 3
+}
+
+/// <summary>
+/// Credit card payment due date urgency alert level.
+/// </summary>
+public enum CreditCardAlertSeverity
+{
+    Normal = 1,
+    Warning = 2,
+    Critical = 3,
+    Overdue = 4
+}
+

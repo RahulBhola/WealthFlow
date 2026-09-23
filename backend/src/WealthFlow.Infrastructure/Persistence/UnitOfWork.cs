@@ -18,6 +18,10 @@ public class UnitOfWork : IUnitOfWork
     private IBudgetRepository? _budgetRepository;
     private ITripRepository? _tripRepository;
     private ISipRepository? _sipRepository;
+    private ICreditCardRepository? _creditCardRepository;
+    private ILoanRepository? _loanRepository;
+    private IRepository<WealthFlow.Domain.Entities.LoanRepayment>? _loanRepaymentRepository;
+    private IGiftRepository? _giftRepository;
 
     public UnitOfWork(ApplicationDbContext dbContext)
     {
@@ -30,6 +34,10 @@ public class UnitOfWork : IUnitOfWork
     public IBudgetRepository Budgets => _budgetRepository ??= new BudgetRepository(_dbContext);
     public ITripRepository Trips => _tripRepository ??= new TripRepository(_dbContext);
     public ISipRepository Sips => _sipRepository ??= new SipRepository(_dbContext);
+    public ICreditCardRepository CreditCards => _creditCardRepository ??= new CreditCardRepository(_dbContext);
+    public ILoanRepository Loans => _loanRepository ??= new LoanRepository(_dbContext);
+    public IRepository<WealthFlow.Domain.Entities.LoanRepayment> LoanRepayments => _loanRepaymentRepository ??= new Repository<WealthFlow.Domain.Entities.LoanRepayment>(_dbContext);
+    public IGiftRepository Gifts => _giftRepository ??= new GiftRepository(_dbContext);
 
     public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
@@ -38,7 +46,7 @@ public class UnitOfWork : IUnitOfWork
 
     public async Task BeginTransactionAsync(CancellationToken cancellationToken = default)
     {
-        if (_currentTransaction != null)
+        if (_currentTransaction != null || _dbContext.Database.ProviderName == "Microsoft.EntityFrameworkCore.InMemory")
         {
             return;
         }

@@ -15,7 +15,15 @@ public class CreditCard : BaseEntity, IAggregateRoot
     public int BillingCycleDay { get; private set; }
     public int DueDay { get; private set; }
     public decimal CurrentOutstanding { get; private set; }
+    public string ColorTag { get; private set; } = "#1E293B";
     public bool IsActive { get; private set; } = true;
+
+    // Domain Computations
+    public string BankName => Issuer;
+    public decimal CurrentBalance => CurrentOutstanding;
+    public string MaskedNumber => string.IsNullOrWhiteSpace(Last4Digits) ? "•••• ••••" : $"•••• {Last4Digits}";
+    public decimal AvailableCredit => Math.Max(0m, CreditLimit - CurrentOutstanding);
+    public decimal UtilizationPercentage => CreditLimit > 0m ? Math.Round((CurrentOutstanding / CreditLimit) * 100m, 2) : 0m;
 
     protected CreditCard() { }
 
@@ -26,17 +34,41 @@ public class CreditCard : BaseEntity, IAggregateRoot
         string last4Digits,
         decimal creditLimit,
         int billingCycleDay,
-        int dueDay)
+        int dueDay,
+        string? colorTag = null)
     {
         UserId = userId;
         CardName = cardName;
         Issuer = issuer;
         Last4Digits = last4Digits;
         CreditLimit = creditLimit;
-        BillingCycleDay = billingCycleDay;
-        DueDay = dueDay;
+        BillingCycleDay = Math.Clamp(billingCycleDay, 1, 31);
+        DueDay = Math.Clamp(dueDay, 1, 31);
         CurrentOutstanding = 0m;
+        ColorTag = string.IsNullOrWhiteSpace(colorTag) ? "#1E293B" : colorTag;
         IsActive = true;
+    }
+
+    public void RecordPayment(decimal amount)
+    {
+        if (amount <= 0)
+        {
+            throw new ArgumentException("Payment amount must be greater than zero.", nameof(amount));
+        }
+
+        CurrentOutstanding = Math.Max(0m, CurrentOutstanding - amount);
+        SetUpdated();
+    }
+
+    public void RecordPurchase(decimal amount)
+    {
+        if (amount <= 0)
+        {
+            throw new ArgumentException("Purchase amount must be greater than zero.", nameof(amount));
+        }
+
+        CurrentOutstanding += amount;
+        SetUpdated();
     }
 
     public void AdjustOutstanding(decimal netDelta)
@@ -45,13 +77,23 @@ public class CreditCard : BaseEntity, IAggregateRoot
         SetUpdated();
     }
 
-    public void UpdateDetails(string cardName, string issuer, decimal creditLimit, int billingCycleDay, int dueDay)
+    public void UpdateDetails(string cardName, string issuer, decimal creditLimit, int billingCycleDay, int dueDay, string? colorTag = null)
     {
         CardName = cardName;
         Issuer = issuer;
         CreditLimit = creditLimit;
-        BillingCycleDay = billingCycleDay;
-        DueDay = dueDay;
+        BillingCycleDay = Math.Clamp(billingCycleDay, 1, 31);
+        DueDay = Math.Clamp(dueDay, 1, 31);
+        if (!string.IsNullOrWhiteSpace(colorTag))
+        {
+            ColorTag = colorTag;
+        }
+        SetUpdated();
+    }
+
+    public void SetActive(bool isActive)
+    {
+        IsActive = isActive;
         SetUpdated();
     }
 }

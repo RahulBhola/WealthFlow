@@ -73,3 +73,30 @@ public interface ISipRepository : IRepository<SIP>
     Task<IReadOnlyList<SIP>> GetActiveSipsByUserAsync(Guid userId, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<SIP>> GetJointSipsByUserAsync(Guid userId, CancellationToken cancellationToken = default);
 }
+
+/// <summary>
+/// Specialized repository contract for Credit Card facilities.
+/// </summary>
+public interface ICreditCardRepository : IRepository<CreditCard>
+{
+    Task<IReadOnlyList<CreditCard>> GetCreditCardsByUserAsync(Guid userId, CancellationToken cancellationToken = default);
+    Task<CreditCard?> GetByIdAsync(Guid id, Guid userId, CancellationToken cancellationToken = default);
+}
+
+/// <summary>
+/// Specialized repository contract for Bilateral Loan obligations.
+/// </summary>
+public interface ILoanRepository : IRepository<Loan>
+{
+    Task<IReadOnlyList<Loan>> GetLoansByUserAsync(Guid userId, CancellationToken cancellationToken = default);
+    Task<Loan?> GetByIdWithRepaymentsAsync(Guid id, Guid userId, CancellationToken cancellationToken = default);
+}
+
+/// <summary>
+/// Specialized repository contract for Gift tracking.
+/// </summary>
+public interface IGiftRepository : IRepository<Gift>
+{
+    Task<IReadOnlyList<Gift>> GetGiftsByUserAsync(Guid userId, CancellationToken cancellationToken = default);
+}
+

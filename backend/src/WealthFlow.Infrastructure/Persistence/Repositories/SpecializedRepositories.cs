@@ -271,3 +271,66 @@ public class SipRepository : Repository<SIP>, ISipRepository
             .ToListAsync(cancellationToken);
     }
 }
+
+/// <summary>
+/// Specialized CreditCard repository implementing queries using pure LINQ.
+/// </summary>
+public class CreditCardRepository : Repository<CreditCard>, ICreditCardRepository
+{
+    public CreditCardRepository(ApplicationDbContext dbContext) : base(dbContext) { }
+
+    public async Task<IReadOnlyList<CreditCard>> GetCreditCardsByUserAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        return await _dbSet
+            .Where(c => c.UserId == userId)
+            .OrderBy(c => c.CardName)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<CreditCard?> GetByIdAsync(Guid id, Guid userId, CancellationToken cancellationToken = default)
+    {
+        return await _dbSet
+            .FirstOrDefaultAsync(c => c.Id == id && c.UserId == userId, cancellationToken);
+    }
+}
+
+/// <summary>
+/// Specialized Loan repository implementing queries using pure LINQ.
+/// </summary>
+public class LoanRepository : Repository<Loan>, ILoanRepository
+{
+    public LoanRepository(ApplicationDbContext dbContext) : base(dbContext) { }
+
+    public async Task<IReadOnlyList<Loan>> GetLoansByUserAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        return await _dbSet
+            .Include(l => l.Repayments)
+            .Where(l => l.UserId == userId)
+            .OrderByDescending(l => l.CreatedAtUtc)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<Loan?> GetByIdWithRepaymentsAsync(Guid id, Guid userId, CancellationToken cancellationToken = default)
+    {
+        return await _dbSet
+            .Include(l => l.Repayments)
+            .FirstOrDefaultAsync(l => l.Id == id && l.UserId == userId, cancellationToken);
+    }
+}
+
+/// <summary>
+/// Specialized Gift repository implementing queries using pure LINQ.
+/// </summary>
+public class GiftRepository : Repository<Gift>, IGiftRepository
+{
+    public GiftRepository(ApplicationDbContext dbContext) : base(dbContext) { }
+
+    public async Task<IReadOnlyList<Gift>> GetGiftsByUserAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        return await _dbSet
+            .Where(g => g.UserId == userId)
+            .OrderByDescending(g => g.Date)
+            .ToListAsync(cancellationToken);
+    }
+}
+

@@ -38,6 +38,7 @@ public static class DependencyInjection
             if (provider.Equals("InMemory", StringComparison.OrdinalIgnoreCase) || string.IsNullOrEmpty(connectionString))
             {
                 options.UseInMemoryDatabase(string.IsNullOrEmpty(connectionString) ? "WealthFlowDb" : connectionString);
+                options.ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.InMemoryEventId.TransactionIgnoredWarning));
             }
             else
             {
@@ -96,6 +97,9 @@ public static class DependencyInjection
         services.AddScoped<ICategoryService, CategoryService>();
         services.AddScoped<ITransactionService, TransactionService>();
         services.AddScoped<IBudgetService, BudgetService>();
+        services.AddScoped<WealthFlow.Application.Features.CreditCards.Interfaces.ICreditCardService, CreditCardService>();
+        services.AddScoped<WealthFlow.Application.Features.Loans.Interfaces.ILoanService, LoanService>();
+        services.AddScoped<WealthFlow.Application.Features.Gifts.Interfaces.IGiftService, GiftService>();
         services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
         services.AddScoped<IAccountRepository, AccountRepository>();
         services.AddScoped<ICategoryRepository, CategoryRepository>();
@@ -103,6 +107,9 @@ public static class DependencyInjection
         services.AddScoped<IBudgetRepository, BudgetRepository>();
         services.AddScoped<ITripRepository, TripRepository>();
         services.AddScoped<ISipRepository, SipRepository>();
+        services.AddScoped<ICreditCardRepository, CreditCardRepository>();
+        services.AddScoped<ILoanRepository, LoanRepository>();
+        services.AddScoped<IGiftRepository, GiftRepository>();
         services.AddScoped<IUserSessionRepository, UserSessionRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 

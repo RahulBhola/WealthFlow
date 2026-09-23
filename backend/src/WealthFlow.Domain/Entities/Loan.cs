@@ -15,7 +15,12 @@ public class Loan : BaseEntity, IAggregateRoot
     public decimal PrincipalAmount { get; private set; }
     public decimal OutstandingBalance { get; private set; }
     public DateTime? DueDate { get; private set; }
+    public Guid? DisbursementAccountId { get; private set; }
+    public string? Notes { get; private set; }
+    public LoanStatus Status { get; private set; } = LoanStatus.Open;
     public bool IsSettled { get; private set; } = false;
+
+    public List<LoanRepayment> Repayments { get; private set; } = new();
 
     protected Loan() { }
 
@@ -25,7 +30,9 @@ public class Loan : BaseEntity, IAggregateRoot
         string counterpartyName,
         decimal principalAmount,
         string? counterpartyContact = null,
-        DateTime? dueDate = null)
+        DateTime? dueDate = null,
+        Guid? disbursementAccountId = null,
+        string? notes = null)
     {
         UserId = userId;
         Direction = direction;
@@ -36,15 +43,28 @@ public class Loan : BaseEntity, IAggregateRoot
         DueDate = dueDate.HasValue 
             ? (dueDate.Value.Kind == DateTimeKind.Utc ? dueDate.Value : DateTime.SpecifyKind(dueDate.Value, DateTimeKind.Utc)) 
             : null;
+        DisbursementAccountId = disbursementAccountId;
+        Notes = notes;
+        Status = LoanStatus.Open;
         IsSettled = false;
     }
 
     public void RecordRepayment(decimal repaymentAmount)
     {
+        if (repaymentAmount <= 0)
+        {
+            throw new ArgumentException("Repayment amount must be greater than zero.", nameof(repaymentAmount));
+        }
+
         OutstandingBalance = Math.Max(0m, OutstandingBalance - repaymentAmount);
         if (OutstandingBalance == 0m)
         {
             IsSettled = true;
+            Status = LoanStatus.FullySettled;
+        }
+        else
+        {
+            Status = LoanStatus.PartiallyRepaid;
         }
         SetUpdated();
     }
