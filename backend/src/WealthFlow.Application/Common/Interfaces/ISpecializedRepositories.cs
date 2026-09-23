@@ -70,8 +70,30 @@ public interface ITripRepository : IRepository<Trip>
 /// </summary>
 public interface ISipRepository : IRepository<SIP>
 {
+    Task<IReadOnlyList<SIP>> GetSipsByUserAsync(Guid userId, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<SIP>> GetActiveSipsByUserAsync(Guid userId, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<SIP>> GetJointSipsByUserAsync(Guid userId, CancellationToken cancellationToken = default);
+    Task<SIP?> GetByIdAsync(Guid id, Guid userId, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<SIP>> GetDueSipsAsync(int executionDay, CancellationToken cancellationToken = default);
+}
+
+/// <summary>
+/// Specialized repository contract for Investment portfolio assets.
+/// </summary>
+public interface IInvestmentRepository : IRepository<Investment>
+{
+    Task<IReadOnlyList<Investment>> GetInvestmentsByUserAsync(Guid userId, CancellationToken cancellationToken = default);
+    Task<Investment?> GetByIdAsync(Guid id, Guid userId, CancellationToken cancellationToken = default);
+}
+
+/// <summary>
+/// Specialized repository contract for Joint SIP monthly reconciliation cycles.
+/// </summary>
+public interface IJointSipReconciliationRepository : IRepository<JointSipReconciliation>
+{
+    Task<IReadOnlyList<JointSipReconciliation>> GetReconciliationsBySipAsync(Guid sipId, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<JointSipReconciliation>> GetReconciliationsByUserAsync(Guid userId, CancellationToken cancellationToken = default);
+    Task<JointSipReconciliation?> GetByIdAsync(Guid id, Guid userId, CancellationToken cancellationToken = default);
 }
 
 /// <summary>
@@ -99,4 +121,5 @@ public interface IGiftRepository : IRepository<Gift>
 {
     Task<IReadOnlyList<Gift>> GetGiftsByUserAsync(Guid userId, CancellationToken cancellationToken = default);
 }
+
 

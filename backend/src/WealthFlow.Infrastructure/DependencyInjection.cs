@@ -100,6 +100,7 @@ public static class DependencyInjection
         services.AddScoped<WealthFlow.Application.Features.CreditCards.Interfaces.ICreditCardService, CreditCardService>();
         services.AddScoped<WealthFlow.Application.Features.Loans.Interfaces.ILoanService, LoanService>();
         services.AddScoped<WealthFlow.Application.Features.Gifts.Interfaces.IGiftService, GiftService>();
+        services.AddScoped<WealthFlow.Application.Features.Investments.Interfaces.IInvestmentService, InvestmentService>();
         services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
         services.AddScoped<IAccountRepository, AccountRepository>();
         services.AddScoped<ICategoryRepository, CategoryRepository>();
@@ -107,11 +108,14 @@ public static class DependencyInjection
         services.AddScoped<IBudgetRepository, BudgetRepository>();
         services.AddScoped<ITripRepository, TripRepository>();
         services.AddScoped<ISipRepository, SipRepository>();
+        services.AddScoped<IInvestmentRepository, InvestmentRepository>();
+        services.AddScoped<IJointSipReconciliationRepository, JointSipReconciliationRepository>();
         services.AddScoped<ICreditCardRepository, CreditCardRepository>();
         services.AddScoped<ILoanRepository, LoanRepository>();
         services.AddScoped<IGiftRepository, GiftRepository>();
         services.AddScoped<IUserSessionRepository, UserSessionRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
+        services.AddHostedService<SipExecutionBackgroundService>();
 
         return services;
     }

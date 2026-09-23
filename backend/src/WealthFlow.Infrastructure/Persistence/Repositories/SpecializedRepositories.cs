@@ -253,6 +253,14 @@ public class SipRepository : Repository<SIP>, ISipRepository
 {
     public SipRepository(ApplicationDbContext dbContext) : base(dbContext) { }
 
+    public async Task<IReadOnlyList<SIP>> GetSipsByUserAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        return await _dbSet
+            .Where(s => s.UserId == userId)
+            .OrderBy(s => s.ExecutionDay)
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<IReadOnlyList<SIP>> GetActiveSipsByUserAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         return await _dbSet
@@ -265,12 +273,79 @@ public class SipRepository : Repository<SIP>, ISipRepository
     public async Task<IReadOnlyList<SIP>> GetJointSipsByUserAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         return await _dbSet
-            .AsNoTracking()
             .Where(s => s.UserId == userId && s.IsJoint)
             .OrderBy(s => s.Name)
             .ToListAsync(cancellationToken);
     }
+
+    public async Task<SIP?> GetByIdAsync(Guid id, Guid userId, CancellationToken cancellationToken = default)
+    {
+        return await _dbSet
+            .FirstOrDefaultAsync(s => s.Id == id && s.UserId == userId, cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<SIP>> GetDueSipsAsync(int executionDay, CancellationToken cancellationToken = default)
+    {
+        return await _dbSet
+            .Where(s => s.Status == SipStatus.Active && s.ExecutionDay == executionDay)
+            .ToListAsync(cancellationToken);
+    }
 }
+
+/// <summary>
+/// Specialized Investment repository implementing queries using pure LINQ.
+/// </summary>
+public class InvestmentRepository : Repository<Investment>, IInvestmentRepository
+{
+    public InvestmentRepository(ApplicationDbContext dbContext) : base(dbContext) { }
+
+    public async Task<IReadOnlyList<Investment>> GetInvestmentsByUserAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        return await _dbSet
+            .Where(i => i.UserId == userId)
+            .OrderBy(i => i.Name)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<Investment?> GetByIdAsync(Guid id, Guid userId, CancellationToken cancellationToken = default)
+    {
+        return await _dbSet
+            .FirstOrDefaultAsync(i => i.Id == id && i.UserId == userId, cancellationToken);
+    }
+}
+
+/// <summary>
+/// Specialized JointSipReconciliation repository implementing queries using pure LINQ.
+/// </summary>
+public class JointSipReconciliationRepository : Repository<JointSipReconciliation>, IJointSipReconciliationRepository
+{
+    public JointSipReconciliationRepository(ApplicationDbContext dbContext) : base(dbContext) { }
+
+    public async Task<IReadOnlyList<JointSipReconciliation>> GetReconciliationsBySipAsync(Guid sipId, CancellationToken cancellationToken = default)
+    {
+        return await _dbSet
+            .Where(r => r.SIPId == sipId)
+            .OrderByDescending(r => r.Year)
+            .ThenByDescending(r => r.Month)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<JointSipReconciliation>> GetReconciliationsByUserAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        return await _dbSet
+            .Where(r => r.UserId == userId)
+            .OrderByDescending(r => r.Year)
+            .ThenByDescending(r => r.Month)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<JointSipReconciliation?> GetByIdAsync(Guid id, Guid userId, CancellationToken cancellationToken = default)
+    {
+        return await _dbSet
+            .FirstOrDefaultAsync(r => r.Id == id && r.UserId == userId, cancellationToken);
+    }
+}
+
 
 /// <summary>
 /// Specialized CreditCard repository implementing queries using pure LINQ.

@@ -18,6 +18,8 @@ public class UnitOfWork : IUnitOfWork
     private IBudgetRepository? _budgetRepository;
     private ITripRepository? _tripRepository;
     private ISipRepository? _sipRepository;
+    private IInvestmentRepository? _investmentRepository;
+    private IJointSipReconciliationRepository? _jointSipReconciliationRepository;
     private ICreditCardRepository? _creditCardRepository;
     private ILoanRepository? _loanRepository;
     private IRepository<WealthFlow.Domain.Entities.LoanRepayment>? _loanRepaymentRepository;
@@ -34,6 +36,8 @@ public class UnitOfWork : IUnitOfWork
     public IBudgetRepository Budgets => _budgetRepository ??= new BudgetRepository(_dbContext);
     public ITripRepository Trips => _tripRepository ??= new TripRepository(_dbContext);
     public ISipRepository Sips => _sipRepository ??= new SipRepository(_dbContext);
+    public IInvestmentRepository Investments => _investmentRepository ??= new InvestmentRepository(_dbContext);
+    public IJointSipReconciliationRepository JointSipReconciliations => _jointSipReconciliationRepository ??= new JointSipReconciliationRepository(_dbContext);
     public ICreditCardRepository CreditCards => _creditCardRepository ??= new CreditCardRepository(_dbContext);
     public ILoanRepository Loans => _loanRepository ??= new LoanRepository(_dbContext);
     public IRepository<WealthFlow.Domain.Entities.LoanRepayment> LoanRepayments => _loanRepaymentRepository ??= new Repository<WealthFlow.Domain.Entities.LoanRepayment>(_dbContext);

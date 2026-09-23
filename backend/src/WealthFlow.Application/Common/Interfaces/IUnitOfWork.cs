@@ -11,6 +11,8 @@ public interface IUnitOfWork : IDisposable
     IBudgetRepository Budgets { get; }
     ITripRepository Trips { get; }
     ISipRepository Sips { get; }
+    IInvestmentRepository Investments { get; }
+    IJointSipReconciliationRepository JointSipReconciliations { get; }
     ICreditCardRepository CreditCards { get; }
     ILoanRepository Loans { get; }
     IRepository<WealthFlow.Domain.Entities.LoanRepayment> LoanRepayments { get; }

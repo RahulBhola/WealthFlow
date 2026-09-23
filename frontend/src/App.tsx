@@ -14,6 +14,7 @@ import { AccountsPage } from '@/features/accounts/pages/AccountsPage'
 import { LedgerPage } from '@/features/transactions/pages/LedgerPage'
 import { CreditCardsPage } from '@/features/credit-cards/pages/CreditCardsPage'
 import { LoansPage } from '@/features/loans/pages/LoansPage'
+import { InvestmentsPage } from '@/features/investments/pages/InvestmentsPage'
 
 export const AuthenticatedShell: React.FC = () => {
   const { user, logout } = useAuth()
@@ -61,6 +62,7 @@ export const App: React.FC = () => {
             <Route path="/budgets" element={<LedgerPage />} />
             <Route path="/credit-cards" element={<CreditCardsPage />} />
             <Route path="/loans" element={<LoansPage />} />
+            <Route path="/investments" element={<InvestmentsPage />} />
             <Route path="/settings/sessions" element={<SessionsPage />} />
             <Route
               path="/admin"
