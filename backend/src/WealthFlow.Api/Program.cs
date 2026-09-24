@@ -192,28 +192,45 @@ using (var scope = app.Services.CreateScope())
         var defaultAdminEmail = config["DefaultAdmin:Email"] ?? "admin@wealthflow.local";
         var defaultAdminPassword = config["DefaultAdmin:Password"] ?? "Admin@123456";
 
-        var existingAdmin = await userManager.FindByEmailAsync(defaultAdminEmail);
-        if (existingAdmin == null)
+        var singletonAdminId = Guid.Parse("00000000-0000-0000-0000-000000000001");
+        var existingAdminById = await userManager.FindByIdAsync(singletonAdminId.ToString());
+        if (existingAdminById != null)
         {
-            logger.LogInformation("Seeding initial singleton admin account ({Email})...", defaultAdminEmail);
-            var adminUser = new ApplicationUser
+            if (!string.Equals(existingAdminById.Email, defaultAdminEmail, StringComparison.OrdinalIgnoreCase))
             {
-                Id = Guid.Parse("00000000-0000-0000-0000-000000000001"),
-                UserName = defaultAdminEmail,
-                Email = defaultAdminEmail,
-                EmailConfirmed = true,
-                FirstName = "Singleton",
-                LastName = "Admin",
-                Role = "Admin",
-                CurrencyCode = "INR",
-                CreatedAtUtc = DateTime.UtcNow
-            };
+                existingAdminById.Email = defaultAdminEmail;
+                existingAdminById.UserName = defaultAdminEmail;
+                await userManager.UpdateAsync(existingAdminById);
+                var token = await userManager.GeneratePasswordResetTokenAsync(existingAdminById);
+                await userManager.ResetPasswordAsync(existingAdminById, token, defaultAdminPassword);
+                logger.LogInformation("Updated singleton admin credentials to ({Email}).", defaultAdminEmail);
+            }
+        }
+        else
+        {
+            var existingAdminByEmail = await userManager.FindByEmailAsync(defaultAdminEmail);
+            if (existingAdminByEmail == null)
+            {
+                logger.LogInformation("Seeding initial singleton admin account ({Email})...", defaultAdminEmail);
+                var adminUser = new ApplicationUser
+                {
+                    Id = singletonAdminId,
+                    UserName = defaultAdminEmail,
+                    Email = defaultAdminEmail,
+                    EmailConfirmed = true,
+                    FirstName = "Singleton",
+                    LastName = "Admin",
+                    Role = "Admin",
+                    CurrencyCode = "INR",
+                    CreatedAtUtc = DateTime.UtcNow
+                };
 
-            var adminResult = await userManager.CreateAsync(adminUser, defaultAdminPassword);
-            if (adminResult.Succeeded)
-            {
-                await userManager.AddToRoleAsync(adminUser, "Admin");
-                logger.LogInformation("Singleton admin account seeded successfully.");
+                var adminResult = await userManager.CreateAsync(adminUser, defaultAdminPassword);
+                if (adminResult.Succeeded)
+                {
+                    await userManager.AddToRoleAsync(adminUser, "Admin");
+                    logger.LogInformation("Singleton admin account seeded successfully.");
+                }
             }
         }
     }
