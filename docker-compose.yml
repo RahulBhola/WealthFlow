@@ -23,8 +23,8 @@ services:
 
   api:
     build:
-      context: ./backend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: backend/Dockerfile
     container_name: wealthflow_api
     restart: unless-stopped
     environment:
