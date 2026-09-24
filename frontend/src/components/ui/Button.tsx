@@ -29,7 +29,7 @@ export const Button: React.FC<ButtonProps> = ({
   rightIcon,
   ...props
 }) => {
-  const baseStyles = 'inline-flex items-center justify-center font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed select-none'
+  const baseStyles = 'inline-flex items-center justify-center font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed select-none whitespace-nowrap'
 
   const variants = {
     primary: 'bg-indigo-600 text-white hover:bg-indigo-700 focus:ring-indigo-500 dark:bg-indigo-500 dark:hover:bg-indigo-600 shadow-sm',
@@ -52,13 +52,13 @@ export const Button: React.FC<ButtonProps> = ({
       {...props}
     >
       {isLoading ? (
-        <span className="inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-1" />
+        <span className="inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-1 shrink-0" />
       ) : leftIcon ? (
-        <span className="inline-flex shrink-0">{leftIcon}</span>
+        <span className="inline-flex shrink-0 items-center">{leftIcon}</span>
       ) : null}
-      <span>{children}</span>
+      <span className="inline-flex items-center gap-1.5 whitespace-nowrap">{children}</span>
       {!isLoading && rightIcon ? (
-        <span className="inline-flex shrink-0">{rightIcon}</span>
+        <span className="inline-flex shrink-0 items-center">{rightIcon}</span>
       ) : null}
     </button>
   )

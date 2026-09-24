@@ -168,9 +168,9 @@ export const InvestmentsPage: React.FC = () => {
               variant="outline"
               size="sm"
               onClick={() => setIsAddSipOpen(true)}
+              leftIcon={<Calendar className="w-3.5 h-3.5 text-indigo-400 shrink-0" />}
               className="text-xs bg-slate-900/60 hover:bg-slate-800 border-slate-700/80 text-indigo-300 hover:text-white transition-all shadow-sm"
             >
-              <Calendar className="w-3.5 h-3.5 mr-1.5 text-indigo-400" />
               Setup SIP
             </Button>
             <Button
@@ -180,9 +180,9 @@ export const InvestmentsPage: React.FC = () => {
                 setAddInvestmentInitialClass('Mutual Fund')
                 setIsAddInvestmentOpen(true)
               }}
+              leftIcon={<Plus className="w-3.5 h-3.5 shrink-0" />}
               className="text-xs bg-gradient-to-r from-indigo-500 via-indigo-600 to-teal-500 hover:from-indigo-600 hover:to-teal-600 text-white shadow-lg shadow-indigo-500/25 border-none transition-all"
             >
-              <Plus className="w-3.5 h-3.5 mr-1.5" />
               Add Investment
             </Button>
           </div>
@@ -504,18 +504,18 @@ export const InvestmentsPage: React.FC = () => {
                     setAddInvestmentInitialClass('Mutual Fund')
                     setIsAddInvestmentOpen(true)
                   }}
+                  leftIcon={<Plus className="w-3.5 h-3.5 shrink-0" />}
                   className="text-xs px-5 py-2.5 bg-gradient-to-r from-indigo-500 via-indigo-600 to-teal-500 hover:from-indigo-600 hover:to-teal-600 shadow-lg shadow-indigo-500/25 border-none font-semibold"
                 >
-                  <Plus className="w-3.5 h-3.5 mr-1.5" />
                   Add First Investment
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setIsAddSipOpen(true)}
+                  leftIcon={<Calendar className="w-3.5 h-3.5 text-indigo-400 shrink-0" />}
                   className="text-xs px-4 py-2.5 bg-slate-900/80 hover:bg-slate-800 border-slate-700/80 text-slate-300 hover:text-white"
                 >
-                  <Calendar className="w-3.5 h-3.5 mr-1.5 text-indigo-400" />
                   Setup Systematic SIP
                 </Button>
               </div>
@@ -661,9 +661,9 @@ export const InvestmentsPage: React.FC = () => {
                 variant="primary"
                 size="sm"
                 onClick={() => setIsAddSipOpen(true)}
+                leftIcon={<Plus className="w-3.5 h-3.5 shrink-0" />}
                 className="text-xs px-5 py-2.5 bg-gradient-to-r from-indigo-500 via-indigo-600 to-teal-500 hover:from-indigo-600 hover:to-teal-600 shadow-lg shadow-indigo-500/25 border-none font-semibold"
               >
-                <Plus className="w-3.5 h-3.5 mr-1.5" />
                 Setup First SIP
               </Button>
             </div>
