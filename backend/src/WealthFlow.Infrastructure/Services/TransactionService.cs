@@ -390,6 +390,10 @@ public class TransactionService : ITransactionService
         {
             categoryName = cn;
         }
+        else if (t.EventType == TransactionEventType.Transfer)
+        {
+            categoryName = "Transfer to self";
+        }
 
         return new TransactionDto(
             Id: t.Id,

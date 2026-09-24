@@ -234,36 +234,45 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({
 
           {/* Transfer Specific: Source & Destination Accounts */}
           {activeTab === 'Transfer' ? (
-            <div className="grid grid-cols-2 gap-4">
-              <FormField label="From Account" required>
-                <select
-                  value={accountId}
-                  onChange={(e) => setAccountId(e.target.value)}
-                  disabled={isLoadingMetadata || isSubmitting}
-                  className="w-full h-10 px-3 py-2 text-sm bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 disabled:opacity-60"
-                >
-                  {accounts.map((acc) => (
-                    <option key={acc.id} value={acc.id}>
-                      {acc.name} ({acc.accountType})
-                    </option>
-                  ))}
-                </select>
-              </FormField>
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-4">
+                <FormField label="From Account" required>
+                  <select
+                    value={accountId}
+                    onChange={(e) => setAccountId(e.target.value)}
+                    disabled={isLoadingMetadata || isSubmitting}
+                    className="w-full h-10 px-3 py-2 text-sm bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 disabled:opacity-60"
+                  >
+                    {accounts.map((acc) => (
+                      <option key={acc.id} value={acc.id}>
+                        {acc.name} ({acc.accountType})
+                      </option>
+                    ))}
+                  </select>
+                </FormField>
 
-              <FormField label="To Account" required>
-                <select
-                  value={targetAccountId}
-                  onChange={(e) => setTargetAccountId(e.target.value)}
-                  disabled={isLoadingMetadata || isSubmitting}
-                  className="w-full h-10 px-3 py-2 text-sm bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 disabled:opacity-60"
-                >
-                  {accounts.map((acc) => (
-                    <option key={acc.id} value={acc.id}>
-                      {acc.name} ({acc.accountType})
-                    </option>
-                  ))}
-                </select>
-              </FormField>
+                <FormField label="To Account" required>
+                  <select
+                    value={targetAccountId}
+                    onChange={(e) => setTargetAccountId(e.target.value)}
+                    disabled={isLoadingMetadata || isSubmitting}
+                    className="w-full h-10 px-3 py-2 text-sm bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 disabled:opacity-60"
+                  >
+                    {accounts.map((acc) => (
+                      <option key={acc.id} value={acc.id}>
+                        {acc.name} ({acc.accountType})
+                      </option>
+                    ))}
+                  </select>
+                </FormField>
+              </div>
+
+              <div className="p-2.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-800/50 flex items-center justify-between text-xs text-indigo-700 dark:text-indigo-300">
+                <span className="font-medium">Category</span>
+                <span className="px-2 py-0.5 rounded-md bg-indigo-100 dark:bg-indigo-900/60 font-semibold text-indigo-700 dark:text-indigo-200">
+                  Transfer to self
+                </span>
+              </div>
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-4">

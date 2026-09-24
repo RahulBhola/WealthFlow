@@ -207,11 +207,15 @@ export const DashboardPage: React.FC = () => {
     {
       key: 'categoryName',
       header: 'Category',
-      render: (tx) => (
-        <span className="text-xs text-slate-600 dark:text-slate-400 font-medium">
-          {tx.categoryName}
-        </span>
-      ),
+      render: (tx) => {
+        const cat = tx.categoryName || (tx.eventType === 'Transfer' ? 'Transfer to self' : '—')
+        const isTransfer = tx.eventType === 'Transfer' || cat.toLowerCase().includes('transfer')
+        return (
+          <span className={`text-xs font-medium ${isTransfer ? 'text-indigo-400 font-semibold' : 'text-slate-600 dark:text-slate-400'}`}>
+            {cat}
+          </span>
+        )
+      },
     },
     {
       key: 'accountName',

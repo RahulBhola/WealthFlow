@@ -334,8 +334,12 @@ export const LedgerPage: React.FC = () => {
 
                             <td className="px-4 py-1.5 whitespace-nowrap">
                               {tx.categoryName ? (
-                                <Badge variant="slate" size="sm">
+                                <Badge variant={tx.categoryName.toLowerCase().includes('transfer') ? 'indigo' : 'slate'} size="sm">
                                   {tx.categoryName}
+                                </Badge>
+                              ) : isTransfer ? (
+                                <Badge variant="indigo" size="sm">
+                                  Transfer to self
                                 </Badge>
                               ) : (
                                 <span className="text-slate-400 text-[11px]">—</span>
