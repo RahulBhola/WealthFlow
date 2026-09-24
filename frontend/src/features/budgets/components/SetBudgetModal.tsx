@@ -174,7 +174,7 @@ export const SetBudgetModal: React.FC<SetBudgetModalProps> = ({
               </span>
               <Input
                 type="number"
-                step="100"
+                step="any"
                 min="1"
                 placeholder="e.g. 15000"
                 value={monthlyLimit}

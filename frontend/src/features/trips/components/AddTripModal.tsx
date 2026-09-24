@@ -155,7 +155,7 @@ export const AddTripModal: React.FC<AddTripModalProps> = ({ isOpen, onClose, onS
             <Input
               type="number"
               min="0"
-              step="100"
+              step="any"
               placeholder="e.g. 50000"
               value={budget}
               onChange={(e) => setBudget(e.target.value)}
