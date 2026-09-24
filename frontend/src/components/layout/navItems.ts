@@ -24,15 +24,15 @@ export interface NavItemConfig {
 
 export const navigationItems: NavItemConfig[] = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
-  { name: 'Transactions', href: '/transactions', icon: ReceiptText },
+  { name: 'Transactions Ledger', href: '/transactions', icon: ReceiptText },
   { name: 'Accounts', href: '/accounts', icon: Landmark },
   { name: 'Budgets', href: '/budgets', icon: PiggyBank },
   { name: 'Credit Cards', href: '/credit-cards', icon: CreditCard },
-  { name: 'Investments', href: '/investments', icon: TrendingUp },
-  { name: 'Loans & Gifts', href: '/loans', icon: HandCoins },
+  { name: 'Investments & Joint SIPs', href: '/investments', icon: TrendingUp },
   { name: 'Trips Workspace', href: '/trips', icon: Palmtree },
+  { name: 'Loans & Gifts', href: '/loans', icon: HandCoins },
   { name: 'Analytics', href: '/analytics', icon: BarChart3 },
   { name: 'Device Sessions', href: '/settings/sessions', icon: Smartphone },
   { name: 'Settings', href: '/settings', icon: Settings },
-  { name: 'Admin Command', href: '/admin', icon: ShieldAlert, isAdminOnly: true },
+  { name: 'Admin ERP', href: '/admin', icon: ShieldAlert, badge: 'ERP', isAdminOnly: true },
 ]

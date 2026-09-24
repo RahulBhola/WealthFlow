@@ -37,7 +37,10 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
       <Sidebar
         currentPath={currentPath}
         isAdmin={isAdmin}
+        userEmail={userEmail}
+        userRole={userRole}
         onNavigate={onNavigate}
+        onLogout={onLogout}
       />
 
       {/* Mobile Slide-Over Navigation Drawer */}

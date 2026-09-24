@@ -81,17 +81,17 @@ export const NotificationPopover: React.FC = () => {
 
   return (
     <div className="relative" ref={popoverRef}>
-      {/* Bell Trigger Button */}
+      {/* Bell Trigger Button - matching reference design in Image 2 */}
       <button
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
         aria-label="View notifications"
         aria-expanded={isOpen}
-        className="p-2 rounded-lg text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 relative focus:outline-none transition-colors"
+        className="w-9 h-9 rounded-lg bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700/60 flex items-center justify-center text-slate-300 hover:text-white relative focus:outline-none transition-colors shadow-sm cursor-pointer"
       >
         <Bell className="w-4 h-4" />
         {unreadCount > 0 && (
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-indigo-600 animate-pulse" />
+          <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-indigo-500 shadow-[0_0_6px_rgba(99,102,241,0.8)] animate-pulse" />
         )}
       </button>
 

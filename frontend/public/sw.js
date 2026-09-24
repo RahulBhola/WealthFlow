@@ -1,9 +1,10 @@
-const CACHE_NAME = 'wealthflow-cache-v2'
+const CACHE_NAME = 'wealthflow-cache-v3'
 const STATIC_ASSETS = [
   '/',
   '/index.html',
   '/favicon.svg',
-  '/icons.svg'
+  '/icons.svg',
+  '/avatar.png'
 ]
 
 // Install: pre-cache application shell assets
