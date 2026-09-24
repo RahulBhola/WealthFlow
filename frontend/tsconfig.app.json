@@ -15,6 +15,7 @@
       "@/components/*": ["./src/components/*"],
       "@/hooks/*": ["./src/hooks/*"],
       "@/lib/*": ["./src/lib/*"],
+      "@/context/*": ["./src/context/*"],
       "@/types/*": ["./src/types/*"]
     },
     "noUnusedLocals": true,

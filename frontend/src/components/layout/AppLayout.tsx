@@ -59,6 +59,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
           userEmail={userEmail}
           userRole={userRole}
           onLogout={onLogout}
+          onNavigate={onNavigate}
         />
 
         {/* Universal Page Blueprint Container */}

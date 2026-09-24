@@ -1,6 +1,7 @@
 import React from 'react'
 import { BrowserRouter, Routes, Route, Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { AuthProvider } from '@/features/auth/context/AuthContext'
+import { ThemeProvider } from './context/ThemeContext'
 import { useAuth } from '@/features/auth/hooks/useAuth'
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
 import { RoleGuard } from '@/components/auth/RoleGuard'
@@ -47,7 +48,8 @@ export const AuthenticatedShell: React.FC = () => {
 
 export const App: React.FC = () => {
   return (
-    <AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
       <BrowserRouter>
         <Routes>
           {/* Public Routes */}
@@ -123,6 +125,7 @@ export const App: React.FC = () => {
         </Routes>
       </BrowserRouter>
     </AuthProvider>
+  </ThemeProvider>
   )
 }
 
