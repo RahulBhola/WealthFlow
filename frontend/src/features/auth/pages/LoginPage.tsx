@@ -153,17 +153,19 @@ export const LoginPage: React.FC = () => {
             </button>
           </form>
 
-          {/* Quick Universal Test User Login Shortcut */}
-          <div className="mt-6 pt-6 border-t border-slate-800">
-            <button
-              type="button"
-              onClick={handleFillTestAccount}
-              className="w-full flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-slate-800/80 hover:bg-slate-800 text-xs font-medium text-emerald-400 border border-emerald-500/20 hover:border-emerald-500/40 transition-all shadow-sm"
-            >
-              <Sparkles className="w-3.5 h-3.5" />
-              Pre-fill Universal Test Account (`test@wealthflow.local`)
-            </button>
-          </div>
+          {/* Quick Universal Test User Login Shortcut (Development & Local Test Only) */}
+          {import.meta.env.DEV && (
+            <div className="mt-6 pt-6 border-t border-slate-800">
+              <button
+                type="button"
+                onClick={handleFillTestAccount}
+                className="w-full flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-slate-800/80 hover:bg-slate-800 text-xs font-medium text-emerald-400 border border-emerald-500/20 hover:border-emerald-500/40 transition-all shadow-sm"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                Pre-fill Universal Test Account (`test@wealthflow.local`)
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
