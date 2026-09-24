@@ -10,6 +10,7 @@ export interface AddInvestmentModalProps {
   isOpen: boolean
   onClose: () => void
   onSuccess: () => void
+  initialAssetClass?: string
 }
 
 const ASSET_CLASSES = [
@@ -26,13 +27,20 @@ export const AddInvestmentModal: React.FC<AddInvestmentModalProps> = ({
   isOpen,
   onClose,
   onSuccess,
+  initialAssetClass = 'Mutual Fund',
 }) => {
   const [name, setName] = useState('')
-  const [assetClass, setAssetClass] = useState('Mutual Fund')
+  const [assetClass, setAssetClass] = useState(initialAssetClass)
   const [investedAmount, setInvestedAmount] = useState('')
   const [currentValuation, setCurrentValuation] = useState('')
   const [units, setUnits] = useState('')
   const [valuationDate, setValuationDate] = useState(() => new Date().toISOString().slice(0, 10))
+
+  React.useEffect(() => {
+    if (isOpen) {
+      setAssetClass(initialAssetClass)
+    }
+  }, [isOpen, initialAssetClass])
 
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
