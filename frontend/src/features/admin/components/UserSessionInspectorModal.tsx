@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
+import { ConfirmModal } from '@/components/ui/ConfirmModal'
 import { fetchUserSessions, revokeUserSession } from '../api/adminApi'
 import type { AdminUserDto, AdminUserSessionDto } from '../types'
 
@@ -67,14 +68,19 @@ export const UserSessionInspectorModal: React.FC<UserSessionInspectorModalProps>
 
   if (!isOpen || !user) return null
 
-  const handleRevoke = async (sessionId: string) => {
-    if (!confirm('Are you sure you want to remotely terminate this session? The device will immediately be logged out.')) {
-      return
-    }
+  const [sessionToRevoke, setSessionToRevoke] = useState<string | null>(null)
+
+  const handleRevoke = (sessionId: string) => {
+    setSessionToRevoke(sessionId)
+  }
+
+  const confirmRevoke = async () => {
+    if (!sessionToRevoke || !user) return
     try {
-      setRevokingId(sessionId)
-      await revokeUserSession(user.id, sessionId)
+      setRevokingId(sessionToRevoke)
+      await revokeUserSession(user.id, sessionToRevoke)
       setMessage('Session successfully terminated.')
+      setSessionToRevoke(null)
       await loadSessions()
     } catch (err: any) {
       setError(err?.message || 'Failed to revoke session.')
@@ -244,6 +250,20 @@ export const UserSessionInspectorModal: React.FC<UserSessionInspectorModalProps>
           </Button>
         </div>
       </div>
+
+      {/* Modern Glassmorphic Revoke Session Confirmation Modal */}
+      <ConfirmModal
+        isOpen={!!sessionToRevoke}
+        onClose={() => setSessionToRevoke(null)}
+        onConfirm={confirmRevoke}
+        title="Revoke Device Session"
+        message="Are you sure you want to remotely terminate this session?"
+        subMessage="The device will immediately be logged out, its refresh token revoked, and its JWT blacklisted."
+        confirmText="Revoke Session"
+        cancelText="Cancel"
+        variant="danger"
+        isLoading={!!revokingId}
+      />
     </div>
   )
 }

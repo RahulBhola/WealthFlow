@@ -22,6 +22,7 @@ import { Input } from '@/components/ui/Input'
 import { AddLoanModal } from '../components/AddLoanModal'
 import { RecordRepaymentModal } from '../components/RecordRepaymentModal'
 import { RecordGiftModal } from '../components/RecordGiftModal'
+import { ConfirmModal } from '@/components/ui/ConfirmModal'
 import { loansApi } from '../api/loansApi'
 import type { Loan, LoanSummary, Gift, GiftSummary } from '../types'
 
@@ -100,29 +101,43 @@ export const LoansPage: React.FC = () => {
     }))
   }
 
-  const handleDeleteLoan = async (loan: Loan) => {
-    if (!window.confirm(`Are you sure you want to delete the loan record for ${loan.counterpartyName}?`)) {
-      return
-    }
+  const [loanToDelete, setLoanToDelete] = useState<Loan | null>(null)
+  const [giftToDelete, setGiftToDelete] = useState<Gift | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
 
+  const handleDeleteLoan = (loan: Loan) => {
+    setLoanToDelete(loan)
+  }
+
+  const confirmDeleteLoan = async () => {
+    if (!loanToDelete) return
     try {
-      await loansApi.deleteLoan(loan.id)
+      setIsDeleting(true)
+      await loansApi.deleteLoan(loanToDelete.id)
+      setLoanToDelete(null)
       await loadData()
     } catch (err) {
       console.error('Failed to delete loan:', err)
+    } finally {
+      setIsDeleting(false)
     }
   }
 
-  const handleDeleteGift = async (gift: Gift) => {
-    if (!window.confirm(`Are you sure you want to delete the gift record for ${gift.recipientOrGiver}?`)) {
-      return
-    }
+  const handleDeleteGift = (gift: Gift) => {
+    setGiftToDelete(gift)
+  }
 
+  const confirmDeleteGift = async () => {
+    if (!giftToDelete) return
     try {
-      await loansApi.deleteGift(gift.id)
+      setIsDeleting(true)
+      await loansApi.deleteGift(giftToDelete.id)
+      setGiftToDelete(null)
       await loadData()
     } catch (err) {
       console.error('Failed to delete gift:', err)
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -676,6 +691,34 @@ export const LoansPage: React.FC = () => {
         isOpen={isRecordGiftOpen}
         onClose={() => setIsRecordGiftOpen(false)}
         onSuccess={loadData}
+      />
+
+      {/* Modern Glassmorphic Loan Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={!!loanToDelete}
+        onClose={() => setLoanToDelete(null)}
+        onConfirm={confirmDeleteLoan}
+        title="Delete Loan Record"
+        message={`Are you sure you want to delete the loan record for "${loanToDelete?.counterpartyName}"?`}
+        subMessage="This loan and all its associated repayment installments will be removed from your debt overview."
+        confirmText="Delete Loan"
+        cancelText="Cancel"
+        variant="danger"
+        isLoading={isDeleting}
+      />
+
+      {/* Modern Glassmorphic Gift Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={!!giftToDelete}
+        onClose={() => setGiftToDelete(null)}
+        onConfirm={confirmDeleteGift}
+        title="Delete Gift Record"
+        message={`Are you sure you want to delete the gift record for "${giftToDelete?.recipientOrGiver}"?`}
+        subMessage="This gift entry will be permanently removed from your historical gift transactions."
+        confirmText="Delete Gift"
+        cancelText="Cancel"
+        variant="danger"
+        isLoading={isDeleting}
       />
     </div>
   )

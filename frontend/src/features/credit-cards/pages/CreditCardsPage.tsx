@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/Input'
 import { StylizedCreditCard } from '../components/StylizedCreditCard'
 import { PayBillModal } from '../components/PayBillModal'
 import { AddCreditCardModal } from '../components/AddCreditCardModal'
+import { ConfirmModal } from '@/components/ui/ConfirmModal'
 import { creditCardsApi } from '../api/creditCardsApi'
 import type { CreditCard, CreditCardSummary } from '../types'
 
@@ -72,16 +73,24 @@ export const CreditCardsPage: React.FC = () => {
     }
   }, [])
 
-  const handleDeleteCard = async (card: CreditCard) => {
-    if (!window.confirm(`Are you sure you want to remove card "${card.cardName}"?`)) {
-      return
-    }
+  const [cardToDelete, setCardToDelete] = useState<CreditCard | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
 
+  const handleDeleteCard = (card: CreditCard) => {
+    setCardToDelete(card)
+  }
+
+  const confirmDeleteCard = async () => {
+    if (!cardToDelete) return
     try {
-      await creditCardsApi.deleteCreditCard(card.id)
+      setIsDeleting(true)
+      await creditCardsApi.deleteCreditCard(cardToDelete.id)
+      setCardToDelete(null)
       await loadData()
     } catch (err) {
       console.error('Failed to remove card:', err)
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -213,6 +222,20 @@ export const CreditCardsPage: React.FC = () => {
         isOpen={isAddCardOpen}
         onClose={() => setIsAddCardOpen(false)}
         onSuccess={loadData}
+      />
+
+      {/* Modern Glassmorphic Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={!!cardToDelete}
+        onClose={() => setCardToDelete(null)}
+        onConfirm={confirmDeleteCard}
+        title="Remove Credit Card"
+        message={`Are you sure you want to remove card "${cardToDelete?.cardName}"?`}
+        subMessage="Any historical transactions recorded under this card will remain in your ledger, but the card balance and limit tracking will be removed."
+        confirmText="Remove Card"
+        cancelText="Cancel"
+        variant="danger"
+        isLoading={isDeleting}
       />
     </div>
   )

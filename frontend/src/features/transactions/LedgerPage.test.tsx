@@ -274,7 +274,6 @@ describe('LedgerPage and Transactions UI', () => {
   })
 
   it('deletes transaction and reloads data upon user confirmation', async () => {
-    vi.spyOn(window, 'confirm').mockReturnValue(true)
     vi.mocked(transactionsApi.deleteTransaction).mockResolvedValue()
 
     render(<LedgerPage />)
@@ -285,6 +284,13 @@ describe('LedgerPage and Transactions UI', () => {
 
     const deleteButtons = screen.getAllByTitle(/delete transaction/i)
     fireEvent.click(deleteButtons[0])
+
+    await waitFor(() => {
+      expect(screen.getByText(/Account balance will be reversed atomically/i)).toBeInTheDocument()
+    })
+
+    const modalConfirmBtn = screen.getByRole('button', { name: 'Delete Transaction' })
+    fireEvent.click(modalConfirmBtn)
 
     await waitFor(() => {
       expect(transactionsApi.deleteTransaction).toHaveBeenCalledWith('tx-1')

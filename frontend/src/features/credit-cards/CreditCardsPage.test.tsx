@@ -212,7 +212,6 @@ describe('CreditCardsPage and Card Accounting UI', () => {
   })
 
   it('deletes a card upon confirmation and reloads data', async () => {
-    vi.spyOn(window, 'confirm').mockReturnValue(true)
     vi.mocked(creditCardsApi.deleteCreditCard).mockResolvedValue()
 
     render(<CreditCardsPage />)
@@ -223,6 +222,13 @@ describe('CreditCardsPage and Card Accounting UI', () => {
 
     const deleteButtons = screen.getAllByTitle(/remove credit card/i)
     fireEvent.click(deleteButtons[0])
+
+    await waitFor(() => {
+      expect(screen.getByText(/Any historical transactions recorded under this card/i)).toBeInTheDocument()
+    })
+
+    const confirmBtn = screen.getByRole('button', { name: 'Remove Card' })
+    fireEvent.click(confirmBtn)
 
     await waitFor(() => {
       expect(creditCardsApi.deleteCreditCard).toHaveBeenCalledWith('cc-1')

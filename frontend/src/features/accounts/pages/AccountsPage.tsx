@@ -17,6 +17,7 @@ import { Input } from '@/components/ui/Input'
 import { accountsApi } from '../api/accountsApi'
 import { AccountCard } from '../components/AccountCard'
 import { AccountModal } from '../components/AccountModal'
+import { ConfirmModal } from '@/components/ui/ConfirmModal'
 import type {
   Account,
   AccountSummary,
@@ -145,21 +146,29 @@ export const AccountsPage: React.FC = () => {
     }
   }
 
-  const handleDelete = async (account: Account) => {
-    if (!window.confirm(`Are you sure you want to delete "${account.name}"?`)) {
-      return
-    }
+  const [accountToDelete, setAccountToDelete] = useState<Account | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
 
+  const handleDelete = (account: Account) => {
+    setAccountToDelete(account)
+  }
+
+  const confirmDeleteAccount = async () => {
+    if (!accountToDelete) return
     try {
-      await accountsApi.deleteAccount(account.id)
+      setIsDeleting(true)
+      await accountsApi.deleteAccount(accountToDelete.id)
       setNotification({
         type: 'success',
-        message: `Account "${account.name}" deleted successfully.`,
+        message: `Account "${accountToDelete.name}" deleted successfully.`,
       })
+      setAccountToDelete(null)
       await loadData()
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to delete account.'
       setNotification({ type: 'error', message: msg })
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -384,6 +393,20 @@ export const AccountsPage: React.FC = () => {
         onSubmit={handleCreateOrUpdate}
         initialData={editingAccount}
         isLoading={isSubmitting}
+      />
+
+      {/* Modern Glassmorphic Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={!!accountToDelete}
+        onClose={() => setAccountToDelete(null)}
+        onConfirm={confirmDeleteAccount}
+        title="Delete Account"
+        message={`Are you sure you want to delete account "${accountToDelete?.name}"?`}
+        subMessage="This account will be permanently removed. To preserve transaction integrity without deletion, consider archiving the account instead."
+        confirmText="Delete Account"
+        cancelText="Cancel"
+        variant="danger"
+        isLoading={isDeleting}
       />
     </div>
   )

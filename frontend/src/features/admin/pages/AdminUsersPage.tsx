@@ -15,6 +15,7 @@ import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { AdminNavTabs } from '../components/AdminNavTabs'
 import { UserSessionInspectorModal } from '../components/UserSessionInspectorModal'
+import { ConfirmModal } from '@/components/ui/ConfirmModal'
 import { fetchAdminUsers, toggleUserLock } from '../api/adminApi'
 import type { AdminUserDto } from '../types'
 
@@ -48,21 +49,24 @@ export const AdminUsersPage: React.FC = () => {
     loadUsers()
   }, [])
 
-  const handleToggleLock = async (user: AdminUserDto) => {
+  const [userToToggleLock, setUserToToggleLock] = useState<AdminUserDto | null>(null)
+
+  const handleToggleLock = (user: AdminUserDto) => {
     if (user.role === 'Admin') {
-      alert('The Singleton Admin account is architecturally protected and cannot be locked out.')
+      setError('The Singleton Admin account is architecturally protected and cannot be locked out.')
       return
     }
+    setUserToToggleLock(user)
+  }
 
-    const action = user.isLocked ? 'unlock' : 'lock'
-    if (!confirm(`Are you sure you want to ${action} ${user.email}?`)) {
-      return
-    }
-
+  const confirmToggleLock = async () => {
+    if (!userToToggleLock) return
+    const action = userToToggleLock.isLocked ? 'unlock' : 'lock'
     try {
-      setTogglingUserId(user.id)
-      const res = await toggleUserLock(user.id)
+      setTogglingUserId(userToToggleLock.id)
+      const res = await toggleUserLock(userToToggleLock.id)
       setActionNotice(res.message)
+      setUserToToggleLock(null)
       await loadUsers()
     } catch (err: any) {
       setError(err?.message || `Failed to ${action} user.`)
@@ -363,6 +367,24 @@ export const AdminUsersPage: React.FC = () => {
           setSelectedUserForSessions(null)
           loadUsers()
         }}
+      />
+
+      {/* Modern Glassmorphic Toggle Lock Confirmation Modal */}
+      <ConfirmModal
+        isOpen={!!userToToggleLock}
+        onClose={() => setUserToToggleLock(null)}
+        onConfirm={confirmToggleLock}
+        title={userToToggleLock?.isLocked ? 'Unlock User Account' : 'Lock User Account'}
+        message={`Are you sure you want to ${userToToggleLock?.isLocked ? 'unlock' : 'lock'} account for ${userToToggleLock?.email}?`}
+        subMessage={
+          userToToggleLock?.isLocked
+            ? 'The user will immediately regain access to log in and manage their finances.'
+            : 'The user will be immediately blocked from signing in and cannot refresh active sessions.'
+        }
+        confirmText={userToToggleLock?.isLocked ? 'Unlock Account' : 'Lock Account'}
+        cancelText="Cancel"
+        variant={userToToggleLock?.isLocked ? 'info' : 'danger'}
+        isLoading={!!togglingUserId}
       />
     </div>
   )

@@ -22,7 +22,7 @@ export interface AccountCardProps {
   onEdit: (account: Account) => void
   onReconcile: (account: Account) => Promise<void>
   onToggleArchive: (account: Account) => Promise<void>
-  onDelete: (account: Account) => Promise<void>
+  onDelete: (account: Account) => void | Promise<void>
   isReconciling?: boolean
 }
 

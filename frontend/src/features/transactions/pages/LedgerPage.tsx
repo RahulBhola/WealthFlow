@@ -17,6 +17,7 @@ import { Input } from '@/components/ui/Input'
 import { Badge } from '@/components/ui/Badge'
 import { Card, CardHeader, CardBody } from '@/components/ui/Card'
 import { QuickAddModal } from '../components/QuickAddModal'
+import { ConfirmModal } from '@/components/ui/ConfirmModal'
 import { BudgetHealthWidget } from '@/features/budgets/components/BudgetHealthWidget'
 import { transactionsApi } from '../api/transactionsApi'
 import { budgetsApi } from '@/features/budgets/api/budgetsApi'
@@ -136,16 +137,24 @@ export const LedgerPage: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [])
 
-  const handleDelete = async (tx: Transaction) => {
-    if (!window.confirm(`Delete transaction "${tx.description}"? Account balance will be reversed atomically.`)) {
-      return
-    }
+  const [txToDelete, setTxToDelete] = useState<Transaction | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
 
+  const handleDelete = (tx: Transaction) => {
+    setTxToDelete(tx)
+  }
+
+  const confirmDelete = async () => {
+    if (!txToDelete) return
     try {
-      await transactionsApi.deleteTransaction(tx.id)
+      setIsDeleting(true)
+      await transactionsApi.deleteTransaction(txToDelete.id)
+      setTxToDelete(null)
       await loadData()
     } catch (err) {
       console.error('Failed to delete transaction:', err)
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -465,6 +474,20 @@ export const LedgerPage: React.FC = () => {
         isOpen={isQuickAddOpen}
         onClose={() => setIsQuickAddOpen(false)}
         onSuccess={loadData}
+      />
+
+      {/* Modern Glassmorphic Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={!!txToDelete}
+        onClose={() => setTxToDelete(null)}
+        onConfirm={confirmDelete}
+        title="Delete Transaction"
+        message={`Are you sure you want to delete "${txToDelete?.description}"?`}
+        subMessage="Account balance will be reversed atomically across your double-entry ledger."
+        confirmText="Delete Transaction"
+        cancelText="Cancel"
+        variant="danger"
+        isLoading={isDeleting}
       />
     </div>
   )
