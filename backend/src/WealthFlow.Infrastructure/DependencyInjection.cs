@@ -59,7 +59,8 @@ public static class DependencyInjection
             options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
         })
         .AddRoles<ApplicationRole>()
-        .AddEntityFrameworkStores<ApplicationDbContext>();
+        .AddEntityFrameworkStores<ApplicationDbContext>()
+        .AddDefaultTokenProviders();
 
         // JWT Authentication Configuration
         services.AddAuthentication(options =>

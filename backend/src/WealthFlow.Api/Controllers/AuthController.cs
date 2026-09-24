@@ -109,6 +109,10 @@ public class AuthController : ControllerBase
         {
             return BadRequest(new { message = ex.Message });
         }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "An error occurred while generating password reset token: " + ex.Message });
+        }
     }
 
     [HttpPost("reset-password")]
@@ -130,6 +134,10 @@ public class AuthController : ControllerBase
         catch (ArgumentException ex)
         {
             return BadRequest(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "An error occurred while resetting password: " + ex.Message });
         }
     }
 
