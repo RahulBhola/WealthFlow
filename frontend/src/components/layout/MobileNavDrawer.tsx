@@ -1,7 +1,8 @@
 import React from 'react'
 import { cn } from '@/lib/utils'
 import { navigationItems } from './navItems'
-import { X, LogOut, CheckCircle2 } from 'lucide-react'
+import { X, LogOut, CheckCircle2, Sun, Moon } from 'lucide-react'
+import { useTheme } from '../../context/ThemeContext'
 
 export interface MobileNavDrawerProps {
   isOpen: boolean
@@ -29,6 +30,7 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
   onNavigate,
   onLogout,
 }) => {
+  const { theme, toggleTheme } = useTheme()
   const visibleItems = navigationItems.filter(item => !item.isAdminOnly || isAdmin)
 
   return (
@@ -66,14 +68,29 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close menu"
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:text-slate-200"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={toggleTheme}
+              aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+              title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+              className="p-1.5 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-800 transition-colors"
+            >
+              {theme === 'dark' ? (
+                <Sun className="w-4 h-4 text-amber-400" />
+              ) : (
+                <Moon className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close menu"
+              className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         {/* User Profile Snippet */}

@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { cn } from '@/lib/utils'
 import { navigationItems } from './navItems'
-import { Smartphone, ShieldAlert, LogOut, KeyRound } from 'lucide-react'
+import { Smartphone, ShieldAlert, LogOut, KeyRound, Sun, Moon } from 'lucide-react'
+import { useTheme } from '../../context/ThemeContext'
 import { ChangePasswordModal } from '@/features/auth/components/ChangePasswordModal'
 
 export interface SidebarProps {
@@ -27,6 +28,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onLogout,
   className,
 }) => {
+  const { theme, toggleTheme } = useTheme()
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false)
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false)
   const [avatarError, setAvatarError] = useState(false)
@@ -180,6 +182,24 @@ export const Sidebar: React.FC<SidebarProps> = ({
             >
               <KeyRound className="w-3.5 h-3.5 text-indigo-400" />
               <span>Change Password</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => toggleTheme()}
+              className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs text-slate-300 hover:bg-slate-800 hover:text-white transition-colors text-left cursor-pointer"
+            >
+              <div className="flex items-center gap-2">
+                {theme === 'dark' ? (
+                  <Sun className="w-3.5 h-3.5 text-amber-400" />
+                ) : (
+                  <Moon className="w-3.5 h-3.5 text-indigo-400" />
+                )}
+                <span>Theme: {theme === 'dark' ? 'Dark' : 'Light'} Mode</span>
+              </div>
+              <span className="text-[10px] text-slate-400 uppercase tracking-wider font-mono">
+                {theme === 'dark' ? 'Dark' : 'Light'}
+              </span>
             </button>
 
             {isAdmin && (
