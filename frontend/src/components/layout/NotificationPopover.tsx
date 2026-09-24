@@ -87,7 +87,7 @@ export const NotificationPopover: React.FC = () => {
         onClick={() => setIsOpen((prev) => !prev)}
         aria-label="View notifications"
         aria-expanded={isOpen}
-        className="w-9 h-9 rounded-lg bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700/60 flex items-center justify-center text-slate-300 hover:text-white relative focus:outline-none transition-colors shadow-sm cursor-pointer"
+        className="w-9 h-9 rounded-lg bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800/80 dark:hover:bg-slate-700/80 border border-slate-200 dark:border-slate-700/60 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white relative focus:outline-none transition-colors shadow-xs dark:shadow-sm cursor-pointer"
       >
         <Bell className="w-4 h-4" />
         {unreadCount > 0 && (

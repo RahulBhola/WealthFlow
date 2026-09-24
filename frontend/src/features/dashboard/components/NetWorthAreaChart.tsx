@@ -159,7 +159,7 @@ export const NetWorthAreaChart: React.FC<NetWorthAreaChartProps> = ({ data, clas
                 x={paddingX - 8}
                 y={tick.y + 4}
                 textAnchor="end"
-                className="text-[10px] fill-slate-400 font-mono"
+                className="text-[10px] fill-slate-500 dark:fill-slate-400 font-mono font-medium"
               >
                 {formatINR(tick.val)}
               </text>
@@ -254,8 +254,8 @@ export const NetWorthAreaChart: React.FC<NetWorthAreaChartProps> = ({ data, clas
                 x={getX(idx)}
                 y={height - 8}
                 textAnchor="middle"
-                className={`text-[10px] font-mono select-none ${
-                  hoveredIdx === idx ? 'fill-indigo-600 dark:fill-indigo-400 font-bold' : 'fill-slate-400'
+                className={`text-[10px] font-mono select-none font-medium ${
+                  hoveredIdx === idx ? 'fill-indigo-600 dark:fill-indigo-400 font-bold' : 'fill-slate-500 dark:fill-slate-400'
                 }`}
               >
                 {(d.monthName || (d as any).monthLabel || 'N/A').split(' ')[0]}

@@ -151,7 +151,7 @@ export const CurrencySelector: React.FC = () => {
         onClick={() => setIsOpen((prev) => !prev)}
         aria-label="Select base currency"
         aria-expanded={isOpen}
-        className="px-3 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700/60 flex items-center gap-2 text-xs font-medium text-slate-200 transition-colors shadow-sm cursor-pointer"
+        className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800/80 dark:hover:bg-slate-700/80 border border-slate-200 dark:border-slate-700/60 flex items-center gap-2 text-xs font-medium text-slate-700 dark:text-slate-200 transition-colors shadow-xs dark:shadow-sm cursor-pointer"
       >
         <FlagIcon type={selectedCurrency.flagType} className="w-4 h-4 shrink-0" />
         <span>
@@ -159,16 +159,16 @@ export const CurrencySelector: React.FC = () => {
         </span>
         <ChevronDown
           className={cn(
-            'w-3.5 h-3.5 text-slate-400 transition-transform duration-200',
-            isOpen && 'rotate-180 text-slate-200'
+            'w-3.5 h-3.5 text-slate-500 dark:text-slate-400 transition-transform duration-200',
+            isOpen && 'rotate-180 text-slate-700 dark:text-slate-200'
           )}
         />
       </button>
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-48 rounded-xl bg-slate-900 border border-slate-700/80 shadow-2xl p-1 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
-          <div className="px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400 border-b border-slate-800">
+        <div className="absolute right-0 mt-2 w-48 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 shadow-2xl p-1 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+          <div className="px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-slate-800">
             Display Currency
           </div>
           <div className="py-1">
@@ -182,8 +182,8 @@ export const CurrencySelector: React.FC = () => {
                   className={cn(
                     'w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs transition-colors cursor-pointer text-left',
                     isSelected
-                      ? 'bg-indigo-950/50 text-indigo-300 font-semibold'
-                      : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                      ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300 font-semibold'
+                      : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
                   )}
                 >
                   <div className="flex items-center gap-2">
@@ -192,7 +192,7 @@ export const CurrencySelector: React.FC = () => {
                       {curr.code} ({curr.symbol})
                     </span>
                   </div>
-                  {isSelected && <Check className="w-3.5 h-3.5 text-indigo-400 shrink-0" />}
+                  {isSelected && <Check className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />}
                 </button>
               )
             })}
