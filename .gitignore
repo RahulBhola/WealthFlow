@@ -26,6 +26,7 @@ yarn-error.log*
 .env.*.local
 *.pfx
 *.pem
+docs/07-deployment-and-operations-guide.md
 
 # OS generated
 Thumbs.db

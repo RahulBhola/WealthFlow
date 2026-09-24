@@ -47,20 +47,20 @@ Neon provides instant, serverless PostgreSQL with automated compute scaling and 
 
 1. **Sign Up / Log In:**
    - Navigate to [neon.tech](https://neon.tech) and authenticate.
-2. **Create New Project (Completed):**
-   - Project Name: `wealthflow` (Project ID: `snowy-field-68798692`)
+2. **Create New Project:**
+   - Project Name: `wealthflow`
    - Postgres Version: `16`
    - Cloud Service Provider & Region: `AWS US East (Ohio) / us-east-2`
 3. **Retrieve Connection String:**
    - In your Neon dashboard under **Connection Details**:
    - Pooled Connection URI:
      ```
-     postgresql://neondb_owner:npg_QwxN5p0kin2A@ep-ancient-voice-b59rhw6g-pooler.c-7.us-east-2.aws.neon.tech/neondb?sslmode=require
+     postgresql://neondb_owner:<YOUR_NEON_PASSWORD>@ep-ancient-voice-b59rhw6g-pooler.c-7.us-east-2.aws.neon.tech/neondb?sslmode=require
      ```
 4. **Format for ASP.NET Npgsql:**
    - Standard key-value connection string configured for Npgsql:
      ```
-     Host=ep-ancient-voice-b59rhw6g-pooler.c-7.us-east-2.aws.neon.tech;Port=5432;Database=neondb;Username=neondb_owner;Password=npg_QwxN5p0kin2A;SSL Mode=Require;Trust Server Certificate=true;
+     Host=ep-ancient-voice-b59rhw6g-pooler.c-7.us-east-2.aws.neon.tech;Port=5432;Database=neondb;Username=neondb_owner;Password=<YOUR_NEON_PASSWORD>;SSL Mode=Require;Trust Server Certificate=true;
      ```
 
 ---
@@ -79,16 +79,16 @@ Render builds and runs the production multi-stage `.NET 9` Docker container in a
    - **Branch:** `main`
    - **Language / Runtime:** **Docker**
    - **Root Directory:** *(Leave empty - uses repository root)*
-   - **Dockerfile Path:** `./backend/Dockerfile`
+   - **Dockerfile Path:** `./backend/Dockerfile` (or `Dockerfile`)
    - **Instance Type:** **Free** (or Starter/Standard for continuous uptime)
 3. **Configure Environment Variables:**
-   Click **Add Environment Variable** and enter the exact keys and values from the table below:
+   Click **Add Environment Variable** and enter the keys and values below:
 
    | Key | Value | Description |
    |---|---|---|
    | `ASPNETCORE_ENVIRONMENT` | `Production` | Activates production error handling & caching |
    | `DatabaseProvider` | `PostgreSQL` | Directs EF Core to instantiate Npgsql provider |
-   | `ConnectionStrings__DefaultConnection` | `Host=ep-ancient-voice-b59rhw6g-pooler.c-7.us-east-2.aws.neon.tech;Port=5432;Database=neondb;Username=neondb_owner;Password=npg_QwxN5p0kin2A;SSL Mode=Require;Trust Server Certificate=true;` | Your exact Neon PostgreSQL pooled connection string |
+   | `ConnectionStrings__DefaultConnection` | `Host=ep-ancient-voice-b59rhw6g-pooler.c-7.us-east-2.aws.neon.tech;Port=5432;Database=neondb;Username=neondb_owner;Password=<YOUR_NEON_PASSWORD>;SSL Mode=Require;Trust Server Certificate=true;` | Your pooled Neon PostgreSQL connection string |
    | `AutoInitDatabase` | `true` | Automatically provisions all 23 database tables and singleton admin on startup |
    | `CORS_ALLOWED_ORIGINS` | `*` | Or specify your Vercel frontend URL: `https://wealthflow.vercel.app` |
    | `Jwt__Secret` | `WealthFlowSuperSecretKeyMustBeAtLeast32BytesLongProduction!` | Cryptographic key for signing HS256 tokens (min 32 chars) |
