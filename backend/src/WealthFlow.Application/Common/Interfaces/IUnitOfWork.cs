@@ -24,6 +24,7 @@ public interface IUnitOfWork : IDisposable
     IGiftRepository Gifts { get; }
     ISyncOperationLogRepository SyncOperationLogs { get; }
     IAuditLogRepository AuditLogs { get; }
+    IAttachmentRepository Attachments { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     Task BeginTransactionAsync(CancellationToken cancellationToken = default);

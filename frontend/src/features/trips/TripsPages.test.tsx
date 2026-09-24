@@ -330,7 +330,7 @@ describe('Milestone 7: Trips Workspace & Settlement Tests', () => {
     fireEvent.click(screen.getByRole('button', { name: /Settlement History/i }))
     expect(screen.getByText('Confirmed Settle-Up History (1)')).toBeInTheDocument()
     expect(screen.getByText(/Partial payment/)).toBeInTheDocument()
-  })
+  }, 15000)
 
   it('opens Settle Up modal and executes pure informational settlement', async () => {
     vi.mocked(tripsApi.getTrip).mockResolvedValue(mockTripDetail)

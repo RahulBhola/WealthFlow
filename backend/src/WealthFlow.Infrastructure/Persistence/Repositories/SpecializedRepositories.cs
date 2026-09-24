@@ -632,3 +632,30 @@ public class AuditLogRepository : Repository<AuditLog>, IAuditLogRepository
     }
 }
 
+/// <summary>
+/// Specialized Attachment repository implementing queries using pure LINQ.
+/// </summary>
+public class AttachmentRepository : Repository<Attachment>, IAttachmentRepository
+{
+    public AttachmentRepository(ApplicationDbContext dbContext) : base(dbContext) { }
+
+    public async Task<IReadOnlyList<Attachment>> GetByEntityAsync(
+        string linkedEntityType,
+        Guid linkedEntityId,
+        Guid userId,
+        CancellationToken cancellationToken = default)
+    {
+        return await _dbSet
+            .AsNoTracking()
+            .Where(a => a.UserId == userId && a.LinkedEntityType == linkedEntityType && a.LinkedEntityId == linkedEntityId)
+            .OrderByDescending(a => a.CreatedAtUtc)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<Attachment?> GetByIdAsync(Guid id, Guid userId, CancellationToken cancellationToken = default)
+    {
+        return await _dbSet
+            .FirstOrDefaultAsync(a => a.Id == id && a.UserId == userId, cancellationToken);
+    }
+}
+

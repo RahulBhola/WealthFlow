@@ -1,0 +1,81 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: wealthflow_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: wealthflow_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d wealthflow_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - wealthflow_network
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: wealthflow_api
+    restart: unless-stopped
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - DatabaseProvider=PostgreSQL
+      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=wealthflow_db;Username=postgres;Password=postgres
+      - StorageProvider=GoogleDrive
+      - FileStorageProvider=GoogleDrive
+      - Jwt__Secret=WealthFlowSuperSecretKeyMustBeAtLeast32BytesLong!
+      - Jwt__Issuer=WealthFlow
+      - Jwt__Audience=WealthFlowClient
+    volumes:
+      - api_uploads:/app/App_Data/uploads
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    networks:
+      - wealthflow_network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: wealthflow_frontend
+    restart: unless-stopped
+    ports:
+      - "80:8080"
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    networks:
+      - wealthflow_network
+
+volumes:
+  postgres_data:
+  api_uploads:
+
+networks:
+  wealthflow_network:
+    driver: bridge

@@ -125,6 +125,23 @@ public static class DependencyInjection
         services.AddScoped<WealthFlow.Application.Features.Dashboard.Interfaces.IDashboardService, DashboardService>();
         services.AddScoped<WealthFlow.Application.Features.Admin.Interfaces.IAdminService, AdminService>();
         services.AddScoped<IAuditLogRepository, AuditLogRepository>();
+        services.AddScoped<IAttachmentRepository, AttachmentRepository>();
+        services.AddScoped<IDataTransferService, DataTransferService>();
+
+        // File Storage Provider Selection
+        var storageProvider = configuration["StorageProvider"]
+            ?? configuration["FileStorageProvider"]
+            ?? (configuration["DatabaseProvider"]?.Equals("SqlServer", StringComparison.OrdinalIgnoreCase) == true ? "AzureBlob" : "GoogleDrive");
+
+        if (storageProvider.Equals("AzureBlob", StringComparison.OrdinalIgnoreCase))
+        {
+            services.AddScoped<IFileStorageService, Services.Storage.AzureBlobStorageService>();
+        }
+        else
+        {
+            services.AddScoped<IFileStorageService, Services.Storage.GoogleDriveStorageService>();
+        }
+
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddHostedService<SipExecutionBackgroundService>();
 

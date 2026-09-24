@@ -98,5 +98,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
         builder.Entity<TripSettlement>().HasQueryFilter(e => !e.IsDeleted);
         builder.Entity<Budget>().HasQueryFilter(e => !e.IsDeleted);
         builder.Entity<Gift>().HasQueryFilter(e => !e.IsDeleted);
+        builder.Entity<Attachment>().HasQueryFilter(e => !e.IsDeleted);
     }
 }

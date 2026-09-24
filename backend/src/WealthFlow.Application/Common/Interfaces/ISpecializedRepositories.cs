@@ -194,4 +194,13 @@ public interface IAuditLogRepository : IRepository<AuditLog>
     Task<int> GetTodayCountAsync(CancellationToken cancellationToken = default);
 }
 
+/// <summary>
+/// Specialized repository contract for receipt and document attachments.
+/// </summary>
+public interface IAttachmentRepository : IRepository<Attachment>
+{
+    Task<IReadOnlyList<Attachment>> GetByEntityAsync(string linkedEntityType, Guid linkedEntityId, Guid userId, CancellationToken cancellationToken = default);
+    Task<Attachment?> GetByIdAsync(Guid id, Guid userId, CancellationToken cancellationToken = default);
+}
+
 
