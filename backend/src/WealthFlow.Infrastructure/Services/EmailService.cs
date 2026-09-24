@@ -130,6 +130,7 @@ public class EmailService : IEmailService
             try
             {
                 using var http = new HttpClient();
+                http.DefaultRequestHeaders.UserAgent.ParseAdd("WealthFlow/1.0");
                 http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", resendApiKey.Trim());
                 var payload = new
                 {
