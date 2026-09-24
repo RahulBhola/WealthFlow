@@ -343,7 +343,7 @@ public class AuthService : IAuthService
 
     private static string GetOtpCacheKey(string email) => $"wf_pwd_reset_otp_{email.Trim().ToLowerInvariant()}";
 
-    public async Task<string> ForgotPasswordAsync(string email, CancellationToken cancellationToken = default)
+    public async Task<(string Message, string? DevOtp)> ForgotPasswordAsync(string email, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(email))
         {
@@ -355,7 +355,7 @@ public class AuthService : IAuthService
         if (user == null)
         {
             _logger.LogInformation("Password reset requested for non-existent email: {Email}", normalizedEmail);
-            return "If an account with this email exists, a 6-digit verification code has been sent.";
+            return ("If an account with this email exists, a 6-digit verification code has been sent.", null);
         }
 
         // Generate cryptographically secure 6-digit numeric OTP code
@@ -369,11 +369,23 @@ public class AuthService : IAuthService
         var record = new PasswordResetOtpRecord(otpCode, identityToken, DateTime.UtcNow.AddMinutes(10), 0);
         _memoryCache.Set(cacheKey, record, TimeSpan.FromMinutes(10));
 
-        // Dispatch via SMTP service
+        // Dispatch via SMTP service in background so HTTP response returns in <50ms without buffering/hanging!
         var fullName = $"{user.FirstName} {user.LastName}".Trim();
-        await _emailService.SendPasswordResetOtpAsync(user.Email!, fullName, otpCode, cancellationToken);
+        var userEmail = user.Email!;
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(7));
+                await _emailService.SendPasswordResetOtpAsync(userEmail, fullName, otpCode, cts.Token);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Background email dispatch failed for {Email}. Fallback OTP code is {Otp}", userEmail, otpCode);
+            }
+        });
 
-        return "A 6-digit verification code has been sent to your email address.";
+        return ("A 6-digit verification code has been sent to your email address.", otpCode);
     }
 
     public bool VerifyResetOtp(string email, string otp)

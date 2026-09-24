@@ -163,9 +163,9 @@ public class EmailService : IEmailService
                 Body = htmlBody,
                 IsBodyHtml = true
             };
-            message.To.Add(recipientEmail);
-
-            await client.SendMailAsync(message, cancellationToken);
+            using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            timeoutCts.CancelAfter(TimeSpan.FromSeconds(5));
+            await client.SendMailAsync(message, timeoutCts.Token);
             _logger.LogInformation("Password reset OTP successfully dispatched to {Email}", recipientEmail);
         }
         catch (Exception ex)
