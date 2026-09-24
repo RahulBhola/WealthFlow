@@ -70,7 +70,10 @@ public static class DependencyInjection
         })
         .AddJwtBearer(options =>
         {
-            var jwtSecret = configuration["Jwt:Secret"] ?? "WealthFlowSuperSecretKeyMustBeAtLeast32BytesLong!";
+            var configuredSecret = configuration["Jwt:Secret"];
+            var jwtSecret = !string.IsNullOrWhiteSpace(configuredSecret)
+                ? configuredSecret
+                : "WealthFlowSuperSecretKeyMustBeAtLeast32BytesLong!";
             var jwtIssuer = configuration["Jwt:Issuer"] ?? "WealthFlow";
             var jwtAudience = configuration["Jwt:Audience"] ?? "WealthFlowClient";
 

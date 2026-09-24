@@ -20,7 +20,10 @@ public class TokenService : ITokenService
 
     public TokenService(IConfiguration configuration)
     {
-        _secret = configuration["Jwt:Secret"] ?? "WealthFlowSuperSecretKeyMustBeAtLeast32BytesLong!";
+        var configuredSecret = configuration["Jwt:Secret"];
+        _secret = !string.IsNullOrWhiteSpace(configuredSecret)
+            ? configuredSecret
+            : "WealthFlowSuperSecretKeyMustBeAtLeast32BytesLong!";
         _issuer = configuration["Jwt:Issuer"] ?? "WealthFlow";
         _audience = configuration["Jwt:Audience"] ?? "WealthFlowClient";
         _accessTokenExpirationMinutes = int.TryParse(configuration["Jwt:AccessTokenExpirationMinutes"], out var minutes) ? minutes : 15;

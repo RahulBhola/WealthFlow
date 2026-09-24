@@ -30,10 +30,10 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - DatabaseProvider=PostgreSQL
-      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=wealthflow_db;Username=postgres;Password=postgres
+      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=wealthflow_db;Username=postgres;Password=${POSTGRES_PASSWORD:-postgres}
       - StorageProvider=GoogleDrive
       - FileStorageProvider=GoogleDrive
-      - Jwt__Secret=WealthFlowSuperSecretKeyMustBeAtLeast32BytesLong!
+      - Jwt__Secret=${JWT_SECRET:-WealthFlowSuperSecretKeyMustBeAtLeast32BytesLong!}
       - Jwt__Issuer=WealthFlow
       - Jwt__Audience=WealthFlowClient
     volumes:
