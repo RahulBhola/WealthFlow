@@ -343,7 +343,7 @@ public class AuthService : IAuthService
 
     private static string GetOtpCacheKey(string email) => $"wf_pwd_reset_otp_{email.Trim().ToLowerInvariant()}";
 
-    public async Task<(string Message, string? DevOtp)> ForgotPasswordAsync(string email, CancellationToken cancellationToken = default)
+    public async Task<string> ForgotPasswordAsync(string email, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(email))
         {
@@ -355,7 +355,7 @@ public class AuthService : IAuthService
         if (user == null)
         {
             _logger.LogInformation("Password reset requested for non-existent email: {Email}", normalizedEmail);
-            return ("If an account with this email exists, a 6-digit verification code has been sent.", null);
+            return "If an account with this email exists, a 6-digit verification code has been sent.";
         }
 
         // Generate cryptographically secure 6-digit numeric OTP code
@@ -381,11 +381,11 @@ public class AuthService : IAuthService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Background email dispatch failed for {Email}. Fallback OTP code is {Otp}", userEmail, otpCode);
+                _logger.LogError(ex, "Background email dispatch failed for {Email}.", userEmail);
             }
         });
 
-        return ("A 6-digit verification code has been sent to your email address.", otpCode);
+        return "A 6-digit verification code has been sent to your email address.";
     }
 
     public bool VerifyResetOtp(string email, string otp)

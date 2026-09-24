@@ -67,17 +67,13 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
     setIsSubmitting(true)
 
     try {
-      const res = await apiClient<{ message: string; email?: string; devOtp?: string }>('/api/v1/auth/forgot-password', {
+      const res = await apiClient<{ message: string; email?: string }>('/api/v1/auth/forgot-password', {
         method: 'POST',
         body: JSON.stringify({ email: targetEmail }),
         skipAuth: true,
       })
 
-      if (res?.devOtp) {
-        setInfoMessage(`Verification code sent! (Your 6-digit code is: ${res.devOtp})`)
-      } else {
-        setInfoMessage(res?.message || 'A 6-digit verification code has been sent to your email.')
-      }
+      setInfoMessage(res?.message || 'A 6-digit verification code has been sent to your email.')
       setStep('otpAndNewPassword')
       setResendCooldown(60) // 60s cooldown for resend
     } catch (err: unknown) {

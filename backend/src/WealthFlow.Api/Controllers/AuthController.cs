@@ -94,12 +94,11 @@ public class AuthController : ControllerBase
     {
         try
         {
-            var (message, devOtp) = await _authService.ForgotPasswordAsync(request.Email, cancellationToken);
+            var message = await _authService.ForgotPasswordAsync(request.Email, cancellationToken);
             return Ok(new
             {
                 message,
-                email = request.Email,
-                devOtp
+                email = request.Email
             });
         }
         catch (ArgumentException ex)
