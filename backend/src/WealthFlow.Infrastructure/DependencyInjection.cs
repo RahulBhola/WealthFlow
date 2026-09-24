@@ -122,6 +122,9 @@ public static class DependencyInjection
         services.AddScoped<IGiftRepository, GiftRepository>();
         services.AddScoped<ISyncOperationLogRepository, SyncOperationLogRepository>();
         services.AddScoped<IUserSessionRepository, UserSessionRepository>();
+        services.AddScoped<WealthFlow.Application.Features.Dashboard.Interfaces.IDashboardService, DashboardService>();
+        services.AddScoped<WealthFlow.Application.Features.Admin.Interfaces.IAdminService, AdminService>();
+        services.AddScoped<IAuditLogRepository, AuditLogRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddHostedService<SipExecutionBackgroundService>();
 

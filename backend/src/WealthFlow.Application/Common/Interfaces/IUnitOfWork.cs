@@ -23,6 +23,7 @@ public interface IUnitOfWork : IDisposable
     IRepository<WealthFlow.Domain.Entities.LoanRepayment> LoanRepayments { get; }
     IGiftRepository Gifts { get; }
     ISyncOperationLogRepository SyncOperationLogs { get; }
+    IAuditLogRepository AuditLogs { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     Task BeginTransactionAsync(CancellationToken cancellationToken = default);

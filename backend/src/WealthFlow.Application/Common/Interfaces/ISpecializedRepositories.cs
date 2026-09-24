@@ -175,4 +175,23 @@ public interface ISyncOperationLogRepository : IRepository<SyncOperationLog>
     Task<(int TotalProcessedToday, int ConflictCountToday, int DeadLetterCount)> GetTelemetryStatsAsync(CancellationToken cancellationToken = default);
 }
 
+/// <summary>
+/// Specialized repository contract for System Audit Logs.
+/// </summary>
+public interface IAuditLogRepository : IRepository<AuditLog>
+{
+    Task<(IReadOnlyList<AuditLog> Items, int TotalCount)> GetPagedAuditLogsAsync(
+        int page,
+        int pageSize,
+        string? entityName = null,
+        string? action = null,
+        Guid? userId = null,
+        DateTime? startDate = null,
+        DateTime? endDate = null,
+        string? search = null,
+        CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<AuditLog>> GetRecentLogsAsync(int count, CancellationToken cancellationToken = default);
+    Task<int> GetTodayCountAsync(CancellationToken cancellationToken = default);
+}
+
 

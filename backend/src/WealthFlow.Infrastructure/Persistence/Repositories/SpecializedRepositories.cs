@@ -550,3 +550,85 @@ public class SyncOperationLogRepository : Repository<SyncOperationLog>, ISyncOpe
     }
 }
 
+/// <summary>
+/// Specialized AuditLog repository implementing filtering, pagination, and telemetry queries.
+/// </summary>
+public class AuditLogRepository : Repository<AuditLog>, IAuditLogRepository
+{
+    public AuditLogRepository(ApplicationDbContext dbContext) : base(dbContext) { }
+
+    public async Task<(IReadOnlyList<AuditLog> Items, int TotalCount)> GetPagedAuditLogsAsync(
+        int page,
+        int pageSize,
+        string? entityName = null,
+        string? action = null,
+        Guid? userId = null,
+        DateTime? startDate = null,
+        DateTime? endDate = null,
+        string? search = null,
+        CancellationToken cancellationToken = default)
+    {
+        var query = _dbSet.AsNoTracking().AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(entityName))
+        {
+            query = query.Where(a => a.EntityName.ToLower() == entityName.ToLower());
+        }
+
+        if (!string.IsNullOrWhiteSpace(action))
+        {
+            query = query.Where(a => a.Action.ToUpper() == action.ToUpper());
+        }
+
+        if (userId.HasValue && userId.Value != Guid.Empty)
+        {
+            query = query.Where(a => a.UserId == userId.Value);
+        }
+
+        if (startDate.HasValue)
+        {
+            query = query.Where(a => a.TimestampUtc >= startDate.Value);
+        }
+
+        if (endDate.HasValue)
+        {
+            query = query.Where(a => a.TimestampUtc <= endDate.Value);
+        }
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var s = search.ToLower();
+            query = query.Where(a =>
+                a.EntityName.ToLower().Contains(s) ||
+                a.Action.ToLower().Contains(s) ||
+                (a.IpAddress != null && a.IpAddress.ToLower().Contains(s)) ||
+                (a.NewValuesJson != null && a.NewValuesJson.ToLower().Contains(s)) ||
+                (a.OldValuesJson != null && a.OldValuesJson.ToLower().Contains(s)));
+        }
+
+        var totalCount = await query.CountAsync(cancellationToken);
+        var items = await query
+            .OrderByDescending(a => a.TimestampUtc)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+
+        return (items, totalCount);
+    }
+
+    public async Task<IReadOnlyList<AuditLog>> GetRecentLogsAsync(int count, CancellationToken cancellationToken = default)
+    {
+        return await _dbSet
+            .AsNoTracking()
+            .OrderByDescending(a => a.TimestampUtc)
+            .Take(count)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<int> GetTodayCountAsync(CancellationToken cancellationToken = default)
+    {
+        var todayUtc = DateTime.UtcNow.Date;
+        return await _dbSet.CountAsync(a => a.TimestampUtc >= todayUtc, cancellationToken);
+    }
+}
+

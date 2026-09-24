@@ -19,6 +19,11 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
     public const string TestUserEmail = "test@wealthflow.local";
     public const string TestUserRole = "User";
     public const string TestUserPassword = "Test@123456";
+
+    public static readonly Guid AdminUserId = Guid.Parse("00000000-0000-0000-0000-000000000001");
+    public const string AdminUserEmail = "admin@wealthflow.local";
+    public const string AdminUserRole = "Admin";
+    public const string AdminUserPassword = "Admin@123456";
     private readonly string _databaseName = $"WealthFlow_TestDb_{Guid.NewGuid():N}";
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -98,6 +103,29 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
             {
                 var errors = string.Join(", ", roleResult.Errors.Select(e => e.Description));
                 throw new InvalidOperationException($"Failed to assign role to universal test user: {errors}");
+            }
+        }
+
+        var existingAdmin = await userManager.FindByIdAsync(AdminUserId.ToString());
+        if (existingAdmin == null)
+        {
+            var adminUser = new ApplicationUser
+            {
+                Id = AdminUserId,
+                UserName = AdminUserEmail,
+                Email = AdminUserEmail,
+                EmailConfirmed = true,
+                FirstName = "Singleton",
+                LastName = "Admin",
+                Role = AdminUserRole,
+                CurrencyCode = "INR",
+                CreatedAtUtc = DateTime.UtcNow
+            };
+
+            var adminCreate = await userManager.CreateAsync(adminUser, AdminUserPassword);
+            if (adminCreate.Succeeded)
+            {
+                await userManager.AddToRoleAsync(adminUser, AdminUserRole);
             }
         }
     }

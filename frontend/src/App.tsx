@@ -9,7 +9,11 @@ import { LoginPage } from '@/features/auth/pages/LoginPage'
 import { RegisterPage } from '@/features/auth/pages/RegisterPage'
 import { SessionsPage } from '@/features/auth/pages/SessionsPage'
 import { AdminDashboardPage } from '@/features/admin/pages/AdminDashboardPage'
+import { AdminUsersPage } from '@/features/admin/pages/AdminUsersPage'
+import { AdminAuditLogsPage } from '@/features/admin/pages/AdminAuditLogsPage'
+import { AdminSyncMonitorPage } from '@/features/admin/pages/AdminSyncMonitorPage'
 import { DashboardPage } from '@/features/dashboard/pages/DashboardPage'
+import { AnalyticsPage } from '@/features/analytics/pages/AnalyticsPage'
 import { AccountsPage } from '@/features/accounts/pages/AccountsPage'
 import { LedgerPage } from '@/features/transactions/pages/LedgerPage'
 import { CreditCardsPage } from '@/features/credit-cards/pages/CreditCardsPage'
@@ -61,6 +65,8 @@ export const App: React.FC = () => {
             }
           >
             <Route path="/" element={<DashboardPage />} />
+            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/analytics" element={<AnalyticsPage />} />
             <Route path="/accounts" element={<AccountsPage />} />
             <Route path="/transactions" element={<LedgerPage />} />
             <Route path="/ledger" element={<LedgerPage />} />
@@ -76,6 +82,38 @@ export const App: React.FC = () => {
               element={
                 <RoleGuard requiredRole="Admin">
                   <AdminDashboardPage />
+                </RoleGuard>
+              }
+            />
+            <Route
+              path="/admin/dashboard"
+              element={
+                <RoleGuard requiredRole="Admin">
+                  <AdminDashboardPage />
+                </RoleGuard>
+              }
+            />
+            <Route
+              path="/admin/users"
+              element={
+                <RoleGuard requiredRole="Admin">
+                  <AdminUsersPage />
+                </RoleGuard>
+              }
+            />
+            <Route
+              path="/admin/audit-logs"
+              element={
+                <RoleGuard requiredRole="Admin">
+                  <AdminAuditLogsPage />
+                </RoleGuard>
+              }
+            />
+            <Route
+              path="/admin/sync-monitor"
+              element={
+                <RoleGuard requiredRole="Admin">
+                  <AdminSyncMonitorPage />
                 </RoleGuard>
               }
             />

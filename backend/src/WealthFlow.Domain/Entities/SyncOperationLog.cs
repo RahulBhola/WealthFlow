@@ -48,4 +48,11 @@ public class SyncOperationLog : BaseEntity, IAggregateRoot
         Resolution = resolution;
         ResultJson = resultJson;
     }
+
+    public void Resolve(string resolution)
+    {
+        Resolution = resolution;
+        Status = "Resolved";
+        SetUpdated();
+    }
 }

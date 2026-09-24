@@ -30,6 +30,7 @@ public class UnitOfWork : IUnitOfWork
     private IRepository<WealthFlow.Domain.Entities.LoanRepayment>? _loanRepaymentRepository;
     private IGiftRepository? _giftRepository;
     private ISyncOperationLogRepository? _syncOperationLogRepository;
+    private IAuditLogRepository? _auditLogRepository;
 
     public UnitOfWork(ApplicationDbContext dbContext)
     {
@@ -54,6 +55,7 @@ public class UnitOfWork : IUnitOfWork
     public IRepository<WealthFlow.Domain.Entities.LoanRepayment> LoanRepayments => _loanRepaymentRepository ??= new Repository<WealthFlow.Domain.Entities.LoanRepayment>(_dbContext);
     public IGiftRepository Gifts => _giftRepository ??= new GiftRepository(_dbContext);
     public ISyncOperationLogRepository SyncOperationLogs => _syncOperationLogRepository ??= new SyncOperationLogRepository(_dbContext);
+    public IAuditLogRepository AuditLogs => _auditLogRepository ??= new AuditLogRepository(_dbContext);
 
     public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
