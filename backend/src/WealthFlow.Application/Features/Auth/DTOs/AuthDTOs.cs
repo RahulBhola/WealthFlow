@@ -50,3 +50,7 @@ public record ResetPasswordRequest(
     string Email,
     string Token,
     string NewPassword);
+
+public record ChangePasswordRequest(
+    string CurrentPassword,
+    string NewPassword);

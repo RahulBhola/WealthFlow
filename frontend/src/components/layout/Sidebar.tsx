@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { cn } from '@/lib/utils'
 import { navigationItems } from './navItems'
-import { Smartphone, ShieldAlert, LogOut } from 'lucide-react'
+import { Smartphone, ShieldAlert, LogOut, KeyRound } from 'lucide-react'
+import { ChangePasswordModal } from '@/features/auth/components/ChangePasswordModal'
 
 export interface SidebarProps {
   currentPath?: string
@@ -27,6 +28,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   className,
 }) => {
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false)
+  const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false)
   const [avatarError, setAvatarError] = useState(false)
   const profileMenuRef = useRef<HTMLDivElement>(null)
 
@@ -168,6 +170,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <span>Device Sessions</span>
             </button>
 
+            <button
+              type="button"
+              onClick={() => {
+                setIsProfileMenuOpen(false)
+                setIsChangePasswordOpen(true)
+              }}
+              className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs text-slate-300 hover:bg-slate-800 hover:text-white transition-colors text-left cursor-pointer"
+            >
+              <KeyRound className="w-3.5 h-3.5 text-indigo-400" />
+              <span>Change Password</span>
+            </button>
+
             {isAdmin && (
               <button
                 type="button"
@@ -198,6 +212,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
         )}
       </div>
+
+      <ChangePasswordModal
+        isOpen={isChangePasswordOpen}
+        onClose={() => setIsChangePasswordOpen(false)}
+      />
     </aside>
   )
 }

@@ -17,4 +17,5 @@ public interface IAuthService
     Task<string> ForgotPasswordAsync(string email, CancellationToken cancellationToken = default);
     bool VerifyResetOtp(string email, string otp);
     Task ResetPasswordAsync(ResetPasswordRequest request, CancellationToken cancellationToken = default);
+    Task ChangePasswordAsync(Guid userId, string currentPassword, string newPassword, CancellationToken cancellationToken = default);
 }

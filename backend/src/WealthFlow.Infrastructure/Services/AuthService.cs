@@ -476,4 +476,32 @@ public class AuthService : IAuthService
         }
         await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
+
+    public async Task ChangePasswordAsync(Guid userId, string currentPassword, string newPassword, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(currentPassword))
+        {
+            throw new ArgumentException("Current password is required.", nameof(currentPassword));
+        }
+
+        if (string.IsNullOrWhiteSpace(newPassword))
+        {
+            throw new ArgumentException("New password must be at least 8 characters long.", nameof(newPassword));
+        }
+
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+        if (user == null)
+        {
+            throw new KeyNotFoundException("User not found.");
+        }
+
+        var result = await _userManager.ChangePasswordAsync(user, currentPassword, newPassword);
+        if (!result.Succeeded)
+        {
+            var errors = string.Join("; ", result.Errors.Select(e => e.Description));
+            throw new InvalidOperationException(errors);
+        }
+
+        _logger.LogInformation("Password successfully changed for user ID: {UserId}", userId);
+    }
 }

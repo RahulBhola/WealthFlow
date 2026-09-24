@@ -156,6 +156,38 @@ public class AuthController : ControllerBase
     }
 
     [Authorize]
+    [HttpPost("change-password")]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request, CancellationToken cancellationToken)
+    {
+        if (_currentUserService.UserId == null)
+        {
+            return Unauthorized();
+        }
+
+        try
+        {
+            await _authService.ChangePasswordAsync(_currentUserService.UserId.Value, request.CurrentPassword, request.NewPassword, cancellationToken);
+            return Ok(new { message = "Password updated successfully." });
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "An error occurred while changing password: " + ex.Message });
+        }
+    }
+
+    [Authorize]
     [HttpGet("sessions")]
     public async Task<IActionResult> GetSessions(CancellationToken cancellationToken)
     {
