@@ -18,6 +18,16 @@ public interface IDataTransferService
     Task<byte[]> ExportTransactionsCsvAsync(Guid userId, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Exports transactions for a specific month/year with summary balance header to CSV format.
+    /// </summary>
+    Task<byte[]> ExportMonthlyTransactionsCsvAsync(Guid userId, int year, int month, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Archives the monthly transactions ledger to configured cloud storage (Google Drive) and returns upload result.
+    /// </summary>
+    Task<FileUploadResult> ArchiveMonthlyTransactionsToGoogleDriveAsync(Guid userId, int year, int month, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Imports structured JSON financial data within an atomic transaction.
     /// </summary>
     Task<DataImportResultDto> ImportUserDataJsonAsync(Guid userId, DataExportDto importData, CancellationToken cancellationToken = default);

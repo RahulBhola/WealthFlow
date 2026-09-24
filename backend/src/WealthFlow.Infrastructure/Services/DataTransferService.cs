@@ -15,11 +15,16 @@ namespace WealthFlow.Infrastructure.Services;
 public class DataTransferService : IDataTransferService
 {
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IFileStorageService _fileStorageService;
     private readonly ILogger<DataTransferService> _logger;
 
-    public DataTransferService(IUnitOfWork unitOfWork, ILogger<DataTransferService> logger)
+    public DataTransferService(
+        IUnitOfWork unitOfWork,
+        IFileStorageService fileStorageService,
+        ILogger<DataTransferService> logger)
     {
         _unitOfWork = unitOfWork;
+        _fileStorageService = fileStorageService;
         _logger = logger;
     }
 
@@ -184,6 +189,81 @@ public class DataTransferService : IDataTransferService
         }
 
         return Encoding.UTF8.GetBytes(sb.ToString());
+    }
+
+    public async Task<byte[]> ExportMonthlyTransactionsCsvAsync(Guid userId, int year, int month, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Exporting monthly transactions CSV for user {UserId} for {Year}-{Month:D2}", userId, year, month);
+
+        var startDate = new DateTime(year, month, 1, 0, 0, 0, DateTimeKind.Utc);
+        var endDate = startDate.AddMonths(1).AddTicks(-1);
+
+        var transactions = await _unitOfWork.Transactions.ListAsync(
+            t => t.UserId == userId && t.TransactionDate >= startDate && t.TransactionDate <= endDate,
+            cancellationToken);
+
+        var accounts = (await _unitOfWork.Accounts.ListAsync(a => a.UserId == userId, cancellationToken)).ToDictionary(a => a.Id, a => a);
+        var categories = (await _unitOfWork.Categories.ListAsync(c => c.UserId == userId || c.UserId == null, cancellationToken)).ToDictionary(c => c.Id, c => c.Name);
+
+        var totalInflows = transactions.Where(t => t.EventType == Domain.Enums.TransactionEventType.Income).Sum(t => t.Amount);
+        var totalOutflows = transactions.Where(t => t.EventType == Domain.Enums.TransactionEventType.Expense).Sum(t => t.Amount);
+        var netCashFlow = totalInflows - totalOutflows;
+
+        var sb = new StringBuilder();
+        var monthName = CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(month);
+        sb.AppendLine($"# WealthFlow Monthly Financial Statement");
+        sb.AppendLine($"# Statement Period: {monthName} {year}");
+        sb.AppendLine($"# Generated At: {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss} UTC");
+        sb.AppendLine($"# Total Monthly Inflows: INR {totalInflows.ToString("N2", CultureInfo.InvariantCulture)}");
+        sb.AppendLine($"# Total Monthly Outflows: INR {totalOutflows.ToString("N2", CultureInfo.InvariantCulture)}");
+        sb.AppendLine($"# Net Monthly Cash Flow: INR {netCashFlow.ToString("N2", CultureInfo.InvariantCulture)}");
+        sb.AppendLine($"# Active Accounts Summary: {string.Join(" | ", accounts.Values.Select(a => $"{a.Name}: INR {a.CurrentBalance:N2}"))}");
+        sb.AppendLine();
+        sb.AppendLine("TransactionId,DateUtc,AccountName,CategoryName,Amount,EventType,Description,Merchant,Notes,Tags");
+
+        foreach (var t in transactions.OrderBy(x => x.TransactionDate))
+        {
+            var accountName = accounts.TryGetValue(t.AccountId, out var acc) ? acc.Name : t.AccountId.ToString();
+            var categoryName = t.CategoryId.HasValue && categories.TryGetValue(t.CategoryId.Value, out var cat) ? cat : string.Empty;
+
+            sb.Append($"{t.Id},");
+            sb.Append($"{t.TransactionDate:yyyy-MM-ddTHH:mm:ssZ},");
+            sb.Append($"\"{EscapeCsv(accountName)}\",");
+            sb.Append($"\"{EscapeCsv(categoryName)}\",");
+            sb.Append($"{t.Amount.ToString(CultureInfo.InvariantCulture)},");
+            sb.Append($"{t.EventType},");
+            sb.Append($"\"{EscapeCsv(t.Description)}\",");
+            sb.Append($"\"{EscapeCsv(t.Merchant ?? string.Empty)}\",");
+            sb.Append($"\"{EscapeCsv(t.Notes ?? string.Empty)}\",");
+            sb.AppendLine($"\"{EscapeCsv(t.Tags ?? string.Empty)}\"");
+        }
+
+        // Return with UTF-8 byte order mark for seamless opening in Excel
+        var preamble = Encoding.UTF8.GetPreamble();
+        var body = Encoding.UTF8.GetBytes(sb.ToString());
+        var fullBytes = new byte[preamble.Length + body.Length];
+        Buffer.BlockCopy(preamble, 0, fullBytes, 0, preamble.Length);
+        Buffer.BlockCopy(body, 0, fullBytes, preamble.Length, body.Length);
+
+        return fullBytes;
+    }
+
+    public async Task<FileUploadResult> ArchiveMonthlyTransactionsToGoogleDriveAsync(Guid userId, int year, int month, CancellationToken cancellationToken = default)
+    {
+        var csvBytes = await ExportMonthlyTransactionsCsvAsync(userId, year, month, cancellationToken);
+        var fileName = $"WealthFlow_Ledger_{year}_{month:D2}.csv";
+
+        using var memoryStream = new MemoryStream(csvBytes);
+        var result = await _fileStorageService.UploadFileAsync(
+            memoryStream,
+            fileName,
+            "text/csv",
+            cancellationToken);
+
+        _logger.LogInformation("Successfully archived monthly statement for {Year}-{Month:D2} to storage provider (Google Drive). FileId: {FileId}",
+            year, month, result.StoragePath);
+
+        return result;
     }
 
     public async Task<DataImportResultDto> ImportUserDataJsonAsync(Guid userId, DataExportDto importData, CancellationToken cancellationToken = default)

@@ -1,5 +1,5 @@
 import { apiClient } from '@/lib/api'
-import type { BudgetSummary, CreateBudgetPayload, BudgetStatus } from '../types'
+import type { BudgetSummary, CreateBudgetPayload } from '../types'
 
 export const budgetsApi = {
   async getBudgetSummary(year?: number, month?: number): Promise<BudgetSummary> {
@@ -10,10 +10,14 @@ export const budgetsApi = {
     return apiClient<BudgetSummary>(`/api/v1/budgets/summary${qs ? `?${qs}` : ''}`)
   },
 
-  async createOrUpdateBudget(payload: CreateBudgetPayload): Promise<BudgetStatus> {
-    return apiClient<BudgetStatus>('/api/v1/budgets', {
+  async createOrUpdateBudget(payload: CreateBudgetPayload): Promise<unknown> {
+    return apiClient<unknown>('/api/v1/budgets', {
       method: 'POST',
       body: JSON.stringify(payload),
     })
+  },
+
+  async getBudgets(): Promise<unknown[]> {
+    return apiClient<unknown[]>('/api/v1/budgets')
   },
 }

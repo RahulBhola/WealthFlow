@@ -17,6 +17,7 @@ import { DashboardPage } from '@/features/dashboard/pages/DashboardPage'
 import { AnalyticsPage } from '@/features/analytics/pages/AnalyticsPage'
 import { AccountsPage } from '@/features/accounts/pages/AccountsPage'
 import { LedgerPage } from '@/features/transactions/pages/LedgerPage'
+import { BudgetsPage } from '@/features/budgets/pages/BudgetsPage'
 import { CreditCardsPage } from '@/features/credit-cards/pages/CreditCardsPage'
 import { LoansPage } from '@/features/loans/pages/LoansPage'
 import { InvestmentsPage } from '@/features/investments/pages/InvestmentsPage'
@@ -72,7 +73,7 @@ export const App: React.FC = () => {
             <Route path="/accounts" element={<AccountsPage />} />
             <Route path="/transactions" element={<LedgerPage />} />
             <Route path="/ledger" element={<LedgerPage />} />
-            <Route path="/budgets" element={<LedgerPage />} />
+            <Route path="/budgets" element={<BudgetsPage />} />
             <Route path="/credit-cards" element={<CreditCardsPage />} />
             <Route path="/loans" element={<LoansPage />} />
             <Route path="/investments" element={<InvestmentsPage />} />

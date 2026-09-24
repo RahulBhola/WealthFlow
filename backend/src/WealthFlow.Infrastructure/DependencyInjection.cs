@@ -147,6 +147,7 @@ public static class DependencyInjection
 
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddHostedService<SipExecutionBackgroundService>();
+        services.AddHostedService<MonthlyArchiveBackgroundService>();
 
         return services;
     }
