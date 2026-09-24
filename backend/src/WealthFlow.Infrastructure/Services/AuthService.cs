@@ -1,4 +1,7 @@
+using System.Security.Cryptography;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 using WealthFlow.Application.Common.Interfaces;
 using WealthFlow.Application.Features.Auth.DTOs;
 using WealthFlow.Application.Features.Auth.Interfaces;
@@ -18,17 +21,26 @@ public class AuthService : IAuthService
     private readonly IUserSessionRepository _sessionRepository;
     private readonly ITokenService _tokenService;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IEmailService _emailService;
+    private readonly IMemoryCache _memoryCache;
+    private readonly ILogger<AuthService> _logger;
 
     public AuthService(
         UserManager<ApplicationUser> userManager,
         IUserSessionRepository sessionRepository,
         ITokenService tokenService,
-        IUnitOfWork unitOfWork)
+        IUnitOfWork unitOfWork,
+        IEmailService emailService,
+        IMemoryCache memoryCache,
+        ILogger<AuthService> logger)
     {
         _userManager = userManager;
         _sessionRepository = sessionRepository;
         _tokenService = tokenService;
         _unitOfWork = unitOfWork;
+        _emailService = emailService;
+        _memoryCache = memoryCache;
+        _logger = logger;
     }
 
     public async Task<(AuthResponse Response, string RawRefreshToken)> RegisterAsync(
@@ -323,6 +335,14 @@ public class AuthService : IAuthService
         await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
+    private record PasswordResetOtpRecord(
+        string Otp,
+        string IdentityToken,
+        DateTime ExpiresAtUtc,
+        int Attempts);
+
+    private static string GetOtpCacheKey(string email) => $"wf_pwd_reset_otp_{email.Trim().ToLowerInvariant()}";
+
     public async Task<string> ForgotPasswordAsync(string email, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(email))
@@ -330,34 +350,111 @@ public class AuthService : IAuthService
             throw new ArgumentException("Email address is required.", nameof(email));
         }
 
-        var user = await _userManager.FindByEmailAsync(email.Trim());
+        var normalizedEmail = email.Trim().ToLowerInvariant();
+        var user = await _userManager.FindByEmailAsync(normalizedEmail);
         if (user == null)
         {
-            throw new KeyNotFoundException("No account found with this email address.");
+            _logger.LogInformation("Password reset requested for non-existent email: {Email}", normalizedEmail);
+            return "If an account with this email exists, a 6-digit verification code has been sent.";
         }
 
-        return await _userManager.GeneratePasswordResetTokenAsync(user);
+        // Generate cryptographically secure 6-digit numeric OTP code
+        var otpCode = RandomNumberGenerator.GetInt32(100000, 1000000).ToString("D6");
+
+        // Generate standard ASP.NET Core Identity password reset token
+        var identityToken = await _userManager.GeneratePasswordResetTokenAsync(user);
+
+        // Store OTP & Identity token in memory cache with 10-minute sliding expiration
+        var cacheKey = GetOtpCacheKey(normalizedEmail);
+        var record = new PasswordResetOtpRecord(otpCode, identityToken, DateTime.UtcNow.AddMinutes(10), 0);
+        _memoryCache.Set(cacheKey, record, TimeSpan.FromMinutes(10));
+
+        // Dispatch via SMTP service
+        var fullName = $"{user.FirstName} {user.LastName}".Trim();
+        await _emailService.SendPasswordResetOtpAsync(user.Email!, fullName, otpCode, cancellationToken);
+
+        return "A 6-digit verification code has been sent to your email address.";
+    }
+
+    public bool VerifyResetOtp(string email, string otp)
+    {
+        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(otp))
+        {
+            return false;
+        }
+
+        var normalizedEmail = email.Trim().ToLowerInvariant();
+        var cacheKey = GetOtpCacheKey(normalizedEmail);
+        if (!_memoryCache.TryGetValue(cacheKey, out PasswordResetOtpRecord? record) || record == null)
+        {
+            return false;
+        }
+
+        if (DateTime.UtcNow > record.ExpiresAtUtc)
+        {
+            _memoryCache.Remove(cacheKey);
+            return false;
+        }
+
+        return string.Equals(record.Otp.Trim(), otp.Trim(), StringComparison.Ordinal);
     }
 
     public async Task ResetPasswordAsync(ResetPasswordRequest request, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Token) || string.IsNullOrWhiteSpace(request.NewPassword))
         {
-            throw new ArgumentException("Email, token, and new password are required.");
+            throw new ArgumentException("Email, verification code, and new password are required.");
         }
 
-        var user = await _userManager.FindByEmailAsync(request.Email.Trim());
+        var normalizedEmail = request.Email.Trim().ToLowerInvariant();
+        var user = await _userManager.FindByEmailAsync(normalizedEmail);
         if (user == null)
         {
             throw new KeyNotFoundException("No account found with this email address.");
         }
 
-        var result = await _userManager.ResetPasswordAsync(user, request.Token, request.NewPassword);
+        var cacheKey = GetOtpCacheKey(normalizedEmail);
+        string identityTokenToUse;
+
+        // Check if token matches cached 6-digit OTP
+        if (_memoryCache.TryGetValue(cacheKey, out PasswordResetOtpRecord? record) && record != null)
+        {
+            if (DateTime.UtcNow > record.ExpiresAtUtc)
+            {
+                _memoryCache.Remove(cacheKey);
+                throw new InvalidOperationException("The verification code has expired. Please request a new code.");
+            }
+
+            if (record.Attempts >= 5)
+            {
+                _memoryCache.Remove(cacheKey);
+                throw new InvalidOperationException("Too many invalid attempts. For security reasons, please request a new verification code.");
+            }
+
+            if (!string.Equals(record.Otp.Trim(), request.Token.Trim(), StringComparison.Ordinal))
+            {
+                _memoryCache.Set(cacheKey, record with { Attempts = record.Attempts + 1 }, TimeSpan.FromMinutes(10));
+                var remaining = 5 - (record.Attempts + 1);
+                throw new InvalidOperationException($"Invalid verification code. {remaining} attempt{(remaining == 1 ? "" : "s")} remaining.");
+            }
+
+            identityTokenToUse = record.IdentityToken;
+        }
+        else
+        {
+            // Fallback for direct identity token (e.g. automated tests or direct API calls)
+            identityTokenToUse = request.Token;
+        }
+
+        var result = await _userManager.ResetPasswordAsync(user, identityTokenToUse, request.NewPassword);
         if (!result.Succeeded)
         {
             var errors = string.Join("; ", result.Errors.Select(e => e.Description));
             throw new InvalidOperationException(errors);
         }
+
+        // Successfully reset: remove OTP from cache
+        _memoryCache.Remove(cacheKey);
 
         // Revoke active sessions upon password reset for security
         var sessions = await _sessionRepository.GetActiveSessionsByUserIdAsync(user.Id, cancellationToken);

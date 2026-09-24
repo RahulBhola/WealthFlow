@@ -15,5 +15,6 @@ public interface IAuthService
     Task RevokeSessionAsync(Guid userId, Guid sessionId, CancellationToken cancellationToken = default);
     Task RevokeAllOtherSessionsAsync(Guid userId, Guid currentSessionId, CancellationToken cancellationToken = default);
     Task<string> ForgotPasswordAsync(string email, CancellationToken cancellationToken = default);
+    bool VerifyResetOtp(string email, string otp);
     Task ResetPasswordAsync(ResetPasswordRequest request, CancellationToken cancellationToken = default);
 }

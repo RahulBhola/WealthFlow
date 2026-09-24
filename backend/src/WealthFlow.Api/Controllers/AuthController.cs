@@ -94,16 +94,12 @@ public class AuthController : ControllerBase
     {
         try
         {
-            var resetToken = await _authService.ForgotPasswordAsync(request.Email, cancellationToken);
+            var message = await _authService.ForgotPasswordAsync(request.Email, cancellationToken);
             return Ok(new
             {
-                message = "Password reset token generated successfully.",
-                resetToken
+                message,
+                email = request.Email
             });
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(new { message = ex.Message });
         }
         catch (ArgumentException ex)
         {
@@ -111,7 +107,25 @@ public class AuthController : ControllerBase
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new { message = "An error occurred while generating password reset token: " + ex.Message });
+            return StatusCode(500, new { message = "An error occurred while generating password reset code: " + ex.Message });
+        }
+    }
+
+    [HttpPost("verify-reset-otp")]
+    public IActionResult VerifyResetOtp([FromBody] VerifyOtpRequest request)
+    {
+        try
+        {
+            var isValid = _authService.VerifyResetOtp(request.Email, request.Otp);
+            if (!isValid)
+            {
+                return BadRequest(new { message = "Invalid or expired verification code." });
+            }
+            return Ok(new { message = "Verification code is valid." });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = "An error occurred while verifying code: " + ex.Message });
         }
     }
 

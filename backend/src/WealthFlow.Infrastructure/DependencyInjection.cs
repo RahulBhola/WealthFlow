@@ -90,6 +90,8 @@ public static class DependencyInjection
         });
 
         // Services & Repositories Registration
+        services.AddMemoryCache();
+        services.AddScoped<IEmailService, EmailService>();
         services.AddSingleton<ITokenService, TokenService>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<BalanceCalculationService>();
