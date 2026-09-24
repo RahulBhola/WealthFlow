@@ -89,6 +89,50 @@ public class AuthController : ControllerBase
         return Ok(new { message = "Logged out successfully." });
     }
 
+    [HttpPost("forgot-password")]
+    public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var resetToken = await _authService.ForgotPasswordAsync(request.Email, cancellationToken);
+            return Ok(new
+            {
+                message = "Password reset token generated successfully.",
+                resetToken
+            });
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    [HttpPost("reset-password")]
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await _authService.ResetPasswordAsync(request, cancellationToken);
+            return Ok(new { message = "Password has been successfully reset. You can now log in with your new password." });
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
     [Authorize]
     [HttpGet("sessions")]
     public async Task<IActionResult> GetSessions(CancellationToken cancellationToken)

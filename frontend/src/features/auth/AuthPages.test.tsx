@@ -56,8 +56,59 @@ describe('Authentication Pages & Components', () => {
 
     expect(screen.getByLabelText(/full name/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/email address/i)).toBeInTheDocument()
+    expect(screen.getByLabelText(/^confirm password$/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/base currency/i)).toBeInTheDocument()
     expect(screen.getByText(/public registration strictly creates/i)).toBeInTheDocument()
+  })
+
+  it('LoginPage toggles password visibility and opens Forgot Password modal', () => {
+    mockUseAuth.mockReturnValue({
+      login: vi.fn(),
+      isAuthenticated: false,
+      isLoading: false,
+    })
+
+    render(
+      <MemoryRouter>
+        <LoginPage />
+      </MemoryRouter>
+    )
+
+    const passwordInput = screen.getByLabelText(/^password/i) as HTMLInputElement
+    expect(passwordInput.type).toBe('password')
+
+    const eyeButton = screen.getByLabelText(/^show password$/i)
+    fireEvent.click(eyeButton)
+    expect(passwordInput.type).toBe('text')
+
+    const forgotPasswordBtn = screen.getByText(/forgot password\?/i)
+    fireEvent.click(forgotPasswordBtn)
+    expect(screen.getByText(/cryptographically secured account recovery/i)).toBeInTheDocument()
+  })
+
+  it('RegisterPage validates that passwords must match before registration', () => {
+    const mockRegister = vi.fn()
+    mockUseAuth.mockReturnValue({
+      register: mockRegister,
+      isAuthenticated: false,
+      isLoading: false,
+    })
+
+    render(
+      <MemoryRouter>
+        <RegisterPage />
+      </MemoryRouter>
+    )
+
+    fireEvent.change(screen.getByLabelText(/full name/i), { target: { value: 'Test User' } })
+    fireEvent.change(screen.getByLabelText(/email address/i), { target: { value: 'test@example.com' } })
+    fireEvent.change(screen.getByLabelText(/^password/i), { target: { value: 'Password@123' } })
+    fireEvent.change(screen.getByLabelText(/^confirm password$/i), { target: { value: 'Different@123' } })
+
+    fireEvent.click(screen.getByRole('button', { name: /create account/i }))
+
+    expect(screen.getByText(/passwords do not match/i)).toBeInTheDocument()
+    expect(mockRegister).not.toHaveBeenCalled()
   })
 
   it('DeviceSessionCard displays "This Device" badge for current session', () => {

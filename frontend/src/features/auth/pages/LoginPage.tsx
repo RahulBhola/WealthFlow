@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
-import { ArrowRight, Lock, Mail, Shield, AlertCircle, Sparkles } from 'lucide-react'
+import { ArrowRight, Lock, Mail, Shield, AlertCircle, Sparkles, Eye, EyeOff } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
+import { ForgotPasswordModal } from '../components/ForgotPasswordModal'
 
 export const LoginPage: React.FC = () => {
   const { login } = useAuth()
@@ -11,6 +12,8 @@ export const LoginPage: React.FC = () => {
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [isForgotPasswordOpen, setIsForgotPasswordOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -116,9 +119,18 @@ export const LoginPage: React.FC = () => {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
-                Password
-              </label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label htmlFor="password" className="block text-xs font-semibold uppercase tracking-wider text-slate-300">
+                  Password
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setIsForgotPasswordOpen(true)}
+                  className="text-xs font-medium text-emerald-400 hover:text-emerald-300 transition-colors cursor-pointer"
+                >
+                  Forgot password?
+                </button>
+              </div>
               <div className="relative rounded-xl shadow-sm">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
                   <Lock className="h-4 w-4" />
@@ -126,14 +138,22 @@ export const LoginPage: React.FC = () => {
                 <input
                   id="password"
                   name="password"
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   autoComplete="current-password"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••••••"
-                  className="block w-full pl-10 pr-3 py-2.5 bg-slate-950/80 border border-slate-700/80 rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all"
+                  className="block w-full pl-10 pr-10 py-2.5 bg-slate-950/80 border border-slate-700/80 rounded-xl text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
               </div>
             </div>
 
@@ -168,6 +188,17 @@ export const LoginPage: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Forgot Password Modal */}
+      <ForgotPasswordModal
+        isOpen={isForgotPasswordOpen}
+        onClose={() => setIsForgotPasswordOpen(false)}
+        initialEmail={email}
+        onSuccess={(resetEmail) => {
+          setEmail(resetEmail)
+          setIsForgotPasswordOpen(false)
+        }}
+      />
     </div>
   )
 }

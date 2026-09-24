@@ -322,4 +322,49 @@ public class AuthService : IAuthService
         await _sessionRepository.RevokeAllOtherSessionsAsync(userId, currentSessionId, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
+
+    public async Task<string> ForgotPasswordAsync(string email, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            throw new ArgumentException("Email address is required.", nameof(email));
+        }
+
+        var user = await _userManager.FindByEmailAsync(email.Trim());
+        if (user == null)
+        {
+            throw new KeyNotFoundException("No account found with this email address.");
+        }
+
+        return await _userManager.GeneratePasswordResetTokenAsync(user);
+    }
+
+    public async Task ResetPasswordAsync(ResetPasswordRequest request, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Token) || string.IsNullOrWhiteSpace(request.NewPassword))
+        {
+            throw new ArgumentException("Email, token, and new password are required.");
+        }
+
+        var user = await _userManager.FindByEmailAsync(request.Email.Trim());
+        if (user == null)
+        {
+            throw new KeyNotFoundException("No account found with this email address.");
+        }
+
+        var result = await _userManager.ResetPasswordAsync(user, request.Token, request.NewPassword);
+        if (!result.Succeeded)
+        {
+            var errors = string.Join("; ", result.Errors.Select(e => e.Description));
+            throw new InvalidOperationException(errors);
+        }
+
+        // Revoke active sessions upon password reset for security
+        var sessions = await _sessionRepository.GetActiveSessionsByUserIdAsync(user.Id, cancellationToken);
+        foreach (var session in sessions)
+        {
+            session.Revoke();
+        }
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+    }
 }

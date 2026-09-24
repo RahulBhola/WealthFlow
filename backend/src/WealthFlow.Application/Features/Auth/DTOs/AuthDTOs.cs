@@ -41,3 +41,10 @@ public record SessionDto(
 public record RevokeSessionRequest(Guid SessionId);
 
 public record RefreshTokenRequest(string? RefreshToken = null);
+
+public record ForgotPasswordRequest(string Email);
+
+public record ResetPasswordRequest(
+    string Email,
+    string Token,
+    string NewPassword);
