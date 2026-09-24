@@ -9,7 +9,6 @@ import {
   HandCoins,
   Palmtree,
   BarChart3,
-  Settings,
   ShieldAlert,
   Smartphone
 } from 'lucide-react'
@@ -33,6 +32,5 @@ export const navigationItems: NavItemConfig[] = [
   { name: 'Loans & Gifts', href: '/loans', icon: HandCoins },
   { name: 'Analytics', href: '/analytics', icon: BarChart3 },
   { name: 'Device Sessions', href: '/settings/sessions', icon: Smartphone },
-  { name: 'Settings', href: '/settings', icon: Settings },
   { name: 'Admin ERP', href: '/admin', icon: ShieldAlert, badge: 'ERP', isAdminOnly: true },
 ]

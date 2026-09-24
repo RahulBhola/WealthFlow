@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { cn } from '@/lib/utils'
 import { navigationItems } from './navItems'
-import { Settings, ShieldAlert, LogOut } from 'lucide-react'
+import { Smartphone, ShieldAlert, LogOut } from 'lucide-react'
 
 export interface SidebarProps {
   currentPath?: string
@@ -160,12 +160,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
               type="button"
               onClick={() => {
                 setIsProfileMenuOpen(false)
-                onNavigate?.('/settings')
+                onNavigate?.('/settings/sessions')
               }}
               className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs text-slate-300 hover:bg-slate-800 hover:text-white transition-colors text-left cursor-pointer"
             >
-              <Settings className="w-3.5 h-3.5 text-slate-400" />
-              <span>Account Settings</span>
+              <Smartphone className="w-3.5 h-3.5 text-slate-400" />
+              <span>Device Sessions</span>
             </button>
 
             {isAdmin && (
