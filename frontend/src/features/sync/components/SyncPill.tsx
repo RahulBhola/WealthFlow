@@ -38,9 +38,9 @@ export const SyncPill: React.FC = () => {
             </span>
           </div>
         ) : (
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100 dark:bg-emerald-950/70 dark:text-emerald-300 dark:border-emerald-800/60 dark:hover:bg-emerald-900/60 transition-colors shadow-xs dark:shadow-sm">
+          <div className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 rounded-lg text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100 dark:bg-emerald-950/70 dark:text-emerald-300 dark:border-emerald-800/60 dark:hover:bg-emerald-900/60 transition-colors shadow-xs dark:shadow-sm">
             <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(52,211,153,0.6)] animate-pulse shrink-0" />
-            <span className="tracking-tight font-medium">Synced</span>
+            <span className="tracking-tight font-medium hidden xs:inline sm:inline">Synced</span>
           </div>
         )}
       </button>

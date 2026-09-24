@@ -44,16 +44,16 @@ export const MetricCard: React.FC<MetricCardProps> = ({
         )}
       </div>
 
-      <div className="space-y-1">
-        <div className="text-2xl font-bold font-mono tabular-nums text-slate-900 dark:text-white tracking-tight">
+      <div className="space-y-1.5 min-w-0">
+        <div className="text-xl sm:text-2xl font-bold font-mono tabular-nums text-slate-900 dark:text-white tracking-tight truncate">
           {value}
         </div>
 
-        <div className="flex items-center gap-2 text-xs">
+        <div className="flex flex-wrap items-center gap-1.5 text-xs min-w-0">
           {delta && (
             <span
               className={cn(
-                'inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded font-medium font-mono text-[11px]',
+                'inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded font-medium font-mono text-[10px] sm:text-[11px] shrink-0',
                 delta.isPositive
                   ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300'
                   : 'bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300'
@@ -68,7 +68,7 @@ export const MetricCard: React.FC<MetricCardProps> = ({
             </span>
           )}
           {subtext && (
-            <span className="text-slate-500 dark:text-slate-400 truncate">
+            <span className="text-slate-500 dark:text-slate-400 text-[11px] sm:text-xs truncate min-w-0">
               {subtext}
             </span>
           )}

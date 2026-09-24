@@ -2,6 +2,7 @@ import React from 'react'
 import { BrowserRouter, Routes, Route, Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { AuthProvider } from '@/features/auth/context/AuthContext'
 import { ThemeProvider } from './context/ThemeContext'
+import { CurrencyProvider } from './context/CurrencyContext'
 import { useAuth } from '@/features/auth/hooks/useAuth'
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
 import { RoleGuard } from '@/components/auth/RoleGuard'
@@ -51,7 +52,8 @@ export const App: React.FC = () => {
   return (
     <ThemeProvider>
       <AuthProvider>
-      <BrowserRouter>
+        <CurrencyProvider>
+          <BrowserRouter>
         <Routes>
           {/* Public Routes */}
           <Route path="/login" element={<LoginPage />} />
@@ -125,6 +127,7 @@ export const App: React.FC = () => {
           </Route>
         </Routes>
       </BrowserRouter>
+        </CurrencyProvider>
     </AuthProvider>
   </ThemeProvider>
   )

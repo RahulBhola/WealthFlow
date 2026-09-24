@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button'
 import { categoriesApi } from '@/features/categories/api/categoriesApi'
 import type { CategoryDto } from '@/features/categories/types'
 import type { CreateBudgetPayload } from '../types'
+import { useCurrency, USD_TO_INR_RATE } from '../../../context/CurrencyContext'
 
 export interface SetBudgetModalProps {
   isOpen: boolean
@@ -26,16 +27,27 @@ export const SetBudgetModal: React.FC<SetBudgetModalProps> = ({
   categoryName,
   isLoading = false,
 }) => {
+  const { symbol, currency } = useCurrency()
   const [categories, setCategories] = useState<CategoryDto[]>([])
   const [categoryId, setCategoryId] = useState(initialCategoryId || '')
-  const [monthlyLimit, setMonthlyLimit] = useState(initialLimit ? initialLimit.toString() : '')
+  const [monthlyLimit, setMonthlyLimit] = useState(() => {
+    if (!initialLimit) return ''
+    return currency === 'USD'
+      ? Math.round(initialLimit / USD_TO_INR_RATE).toString()
+      : initialLimit.toString()
+  })
   const [loadingCategories, setLoadingCategories] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (isOpen) {
       setCategoryId(initialCategoryId || '')
-      setMonthlyLimit(initialLimit ? initialLimit.toString() : '')
+      const initialDisplayLimit = initialLimit
+        ? currency === 'USD'
+          ? Math.round(initialLimit / USD_TO_INR_RATE).toString()
+          : initialLimit.toString()
+        : ''
+      setMonthlyLimit(initialDisplayLimit)
       setError(null)
 
       let ignore = false
@@ -75,15 +87,16 @@ export const SetBudgetModal: React.FC<SetBudgetModalProps> = ({
     }
 
     if (isNaN(limitNum) || limitNum <= 0) {
-      setError('Please enter a valid monthly budget limit greater than ₹0.')
+      setError(`Please enter a valid monthly budget limit greater than ${symbol}0.`)
       return
     }
 
     try {
       setError(null)
+      const finalLimitInINR = currency === 'USD' ? Math.round(limitNum * USD_TO_INR_RATE) : limitNum
       await onSubmit({
         categoryId,
-        monthlyLimit: limitNum,
+        monthlyLimit: finalLimitInINR,
         period: 'Month',
       })
       onClose()
@@ -164,19 +177,19 @@ export const SetBudgetModal: React.FC<SetBudgetModalProps> = ({
 
           {/* Monthly Limit */}
           <FormField
-            label="Monthly Spending Limit (INR)"
+            label={`Monthly Spending Limit (${currency})`}
             required
             helperText="Maximum allowed expenditures for this envelope each calendar month."
           >
             <div className="relative">
               <span className="absolute left-3 top-2.5 text-sm font-medium text-slate-400">
-                ₹
+                {symbol}
               </span>
               <Input
                 type="number"
                 step="any"
                 min="1"
-                placeholder="e.g. 15000"
+                placeholder={currency === 'USD' ? 'e.g. 250' : 'e.g. 15000'}
                 value={monthlyLimit}
                 onChange={(e) => setMonthlyLimit(e.target.value)}
                 className="pl-8"
@@ -189,14 +202,14 @@ export const SetBudgetModal: React.FC<SetBudgetModalProps> = ({
           <div className="space-y-1.5">
             <span className="text-[11px] font-medium text-slate-500">Quick Envelopes:</span>
             <div className="flex flex-wrap gap-2">
-              {[2000, 5000, 10000, 20000, 50000].map((preset) => (
+              {(currency === 'USD' ? [50, 100, 250, 500, 1000] : [2000, 5000, 10000, 20000, 50000]).map((preset) => (
                 <button
                   key={preset}
                   type="button"
                   onClick={() => setMonthlyLimit(preset.toString())}
                   className="px-2.5 py-1 text-xs rounded-md bg-slate-100 dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-indigo-950/60 hover:text-indigo-600 dark:hover:text-indigo-300 text-slate-600 dark:text-slate-300 transition-colors"
                 >
-                  ₹{preset.toLocaleString('en-IN')}
+                  {symbol}{preset.toLocaleString(currency === 'USD' ? 'en-US' : 'en-IN')}
                 </button>
               ))}
             </div>

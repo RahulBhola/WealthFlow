@@ -45,23 +45,23 @@ export const Header: React.FC<HeaderProps> = ({
     <>
       <header
         className={cn(
-          'h-16 px-4 sm:px-6 lg:px-8 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800/80 flex items-center justify-between gap-4 sticky top-0 z-30 transition-colors',
+          'h-16 px-3 sm:px-6 lg:px-8 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800/80 flex items-center justify-between gap-2 sm:gap-4 sticky top-0 z-30 transition-colors',
           className
         )}
       >
         {/* Left Slot: Mobile Hamburger Button & Brand */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
           <button
             type="button"
             onClick={onOpenMobileNav}
             aria-label="Open navigation menu"
-            className="md:hidden p-2 rounded-lg text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="md:hidden p-1.5 rounded-lg text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
           >
             <Menu className="w-5 h-5" />
           </button>
 
-          <div className="md:hidden flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold text-sm">
+          <div className="md:hidden flex items-center gap-1.5">
+            <div className="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold text-sm shrink-0">
               W
             </div>
             <span className="font-bold text-sm tracking-tight text-slate-900 dark:text-white">
@@ -87,7 +87,7 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
         {/* Right Slot: [ 🟢 Synced ] [ ☀️/🌙 Theme ] [ 🔔 ] [ 🇮🇳 INR ₹  ⌵ ] */}
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-1 sm:gap-2.5 shrink-0">
           {/* Offline Sync Status Pill */}
           <SyncPill />
 
@@ -97,7 +97,7 @@ export const Header: React.FC<HeaderProps> = ({
             onClick={toggleTheme}
             aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
             title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
-            className="w-9 h-9 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-700/80 border border-slate-200 dark:border-slate-700/60 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white relative focus:outline-none transition-colors shadow-sm cursor-pointer"
+            className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-700/80 border border-slate-200 dark:border-slate-700/60 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white relative focus:outline-none transition-colors shadow-sm cursor-pointer shrink-0"
           >
             {theme === 'dark' ? (
               <Sun className="w-4 h-4 text-amber-400 hover:text-amber-300 transition-transform duration-200 hover:rotate-45" />

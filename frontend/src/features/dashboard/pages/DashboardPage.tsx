@@ -23,15 +23,7 @@ import type { DashboardSummaryDto, DashboardTransactionDto } from '../types'
 import { NetWorthAreaChart } from '../components/NetWorthAreaChart'
 import { DashboardBudgetWidget } from '../components/DashboardBudgetWidget'
 import { QuickAddModal } from '@/features/transactions/components/QuickAddModal'
-
-const formatINR = (val: number) => {
-  return new Intl.NumberFormat('en-IN', {
-    style: 'currency',
-    currency: 'INR',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(val)
-}
+import { useCurrency } from '../../../context/CurrencyContext'
 
 // Fallback initial data while loading or in offline mode
 const fallbackSummary: DashboardSummaryDto = {
@@ -151,6 +143,9 @@ const fallbackSummary: DashboardSummaryDto = {
 }
 
 export const DashboardPage: React.FC = () => {
+  const { formatCurrency } = useCurrency()
+  const formatINR = formatCurrency
+
   const navigate = useNavigate()
   const [summary, setSummary] = useState<DashboardSummaryDto>(fallbackSummary)
   const [isLoading, setIsLoading] = useState(true)
@@ -303,7 +298,7 @@ export const DashboardPage: React.FC = () => {
       )}
 
       {/* Tier 2: Standardized 4-Card Metric / KPI Strip */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
         {/* Metric 1: Total Net Worth */}
         <MetricCard
           label="Total Net Worth"

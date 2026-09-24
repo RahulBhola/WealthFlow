@@ -21,6 +21,7 @@ import { SetBudgetModal } from '../components/SetBudgetModal'
 import { budgetsApi } from '../api/budgetsApi'
 import type { BudgetSummary, BudgetStatus, CreateBudgetPayload } from '../types'
 import { cn } from '@/lib/utils'
+import { useCurrency } from '../../../context/CurrencyContext'
 
 const MONTH_NAMES = [
   'January',
@@ -37,15 +38,6 @@ const MONTH_NAMES = [
   'December',
 ]
 
-const formatINR = (val: number) => {
-  return new Intl.NumberFormat('en-IN', {
-    style: 'currency',
-    currency: 'INR',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(val)
-}
-
 const getProgressBarColor = (status: string) => {
   switch (status) {
     case 'Normal':
@@ -61,7 +53,7 @@ const getProgressBarColor = (status: string) => {
   }
 }
 
-const getStatusBadge = (item: BudgetStatus) => {
+const getStatusBadge = (item: BudgetStatus, formatFn: (val: number) => string) => {
   switch (item.status) {
     case 'Normal':
       return (
@@ -84,7 +76,7 @@ const getStatusBadge = (item: BudgetStatus) => {
     case 'Exceeded':
       return (
         <Badge variant="rose" size="sm">
-          Exceeded (+{formatINR(item.overageAmount)})
+          Exceeded (+{formatFn(item.overageAmount)})
         </Badge>
       )
     default:
@@ -97,6 +89,9 @@ const getStatusBadge = (item: BudgetStatus) => {
 }
 
 export const BudgetsPage: React.FC = () => {
+  const { formatCurrency } = useCurrency()
+  const formatINR = formatCurrency
+
   const today = new Date()
   const [selectedYear, setSelectedYear] = useState<number>(today.getFullYear())
   const [selectedMonth, setSelectedMonth] = useState<number>(today.getMonth() + 1)
@@ -361,7 +356,7 @@ export const BudgetsPage: React.FC = () => {
                         {item.categoryName}
                       </span>
                     </div>
-                    {getStatusBadge(item)}
+                    {getStatusBadge(item, formatCurrency)}
                   </div>
 
                   {/* Amount Breakdown */}

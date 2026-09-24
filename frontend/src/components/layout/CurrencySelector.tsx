@@ -1,20 +1,18 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { ChevronDown, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useCurrency, CurrencyCode } from '../../context/CurrencyContext'
 
 export interface CurrencyOption {
-  code: string
+  code: CurrencyCode
   symbol: string
   name: string
-  flagType: 'in' | 'us' | 'eu' | 'gb' | 'ae'
+  flagType: 'in' | 'us'
 }
 
 export const CURRENCIES: CurrencyOption[] = [
   { code: 'INR', symbol: '₹', name: 'Indian Rupee', flagType: 'in' },
   { code: 'USD', symbol: '$', name: 'US Dollar', flagType: 'us' },
-  { code: 'EUR', symbol: '€', name: 'Euro', flagType: 'eu' },
-  { code: 'GBP', symbol: '£', name: 'British Pound', flagType: 'gb' },
-  { code: 'AED', symbol: 'د.إ', name: 'UAE Dirham', flagType: 'ae' },
 ]
 
 export const FlagIcon: React.FC<{ type: CurrencyOption['flagType']; className?: string }> = ({
@@ -40,88 +38,33 @@ export const FlagIcon: React.FC<{ type: CurrencyOption['flagType']; className?: 
     )
   }
 
-  if (type === 'us') {
-    return (
-      <svg viewBox="0 0 36 36" className={className} xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <clipPath id="circle-clip-us">
-            <circle cx="18" cy="18" r="18" />
-          </clipPath>
-        </defs>
-        <g clipPath="url(#circle-clip-us)">
-          <rect x="0" y="0" width="36" height="36" fill="#B22234" />
-          <rect x="0" y="5" width="36" height="4" fill="#FFFFFF" />
-          <rect x="0" y="13" width="36" height="4" fill="#FFFFFF" />
-          <rect x="0" y="21" width="36" height="4" fill="#FFFFFF" />
-          <rect x="0" y="29" width="36" height="4" fill="#FFFFFF" />
-          <rect x="0" y="0" width="18" height="19" fill="#3C3B6E" />
-          <circle cx="9" cy="9.5" r="2.5" fill="#FFFFFF" />
-        </g>
-      </svg>
-    )
-  }
-
-  if (type === 'eu') {
-    return (
-      <svg viewBox="0 0 36 36" className={className} xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <clipPath id="circle-clip-eu">
-            <circle cx="18" cy="18" r="18" />
-          </clipPath>
-        </defs>
-        <g clipPath="url(#circle-clip-eu)">
-          <rect x="0" y="0" width="36" height="36" fill="#003399" />
-          <circle cx="18" cy="18" r="8" fill="none" stroke="#FFCC00" strokeWidth="1.5" strokeDasharray="2,3" />
-        </g>
-      </svg>
-    )
-  }
-
-  if (type === 'gb') {
-    return (
-      <svg viewBox="0 0 36 36" className={className} xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <clipPath id="circle-clip-gb">
-            <circle cx="18" cy="18" r="18" />
-          </clipPath>
-        </defs>
-        <g clipPath="url(#circle-clip-gb)">
-          <rect x="0" y="0" width="36" height="36" fill="#012169" />
-          <path d="M0,0 L36,36 M36,0 L0,36" stroke="#FFFFFF" strokeWidth="4" />
-          <path d="M0,0 L36,36 M36,0 L0,36" stroke="#C8102E" strokeWidth="2" />
-          <path d="M18,0 V36 M0,18 H36" stroke="#FFFFFF" strokeWidth="6" />
-          <path d="M18,0 V36 M0,18 H36" stroke="#C8102E" strokeWidth="3" />
-        </g>
-      </svg>
-    )
-  }
-
-  // UAE
+  // US flag
   return (
     <svg viewBox="0 0 36 36" className={className} xmlns="http://www.w3.org/2000/svg">
       <defs>
-        <clipPath id="circle-clip-ae">
+        <clipPath id="circle-clip-us">
           <circle cx="18" cy="18" r="18" />
         </clipPath>
       </defs>
-      <g clipPath="url(#circle-clip-ae)">
-        <rect x="0" y="0" width="36" height="12" fill="#00732F" />
-        <rect x="0" y="12" width="36" height="12" fill="#FFFFFF" />
-        <rect x="0" y="24" width="36" height="12" fill="#000000" />
-        <rect x="0" y="0" width="10" height="36" fill="#FF0000" />
+      <g clipPath="url(#circle-clip-us)">
+        <rect x="0" y="0" width="36" height="36" fill="#B22234" />
+        <rect x="0" y="5" width="36" height="4" fill="#FFFFFF" />
+        <rect x="0" y="13" width="36" height="4" fill="#FFFFFF" />
+        <rect x="0" y="21" width="36" height="4" fill="#FFFFFF" />
+        <rect x="0" y="29" width="36" height="4" fill="#FFFFFF" />
+        <rect x="0" y="0" width="18" height="19" fill="#3C3B6E" />
+        <circle cx="9" cy="9.5" r="2.5" fill="#FFFFFF" />
       </g>
     </svg>
   )
 }
 
 export const CurrencySelector: React.FC = () => {
-  const [selectedCode, setSelectedCode] = useState<string>(() => {
-    return localStorage.getItem('wealthflow_currency') || 'INR'
-  })
+  const { currency, setCurrency } = useCurrency()
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
-  const selectedCurrency = CURRENCIES.find((c) => c.code === selectedCode) || CURRENCIES[0]
+  const selectedCurrency = CURRENCIES.find((c) => c.code === currency) || CURRENCIES[0]
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -137,29 +80,29 @@ export const CurrencySelector: React.FC = () => {
     }
   }, [isOpen])
 
-  const handleSelect = (code: string) => {
-    setSelectedCode(code)
-    localStorage.setItem('wealthflow_currency', code)
+  const handleSelect = (code: CurrencyCode) => {
+    setCurrency(code)
     setIsOpen(false)
   }
 
   return (
     <div className="relative" ref={dropdownRef}>
-      {/* Trigger Button - exactly matches reference design in Image 2 */}
+      {/* Trigger Button */}
       <button
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
         aria-label="Select base currency"
         aria-expanded={isOpen}
-        className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800/80 dark:hover:bg-slate-700/80 border border-slate-200 dark:border-slate-700/60 flex items-center gap-2 text-xs font-medium text-slate-700 dark:text-slate-200 transition-colors shadow-xs dark:shadow-sm cursor-pointer"
+        className="px-2 sm:px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800/80 dark:hover:bg-slate-700/80 border border-slate-200 dark:border-slate-700/60 flex items-center gap-1 sm:gap-2 text-xs font-medium text-slate-700 dark:text-slate-200 transition-colors shadow-xs dark:shadow-sm cursor-pointer shrink-0"
       >
         <FlagIcon type={selectedCurrency.flagType} className="w-4 h-4 shrink-0" />
-        <span>
-          {selectedCurrency.code} {selectedCurrency.symbol}
+        <span className="hidden sm:inline font-semibold">
+          {selectedCurrency.code}
         </span>
+        <span className="font-semibold">{selectedCurrency.symbol}</span>
         <ChevronDown
           className={cn(
-            'w-3.5 h-3.5 text-slate-500 dark:text-slate-400 transition-transform duration-200',
+            'w-3 h-3 text-slate-500 dark:text-slate-400 transition-transform duration-200',
             isOpen && 'rotate-180 text-slate-700 dark:text-slate-200'
           )}
         />
@@ -173,7 +116,7 @@ export const CurrencySelector: React.FC = () => {
           </div>
           <div className="py-1">
             {CURRENCIES.map((curr) => {
-              const isSelected = curr.code === selectedCode
+              const isSelected = curr.code === currency
               return (
                 <button
                   key={curr.code}

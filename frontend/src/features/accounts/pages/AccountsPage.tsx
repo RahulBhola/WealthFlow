@@ -262,7 +262,7 @@ export const AccountsPage: React.FC = () => {
       )}
 
       {/* Tier 2: Standardized 4-Card Metric Strip */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
         <MetricCard
           label="Total Liquid Balance"
           value={formatINR(summary?.totalLiquidBalance ?? 0)}

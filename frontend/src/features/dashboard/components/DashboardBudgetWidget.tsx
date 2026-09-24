@@ -3,18 +3,11 @@ import { Card, CardHeader, CardBody } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { ArrowUpRight, ShieldCheck } from 'lucide-react'
 import type { BudgetGlanceDto } from '../types'
+import { useCurrency } from '../../../context/CurrencyContext'
 
 export interface DashboardBudgetWidgetProps {
   budgets: BudgetGlanceDto[]
   onViewAll?: () => void
-}
-
-const formatINR = (val: number) => {
-  return new Intl.NumberFormat('en-IN', {
-    style: 'currency',
-    currency: 'INR',
-    maximumFractionDigits: 0,
-  }).format(val)
 }
 
 const getProgressBarColor = (color: string) => {
@@ -50,6 +43,9 @@ export const DashboardBudgetWidget: React.FC<DashboardBudgetWidgetProps> = ({
   budgets,
   onViewAll,
 }) => {
+  const { formatCurrency } = useCurrency()
+  const formatINR = formatCurrency
+
   return (
     <Card>
       <CardHeader
