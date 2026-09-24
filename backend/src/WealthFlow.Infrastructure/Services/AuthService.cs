@@ -376,7 +376,7 @@ public class AuthService : IAuthService
         {
             try
             {
-                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(7));
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(25));
                 await _emailService.SendPasswordResetOtpAsync(userEmail, fullName, otpCode, cts.Token);
             }
             catch (Exception ex)

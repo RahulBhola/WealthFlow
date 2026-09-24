@@ -202,22 +202,22 @@ public class EmailService : IEmailService
             using var client = new SmtpClient(host, port)
             {
                 EnableSsl = enableSsl,
-                Credentials = new NetworkCredential(username, password),
+                Credentials = new NetworkCredential(username.Trim(), password.Trim()),
                 DeliveryMethod = SmtpDeliveryMethod.Network,
-                Timeout = 8000
+                Timeout = 20000
             };
 
             using var message = new MailMessage
             {
-                From = new MailAddress(smtpFromEmail, fromName),
+                From = new MailAddress(smtpFromEmail.Trim(), fromName),
                 Subject = $"WealthFlow Security: {otpCode} is your verification code",
                 Body = htmlBody,
                 IsBodyHtml = true
             };
-            message.To.Add(recipientEmail);
+            message.To.Add(new MailAddress(recipientEmail.Trim()));
 
             using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            timeoutCts.CancelAfter(TimeSpan.FromSeconds(5));
+            timeoutCts.CancelAfter(TimeSpan.FromSeconds(20));
             await client.SendMailAsync(message, timeoutCts.Token);
             _logger.LogInformation("Password reset OTP successfully dispatched via SMTP to {Email}", recipientEmail);
         }
@@ -225,8 +225,9 @@ public class EmailService : IEmailService
         {
             _logger.LogError(
                 ex,
-                "Failed to send password reset OTP via SMTP to {Email} (Render free tier blocks port 587). Check server logs for OTP.",
-                recipientEmail);
+                "Failed to send password reset OTP via SMTP to {Email}: {ErrorMessage}",
+                recipientEmail,
+                ex.Message);
         }
     }
 }
