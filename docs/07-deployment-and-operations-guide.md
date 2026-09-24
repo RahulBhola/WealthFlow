@@ -1,5 +1,5 @@
 # WEALTHFLOW — PART 7: CLOUD DEPLOYMENT & PRODUCTION OPERATIONS GUIDE
-**Document Version:** 1.1.0  
+**Document Version:** 1.0.0  
 **Status:** Approved for Production  
 **Target Environment:** Neon Serverless PostgreSQL + Render Docker Web Service + Vercel Edge Frontend  
 **Storage Pairing:** Google Drive API v3 (PostgreSQL Deployment) with Automated Local Fallback  
@@ -41,78 +41,82 @@ WealthFlow is architected as an enterprise, decoupled, high-performance web syst
 
 ---
 
-## 2. Step 1: Neon Serverless PostgreSQL (COMPLETED ✅)
+## 2. Step 1: Provisioning Neon Serverless PostgreSQL
 
-- **Project:** `wealthflow`
-- **Region:** `AWS US East 2 (Ohio)`
-- **Database:** `neondb`
-- **Connection String:**
-  ```text
-  Host=ep-ancient-voice-b59rhw6g-pooler.c-7.us-east-2.aws.neon.tech;Port=5432;Database=neondb;Username=neondb_owner;Password=npg_QwxN5p0kin2A;SSL Mode=Require;Trust Server Certificate=true;
-  ```
+Neon provides instant, serverless PostgreSQL with automated compute scaling and built-in connection pooling.
+
+1. **Sign Up / Log In:**
+   - Navigate to [neon.tech](https://neon.tech) and authenticate.
+2. **Create New Project (Completed):**
+   - Project Name: `wealthflow` (Project ID: `snowy-field-68798692`)
+   - Postgres Version: `16`
+   - Cloud Service Provider & Region: `AWS US East (Ohio) / us-east-2`
+3. **Retrieve Connection String:**
+   - In your Neon dashboard under **Connection Details**:
+   - Pooled Connection URI:
+     ```
+     postgresql://neondb_owner:npg_QwxN5p0kin2A@ep-ancient-voice-b59rhw6g-pooler.c-7.us-east-2.aws.neon.tech/neondb?sslmode=require
+     ```
+4. **Format for ASP.NET Npgsql:**
+   - Standard key-value connection string configured for Npgsql:
+     ```
+     Host=ep-ancient-voice-b59rhw6g-pooler.c-7.us-east-2.aws.neon.tech;Port=5432;Database=neondb;Username=neondb_owner;Password=npg_QwxN5p0kin2A;SSL Mode=Require;Trust Server Certificate=true;
+     ```
 
 ---
 
-## 3. Step 2: Deploying Backend API on Render (EXACT CONFIGURATION)
+## 3. Step 2: Deploying Backend API on Render
 
-### 3.1 Service Setup in Render Dashboard
-1. Go to [dashboard.render.com](https://dashboard.render.com) and click **New +** ➔ **Web Service**.
-2. Select your repository: **`RahulBhola/WealthFlow`**.
-3. Configure the service settings:
+Render builds and runs the production multi-stage `.NET 9` Docker container in an isolated, non-root Alpine sandbox.
+
+1. **Create Web Service:**
+   - Log in to [render.com](https://render.com).
+   - Click **New +** ➔ **Web Service**.
+   - Connect your GitHub repository: `RahulBhola/WealthFlow`.
+2. **Configure Service Details:**
    - **Name:** `wealthflow-api`
-   - **Region:** **`Ohio (US East)`** *(Matches your Neon database region for sub-millisecond query latency)*
+   - **Region:** Pick the same region as your Neon database: `Ohio (US East)`
    - **Branch:** `main`
-   - **Language / Runtime:** **`Docker`**
-   - **Root Directory:** *(Leave completely empty — uses repo root)*
+   - **Language / Runtime:** **Docker**
+   - **Root Directory:** *(Leave empty - uses repository root)*
    - **Dockerfile Path:** `./backend/Dockerfile`
-   - **Instance Type:** **Free**
+   - **Instance Type:** **Free** (or Starter/Standard for continuous uptime)
+3. **Configure Environment Variables:**
+   Click **Add Environment Variable** and enter the exact keys and values from the table below:
 
----
+   | Key | Value | Description |
+   |---|---|---|
+   | `ASPNETCORE_ENVIRONMENT` | `Production` | Activates production error handling & caching |
+   | `DatabaseProvider` | `PostgreSQL` | Directs EF Core to instantiate Npgsql provider |
+   | `ConnectionStrings__DefaultConnection` | `Host=ep-ancient-voice-b59rhw6g-pooler.c-7.us-east-2.aws.neon.tech;Port=5432;Database=neondb;Username=neondb_owner;Password=npg_QwxN5p0kin2A;SSL Mode=Require;Trust Server Certificate=true;` | Your exact Neon PostgreSQL pooled connection string |
+   | `AutoInitDatabase` | `true` | Automatically provisions all 23 database tables and singleton admin on startup |
+   | `CORS_ALLOWED_ORIGINS` | `*` | Or specify your Vercel frontend URL: `https://wealthflow.vercel.app` |
+   | `Jwt__Secret` | `WealthFlowSuperSecretKeyMustBeAtLeast32BytesLongProduction!` | Cryptographic key for signing HS256 tokens (min 32 chars) |
+   | `Jwt__Issuer` | `WealthFlow` | Authoritative token issuer |
+   | `Jwt__Audience` | `WealthFlowClient` | Authorized audience |
+   | `StorageProvider` | `GoogleDrive` | Pairing provider (gracefully falls back to local uploads if keys absent) |
+   | `DefaultAdmin__Email` | `admin@wealthflow.local` | Default singleton admin user email created on first seed |
+   | `DefaultAdmin__Password` | `Admin@123456` | Default singleton admin password created on first seed |
 
-### 3.2 Exact Environment Variables (Copy & Paste)
-
-In the **Environment Variables** section on Render, add these exact keys and values:
-
-| Key | Exact Value | Purpose |
-|---|---|---|
-| `ASPNETCORE_ENVIRONMENT` | `Production` | Enables production mode & optimized caching |
-| `DatabaseProvider` | `PostgreSQL` | Directs EF Core to instantiate Npgsql provider |
-| `ConnectionStrings__DefaultConnection` | `Host=ep-ancient-voice-b59rhw6g-pooler.c-7.us-east-2.aws.neon.tech;Port=5432;Database=neondb;Username=neondb_owner;Password=npg_QwxN5p0kin2A;SSL Mode=Require;Trust Server Certificate=true;` | Your live Neon pooled database connection |
-| `AutoInitDatabase` | `true` | Automatically provisions all 23 database tables, indexes, and singleton admin on first boot |
-| `CORS_ALLOWED_ORIGINS` | `*` | Allows browser API calls from your Vercel frontend |
-| `Jwt__Secret` | `WealthFlowSuperSecretKeyMustBeAtLeast32BytesLongProduction!` | Cryptographic secret for signing JWTs (min 32 chars) |
-| `Jwt__Issuer` | `WealthFlow` | Authoritative token issuer |
-| `Jwt__Audience` | `WealthFlowClient` | Authorized client audience |
-| `StorageProvider` | `GoogleDrive` | Cloud file storage (safely uses built-in local fallback until Google keys are added) |
-| `DefaultAdmin__Email` | `admin@wealthflow.local` | Default singleton Admin username |
-| `DefaultAdmin__Password` | `Admin@123456` | Default singleton Admin password |
-
----
-
-### 3.3 Deploy & Verify
-1. Click **Deploy Web Service** (or **Create Web Service**).
-2. Render will build the multi-stage Alpine Docker container (`mcr.microsoft.com/dotnet/aspnet:9.0-alpine`).
-3. Once the build completes (~2 minutes), Render assigns your API URL:
-   `https://wealthflow-api.onrender.com`
-4. **Health Check Verification:**
-   Open this URL in your browser:
-   ```
-   https://wealthflow-api.onrender.com/health/ready
-   ```
-   Expected HTTP 200 response:
-   ```json
-   {
-     "status": "Healthy",
-     "totalDuration": "00:00:00.015",
-     "entries": [
-       {
-         "name": "database",
-         "status": "Healthy",
-         "duration": "00:00:00.014"
-       }
-     ]
-   }
-   ```
+4. **Deploy & Validate:**
+   - Click **Deploy Web Service**.
+   - Build completes in approximately 2 minutes.
+   - Once deployed, copy your service URL: `https://wealthflow-api.onrender.com`.
+   - **Smoke Test Readiness Endpoint:**
+     Open `https://wealthflow-api.onrender.com/health/ready` in your browser. Expected response:
+     ```json
+     {
+       "status": "Healthy",
+       "totalDuration": "00:00:00.015",
+       "entries": [
+         {
+           "name": "database",
+           "status": "Healthy",
+           "duration": "00:00:00.014"
+         }
+       ]
+     }
+     ```
 
 ---
 
@@ -129,34 +133,58 @@ Vercel serves the static React 19 bundle over an ultra-low-latency global Edge C
    - **Framework Preset:** **Vite** *(Automatically detected)*
    - **Root Directory:** Click **Edit** ➔ select **`frontend`** ➔ click **Continue**.
 3. **Environment Variables:**
-   Add this single environment variable:
-
-   | Key | Value | Notes |
-   |---|---|---|
-   | `VITE_API_URL` | `https://wealthflow-api.onrender.com` | Use your Render API URL from Step 2 (without trailing slash) |
-
+   - Add **`VITE_API_URL`**: `https://wealthflow-api.onrender.com` *(Use your Render API URL from Step 2 without trailing slash)*
 4. **Deploy:**
    - Click **Deploy**.
-   - Vercel builds the app in ~45 seconds and assigns your domain: `https://wealthflow.vercel.app`.
+   - In ~45 seconds, the build succeeds and assigns your production domain: `https://wealthflow.vercel.app`.
 5. **SPA Routing Verification:**
-   - [frontend/vercel.json](../frontend/vercel.json) handles client-side rewrites automatically to `/index.html`, ensuring URLs like `/dashboard`, `/accounts`, `/trips`, and `/admin` reload seamlessly.
+   - The repository includes [frontend/vercel.json](file:///d:/Projects/WealthFlow/frontend/vercel.json):
+     ```json
+     {
+       "rewrites": [
+         {
+           "source": "/(.*)",
+           "destination": "/index.html"
+         }
+       ]
+     }
+     ```
+   - This ensures refreshing deep links (e.g. `/dashboard`, `/accounts`, `/trips/some-id`, `/admin`) correctly hands off to React Router rather than throwing 404s.
 
 ---
 
 ## 5. Step 4: Configuring Google Drive Cloud Storage (Receipts & Attachments)
 
-> [!NOTE]
-> WealthFlow includes an automatic local storage fallback. The application is **100% functional out of the box** without Google Drive keys. When you are ready to link your private Google Drive:
+Under PostgreSQL deployment mode, attachment uploads route to Google Drive API v3 via a dedicated Service Account.
 
-1. In [Google Cloud Console](https://console.cloud.google.com), create a project and enable **Google Drive API v3**.
-2. Go to **IAM & Admin** ➔ **Service Accounts** ➔ Create `wealthflow-storage`.
-3. Go to the **Keys** tab ➔ **Add Key** ➔ **Create new key** ➔ **JSON** (downloads `service-account.json`).
-4. In personal Google Drive, create a folder: `WealthFlow Receipts`.
-5. Share the folder with the Service Account email as **Editor**.
-6. Copy the Folder ID from the URL (`drive.google.com/drive/folders/<FOLDER_ID>`).
-7. In **Render** (Environment Variables for `wealthflow-api`), add:
-   - `GoogleDrive__RootFolderId`: `<FOLDER_ID>`
-   - `GoogleDrive__ServiceAccountKeyJson`: `<Paste the entire text contents of the service-account.json file>`
+> [!NOTE]
+> WealthFlow contains an automated local storage fallback. If Google Drive credentials are omitted, uploads will safely persist in `/app/App_Data/uploads/` on the server without breaking the application.
+
+To route uploads directly to your private Google Drive:
+
+1. **Create Google Cloud Project:**
+   - Visit [Google Cloud Console](https://console.cloud.google.com).
+   - Create a project: `WealthFlow-Cloud`.
+2. **Enable Drive API:**
+   - Navigate to **APIs & Services** ➔ **Library**.
+   - Search for **Google Drive API** and click **Enable**.
+3. **Create Service Account:**
+   - Go to **IAM & Admin** ➔ **Service Accounts** ➔ **Create Service Account**.
+   - Name: `wealthflow-storage`.
+   - Copy the generated email: `wealthflow-storage@wealthflow-cloud.iam.gserviceaccount.com`.
+4. **Generate JSON Key:**
+   - Click the created Service Account ➔ **Keys** tab ➔ **Add Key** ➔ **Create new key** ➔ Select **JSON**.
+   - Save the downloaded `.json` file securely.
+5. **Create & Share Private Drive Folder:**
+   - In your personal Google Drive, create a folder: `WealthFlow Receipts`.
+   - Right-click folder ➔ **Share** ➔ paste the Service Account email.
+   - Grant role: **Editor** ➔ uncheck "Notify people" ➔ click **Share**.
+   - Copy the Folder ID from your browser URL:
+     `drive.google.com/drive/folders/1aBcDeFgHiJkLmNoPqRsTuVwXyZ` ➔ `1aBcDeFgHiJkLmNoPqRsTuVwXyZ`.
+6. **Set Environment Variables on Render:**
+   In your `wealthflow-api` Web Service settings, add:
+   - `GoogleDrive__RootFolderId`: `1aBcDeFgHiJkLmNoPqRsTuVwXyZ`
+   - `GoogleDrive__ServiceAccountKeyJson`: *(Paste the entire contents of the downloaded JSON key file)*
 
 ---
 
@@ -178,6 +206,7 @@ docker-compose up --build
    ```powershell
    dotnet run --project backend/src/WealthFlow.Api
    ```
+   *(Listens on `http://localhost:5000` / `https://localhost:5001` with In-Memory DB & auto-seed)*
 2. **Frontend:**
    ```powershell
    cd frontend
@@ -187,20 +216,22 @@ docker-compose up --build
 
 ---
 
-## 7. Step 6: Authoritative Credentials & Verification Checklist
+## 7. Step 6: Credentials & Acceptance Testing Checklist
 
-### Pre-Seeded Credentials
+### Authoritative Seed Credentials
 
-| Role | Email | Password | Access |
+| Role | Email | Password | Allowed Access |
 |---|---|---|---|
-| **Singleton Admin** | `admin@wealthflow.local` | `Admin@123456` | Full ERP Console (`/admin`), Security Monitors, Audit Trail |
-| **New User** | *(Register via `/register`)* | *(Your choice)* | Personal finance, accounts, budgets, trips, investments |
+| **Singleton Admin** | `admin@wealthflow.local` | `Admin@123456` | Full ERP Console (`/admin`), System Monitor, Audit Trail |
+| **Universal Test User** | `test@wealthflow.local` | `Test@123456` | Personal Finance, Accounts, Budgets, Trips, Investments |
+| **New User** | *(Register via `/register`)* | *(User-defined)* | Full isolated personal finance workspace |
 
-### Production Smoke Test Checklist
+### Production Acceptance Checklist
 
-- [ ] **Database Readiness:** Open `https://wealthflow-api.onrender.com/health/ready` ➔ verify HTTP 200 `Healthy`.
-- [ ] **Admin Invariant:** Log in as `admin@wealthflow.local` ➔ visit `/admin` ➔ verify Singleton Admin Monitor (`AdminCount = 1`).
-- [ ] **Banking Masking:** Add an account with ₹50,000 opening balance ➔ verify masked account number (`•••• •••• 4821`).
-- [ ] **Transaction Flow:** Add an expense ➔ verify real-time balance recalculation and budget alert tracking.
-- [ ] **Receipt Upload:** Upload a receipt attachment ➔ test streaming proxy download (`/api/v1/attachments/{id}/download`).
-- [ ] **Data Export:** Visit Settings ➔ Export Data ➔ verify full JSON and CSV dumps.
+- [ ] **Database Connectivity:** `GET /health/ready` returns HTTP 200 with `status: "Healthy"`.
+- [ ] **Admin Invariant (`AdminCount = 1`):** Log in as `admin@wealthflow.local` and visit `/admin`. Verify the Command Center displays active database health and singleton admin verification.
+- [ ] **Zero-Trust Depository Boundary:** Add a bank account (e.g. "HDFC Salary") with opening balance ₹50,000. Verify account mask format `•••• •••• 4821`.
+- [ ] **Immutable Transaction Ledger:** Record an expense. Verify instant balance recalculation and budget alert tracking.
+- [ ] **Attachment Upload & Proxy:** Attach a receipt (JPEG/PNG/PDF) to a transaction. Test streaming download via `GET /api/v1/attachments/{id}/download`. Verify magic-byte validation rejects spoofed files.
+- [ ] **Full Data Portability:** Navigate to Settings ➔ Export Data. Confirm instantaneous download of complete JSON schema backup and transaction CSV.
+- [ ] **Collaborative Trips & Settlement:** Create a group trip with 3 members, log expenses, and execute pure informational greedy debt minimization.
