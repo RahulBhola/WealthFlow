@@ -3,6 +3,7 @@ import { cn } from '@/lib/utils'
 import { navigationItems } from './navItems'
 import { X, LogOut, CheckCircle2, Sun, Moon } from 'lucide-react'
 import { useTheme } from '../../context/ThemeContext'
+import { useCurrency } from '../../context/CurrencyContext'
 
 export interface MobileNavDrawerProps {
   isOpen: boolean
@@ -31,6 +32,7 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
   onLogout,
 }) => {
   const { theme, toggleTheme } = useTheme()
+  const { currency, symbol } = useCurrency()
   const visibleItems = navigationItems.filter(item => !item.isAdminOnly || isAdmin)
 
   return (
@@ -107,7 +109,7 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
                 <span className="px-1.5 py-0.2 text-[10px] font-semibold rounded bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300">
                   Role: {userRole}
                 </span>
-                <span className="text-[10px] text-slate-400 font-mono">INR (₹)</span>
+                <span className="text-[10px] text-slate-400 font-mono">{currency} ({symbol})</span>
               </div>
             </div>
           </div>

@@ -7,15 +7,7 @@ import {
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import type { JointSipReconciliation } from '../types'
-
-const formatINR = (val: number) => {
-  return new Intl.NumberFormat('en-IN', {
-    style: 'currency',
-    currency: 'INR',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(val)
-}
+import { useCurrency } from '../../../context/CurrencyContext'
 
 const getMonthName = (month: number): string => {
   const date = new Date(2000, month - 1, 1)
@@ -31,6 +23,8 @@ export const SipReconciliationTable: React.FC<SipReconciliationTableProps> = ({
   reconciliations,
   onOpenRepayModal,
 }) => {
+  const { formatCurrency } = useCurrency()
+  const formatINR = formatCurrency
   const [filter, setFilter] = useState<'All' | 'Pending' | 'Settled'>('All')
 
   const filteredReconciliations = reconciliations.filter((rec) => {

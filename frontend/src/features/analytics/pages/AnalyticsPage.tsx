@@ -17,16 +17,11 @@ import type { AnalyticsSummaryDto } from '../types'
 import { NetWorthAreaChart } from '@/features/dashboard/components/NetWorthAreaChart'
 import { CategoryDonutChart } from '../components/CategoryDonutChart'
 import { CashFlowWaterfallChart } from '../components/CashFlowWaterfallChart'
-
-const formatINR = (val: number) => {
-  return new Intl.NumberFormat('en-IN', {
-    style: 'currency',
-    currency: 'INR',
-    maximumFractionDigits: 0,
-  }).format(val)
-}
+import { useCurrency } from '../../../context/CurrencyContext'
 
 export const AnalyticsPage: React.FC = () => {
+  const { formatCurrency } = useCurrency()
+  const formatINR = (val: number) => formatCurrency(val, { maximumFractionDigits: 0 })
   const [data, setData] = useState<AnalyticsSummaryDto | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)

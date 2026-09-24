@@ -43,14 +43,7 @@ const getAccountIcon = (type: AccountType) => {
   }
 }
 
-const formatINR = (amount: number, currency: string = 'INR') => {
-  return new Intl.NumberFormat('en-IN', {
-    style: 'currency',
-    currency: currency || 'INR',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(amount)
-}
+import { useCurrency } from '../../../context/CurrencyContext'
 
 export const AccountCard: React.FC<AccountCardProps> = ({
   account,
@@ -60,6 +53,8 @@ export const AccountCard: React.FC<AccountCardProps> = ({
   onDelete,
   isReconciling = false,
 }) => {
+  const { formatCurrency } = useCurrency()
+  const formatINR = formatCurrency
   const [menuOpen, setMenuOpen] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [isArchiving, setIsArchiving] = useState(false)
@@ -214,13 +209,13 @@ export const AccountCard: React.FC<AccountCardProps> = ({
             Current Balance
           </span>
           <span className="text-[11px] font-mono text-slate-400 dark:text-slate-500">
-            Open: {formatINR(account.openingBalance, account.currency)}
+            Open: {formatINR(account.openingBalance)}
           </span>
         </div>
 
         <div className="mt-1 flex items-center justify-between">
           <div className="font-mono text-xl font-bold tracking-tight text-slate-900 dark:text-slate-50 tabular-nums">
-            {formatINR(account.currentBalance, account.currency)}
+            {formatINR(account.currentBalance)}
           </div>
 
           <Button

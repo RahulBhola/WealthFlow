@@ -13,15 +13,7 @@ import { Card, CardBody } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import type { Sip } from '../types'
-
-const formatINR = (val: number) => {
-  return new Intl.NumberFormat('en-IN', {
-    style: 'currency',
-    currency: 'INR',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(val)
-}
+import { useCurrency } from '../../../context/CurrencyContext'
 
 export interface JointSipCardProps {
   sip: Sip
@@ -34,6 +26,8 @@ export const JointSipCard: React.FC<JointSipCardProps> = ({
   onExecute,
   onToggleStatus,
 }) => {
+  const { formatCurrency } = useCurrency()
+  const formatINR = formatCurrency
   const [isExecuting, setIsExecuting] = useState(false)
   const [isToggling, setIsToggling] = useState(false)
 

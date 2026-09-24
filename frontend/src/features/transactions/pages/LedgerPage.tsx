@@ -35,6 +35,7 @@ import { apiClient } from '@/lib/api'
 import type { Transaction, TransactionSummary } from '../types'
 import type { BudgetSummary } from '@/features/budgets/types'
 import type { Account } from '@/features/accounts/types'
+import { useCurrency } from '../../../context/CurrencyContext'
 
 const MONTH_NAMES = [
   'January',
@@ -51,16 +52,10 @@ const MONTH_NAMES = [
   'December',
 ]
 
-const formatINR = (amount: number) => {
-  return new Intl.NumberFormat('en-IN', {
-    style: 'currency',
-    currency: 'INR',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(amount)
-}
-
 export const LedgerPage: React.FC = () => {
+  const { formatCurrency } = useCurrency()
+  const formatINR = formatCurrency
+
   const today = useMemo(() => new Date(), [])
   const [selectedYear, setSelectedYear] = useState<number>(today.getFullYear())
   const [selectedMonth, setSelectedMonth] = useState<number>(today.getMonth() + 1)

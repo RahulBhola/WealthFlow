@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react'
 import { Users, Percent, Divide, Scale, CheckCircle2, AlertCircle } from 'lucide-react'
 import { Input } from '@/components/ui/Input'
 import type { TripMember, SplitInput } from '../types'
+import { useCurrency } from '../../../context/CurrencyContext'
 
 export interface SplitEditorProps {
   members: TripMember[]
@@ -11,15 +12,6 @@ export interface SplitEditorProps {
   onChange: (splitType: string, splits: SplitInput[], isValid: boolean) => void
 }
 
-const formatINR = (val: number) => {
-  return new Intl.NumberFormat('en-IN', {
-    style: 'currency',
-    currency: 'INR',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(val)
-}
-
 export const SplitEditor: React.FC<SplitEditorProps> = ({
   members,
   totalAmount,
@@ -27,6 +19,8 @@ export const SplitEditor: React.FC<SplitEditorProps> = ({
   initialSplits,
   onChange,
 }) => {
+  const { formatCurrency } = useCurrency()
+  const formatINR = formatCurrency
   const [splitType, setSplitType] = useState<'Equal' | 'Unequal' | 'Percentage' | 'Shares'>(
     initialSplitType
   )
@@ -120,7 +114,7 @@ export const SplitEditor: React.FC<SplitEditorProps> = ({
       const baseAmount = baseCents / 100
       let msg = `${activeIds.length} members split ${formatINR(totalAmount)} (~${formatINR(baseAmount)} each)`
       if (remainderCents > 0) {
-        msg += ` (${remainderCents} member(s) pay ₹0.01 extra for cent-perfection)`
+        msg += ` (${remainderCents} member(s) pay ${formatINR(0.01)} extra for cent-perfection)`
       }
 
       return { splits: result, isValid: true, validationMessage: msg }

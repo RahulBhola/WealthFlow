@@ -3,20 +3,12 @@ import { Card, CardHeader, CardBody } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { ShieldCheck } from 'lucide-react'
 import type { BudgetSummary, BudgetStatus, BudgetThreshold } from '../types'
+import { useCurrency } from '../../../context/CurrencyContext'
 
 export interface BudgetHealthWidgetProps {
   summary: BudgetSummary | null
   isLoading?: boolean
   onAddBudget?: () => void
-}
-
-const formatINR = (val: number) => {
-  return new Intl.NumberFormat('en-IN', {
-    style: 'currency',
-    currency: 'INR',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(val)
 }
 
 const getProgressBarColor = (status: BudgetThreshold) => {
@@ -34,7 +26,7 @@ const getProgressBarColor = (status: BudgetThreshold) => {
   }
 }
 
-const getStatusBadge = (item: BudgetStatus) => {
+const getStatusBadge = (item: BudgetStatus, formatINR: (val: number) => string) => {
   switch (item.status) {
     case 'Normal':
       return (
@@ -68,6 +60,8 @@ export const BudgetHealthWidget: React.FC<BudgetHealthWidgetProps> = ({
   isLoading = false,
   onAddBudget,
 }) => {
+  const { formatCurrency } = useCurrency()
+  const formatINR = formatCurrency
   if (isLoading) {
     return (
       <Card>
@@ -152,7 +146,7 @@ export const BudgetHealthWidget: React.FC<BudgetHealthWidgetProps> = ({
                       {item.categoryName}
                     </span>
                   </div>
-                  <div>{getStatusBadge(item)}</div>
+                  <div>{getStatusBadge(item, formatINR)}</div>
                 </div>
 
                 {/* Progress Meter */}

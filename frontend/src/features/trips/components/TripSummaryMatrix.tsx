@@ -3,21 +3,15 @@ import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { CheckCircle2, TrendingUp, TrendingDown, Minus } from 'lucide-react'
 import type { TripSummary } from '../types'
+import { useCurrency } from '../../../context/CurrencyContext'
 
 export interface TripSummaryMatrixProps {
   summary: TripSummary
 }
 
-const formatINR = (val: number) => {
-  return new Intl.NumberFormat('en-IN', {
-    style: 'currency',
-    currency: 'INR',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(val)
-}
-
 export const TripSummaryMatrix: React.FC<TripSummaryMatrixProps> = ({ summary }) => {
+  const { formatCurrency } = useCurrency()
+  const formatINR = formatCurrency
   const sumNet = summary.memberSummaries.reduce((acc, m) => acc + m.netBalance, 0)
   const isBalanced = Math.abs(sumNet) < 0.05
 
@@ -36,7 +30,7 @@ export const TripSummaryMatrix: React.FC<TripSummaryMatrixProps> = ({ summary })
           {isBalanced ? (
             <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-xs font-semibold text-emerald-700 dark:text-emerald-400">
               <CheckCircle2 className="w-3.5 h-3.5" />
-              <span>Ledger Balanced (Σ = ₹0.00)</span>
+              <span>Ledger Balanced (Σ = {formatINR(0)})</span>
             </div>
           ) : (
             <div className="text-xs text-amber-600 dark:text-amber-400">
@@ -144,9 +138,9 @@ export const TripSummaryMatrix: React.FC<TripSummaryMatrixProps> = ({ summary })
               <td className="py-3 px-4">Group Total</td>
               <td className="py-3 px-4 text-right">{formatINR(summary.totalGroupSpending)}</td>
               <td className="py-3 px-4 text-right">{formatINR(summary.totalGroupSpending)}</td>
-              <td className="py-3 px-4 text-right text-slate-500">₹0.00</td>
-              <td className="py-3 px-4 text-right text-slate-500">₹0.00</td>
-              <td className="py-3 px-4 text-right text-slate-500">₹0.00</td>
+              <td className="py-3 px-4 text-right text-slate-500">{formatINR(0)}</td>
+              <td className="py-3 px-4 text-right text-slate-500">{formatINR(0)}</td>
+              <td className="py-3 px-4 text-right text-slate-500">{formatINR(0)}</td>
               <td className="py-3 px-4 text-center">
                 <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
                   Conserved

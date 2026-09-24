@@ -13,14 +13,7 @@ export interface UpdateValuationModalProps {
   onSuccess: () => void
 }
 
-const formatINR = (val: number) => {
-  return new Intl.NumberFormat('en-IN', {
-    style: 'currency',
-    currency: 'INR',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(val)
-}
+import { useCurrency } from '../../../context/CurrencyContext'
 
 export const UpdateValuationModal: React.FC<UpdateValuationModalProps> = ({
   investment,
@@ -28,6 +21,8 @@ export const UpdateValuationModal: React.FC<UpdateValuationModalProps> = ({
   onClose,
   onSuccess,
 }) => {
+  const { formatCurrency } = useCurrency()
+  const formatINR = formatCurrency
   const [currentValuation, setCurrentValuation] = useState('')
   const [units, setUnits] = useState('')
   const [valuationDate, setValuationDate] = useState(() => new Date().toISOString().slice(0, 10))

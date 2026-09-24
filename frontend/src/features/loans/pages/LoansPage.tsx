@@ -25,19 +25,13 @@ import { RecordGiftModal } from '../components/RecordGiftModal'
 import { ConfirmModal } from '@/components/ui/ConfirmModal'
 import { loansApi } from '../api/loansApi'
 import type { Loan, LoanSummary, Gift, GiftSummary } from '../types'
-
-const formatINR = (val: number) => {
-  return new Intl.NumberFormat('en-IN', {
-    style: 'currency',
-    currency: 'INR',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(val)
-}
+import { useCurrency } from '../../../context/CurrencyContext'
 
 type TabType = 'lent' | 'borrowed' | 'gifts'
 
 export const LoansPage: React.FC = () => {
+  const { formatCurrency } = useCurrency()
+  const formatINR = formatCurrency
   const [activeTab, setActiveTab] = useState<TabType>('lent')
   const [loanSummary, setLoanSummary] = useState<LoanSummary | null>(null)
   const [giftSummary, setGiftSummary] = useState<GiftSummary | null>(null)

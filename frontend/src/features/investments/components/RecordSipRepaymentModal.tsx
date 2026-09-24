@@ -15,14 +15,7 @@ export interface RecordSipRepaymentModalProps {
   onSuccess: () => void
 }
 
-const formatINR = (val: number) => {
-  return new Intl.NumberFormat('en-IN', {
-    style: 'currency',
-    currency: 'INR',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(val)
-}
+import { useCurrency } from '../../../context/CurrencyContext'
 
 const getMonthName = (month: number): string => {
   const date = new Date(2000, month - 1, 1)
@@ -35,6 +28,8 @@ export const RecordSipRepaymentModal: React.FC<RecordSipRepaymentModalProps> = (
   onClose,
   onSuccess,
 }) => {
+  const { formatCurrency } = useCurrency()
+  const formatINR = formatCurrency
   const [amount, setAmount] = useState('')
   const [destinationAccountId, setDestinationAccountId] = useState('')
   const [paymentDate, setPaymentDate] = useState(() => new Date().toISOString().slice(0, 10))

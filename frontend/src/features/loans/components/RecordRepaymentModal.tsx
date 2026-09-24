@@ -16,14 +16,7 @@ export interface RecordRepaymentModalProps {
   onSuccess: () => void
 }
 
-const formatINR = (val: number) => {
-  return new Intl.NumberFormat('en-IN', {
-    style: 'currency',
-    currency: 'INR',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(val)
-}
+import { useCurrency } from '../../../context/CurrencyContext'
 
 export const RecordRepaymentModal: React.FC<RecordRepaymentModalProps> = ({
   loan,
@@ -31,6 +24,8 @@ export const RecordRepaymentModal: React.FC<RecordRepaymentModalProps> = ({
   onClose,
   onSuccess,
 }) => {
+  const { formatCurrency } = useCurrency()
+  const formatINR = formatCurrency
   const [amount, setAmount] = useState('')
   const [accountId, setAccountId] = useState('')
   const [repaymentDate, setRepaymentDate] = useState(() => new Date().toISOString().slice(0, 10))

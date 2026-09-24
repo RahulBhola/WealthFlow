@@ -25,16 +25,8 @@ import { GuestLinkModal } from '../components/GuestLinkModal'
 import { SettleUpModal } from '../components/SettleUpModal'
 import { useTripHub } from '../hooks/useTripHub'
 import { tripsApi } from '../api/tripsApi'
+import { useCurrency } from '../../../context/CurrencyContext'
 import type { TripDetail, TripMember, SettlementInstruction } from '../types'
-
-const formatINR = (val: number) => {
-  return new Intl.NumberFormat('en-IN', {
-    style: 'currency',
-    currency: 'INR',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(val)
-}
 
 const formatDate = (dateStr: string) => {
   try {
@@ -51,6 +43,8 @@ const formatDate = (dateStr: string) => {
 type TabType = 'summary' | 'expenses' | 'advances' | 'members' | 'settlements'
 
 export const TripWorkspacePage: React.FC = () => {
+  const { formatCurrency } = useCurrency()
+  const formatINR = formatCurrency
   const { tripId } = useParams<{ tripId: string }>()
   const navigate = useNavigate()
 

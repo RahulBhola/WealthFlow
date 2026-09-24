@@ -1,20 +1,15 @@
 import React, { useState } from 'react'
 import type { CashFlowWaterfallStepDto } from '../types'
+import { useCurrency } from '../../../context/CurrencyContext'
 
 export interface CashFlowWaterfallChartProps {
   steps: CashFlowWaterfallStepDto[]
   className?: string
 }
 
-const formatINR = (val: number) => {
-  return new Intl.NumberFormat('en-IN', {
-    style: 'currency',
-    currency: 'INR',
-    maximumFractionDigits: 0,
-  }).format(val)
-}
-
 export const CashFlowWaterfallChart: React.FC<CashFlowWaterfallChartProps> = ({ steps, className }) => {
+  const { formatCurrency } = useCurrency()
+  const formatINR = (val: number) => formatCurrency(val, { maximumFractionDigits: 0 })
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null)
 
   if (!steps || steps.length === 0) {

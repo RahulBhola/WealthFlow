@@ -34,19 +34,13 @@ import type {
   JointSipSummary,
   JointSipReconciliation,
 } from '../types'
-
-const formatINR = (val: number) => {
-  return new Intl.NumberFormat('en-IN', {
-    style: 'currency',
-    currency: 'INR',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(val)
-}
+import { useCurrency } from '../../../context/CurrencyContext'
 
 type TabType = 'portfolio' | 'sips' | 'reconciliation'
 
 export const InvestmentsPage: React.FC = () => {
+  const { formatCurrency } = useCurrency()
+  const formatINR = formatCurrency
   const [activeTab, setActiveTab] = useState<TabType>('portfolio')
   const [summary, setSummary] = useState<InvestmentSummary | null>(null)
   const [sips, setSips] = useState<Sip[]>([])

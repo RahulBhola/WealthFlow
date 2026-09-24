@@ -16,14 +16,7 @@ export interface PayBillModalProps {
   onSuccess: () => void
 }
 
-const formatINR = (val: number) => {
-  return new Intl.NumberFormat('en-IN', {
-    style: 'currency',
-    currency: 'INR',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(val)
-}
+import { useCurrency } from '../../../context/CurrencyContext'
 
 export const PayBillModal: React.FC<PayBillModalProps> = ({
   card,
@@ -31,6 +24,8 @@ export const PayBillModal: React.FC<PayBillModalProps> = ({
   onClose,
   onSuccess,
 }) => {
+  const { formatCurrency } = useCurrency()
+  const formatINR = formatCurrency
   const [amount, setAmount] = useState('')
   const [sourceAccountId, setSourceAccountId] = useState('')
   const [paymentDate, setPaymentDate] = useState(() => new Date().toISOString().slice(0, 10))

@@ -21,16 +21,8 @@ import { SettleUpCard } from '../components/SettleUpCard'
 import { AddTripExpenseModal } from '../components/AddTripExpenseModal'
 import { useTripHub } from '../hooks/useTripHub'
 import { tripsApi } from '../api/tripsApi'
+import { useCurrency } from '../../../context/CurrencyContext'
 import type { GuestTripView } from '../types'
-
-const formatINR = (val: number) => {
-  return new Intl.NumberFormat('en-IN', {
-    style: 'currency',
-    currency: 'INR',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(val)
-}
 
 const formatDate = (dateStr: string) => {
   try {
@@ -45,6 +37,8 @@ const formatDate = (dateStr: string) => {
 }
 
 export const GuestTripViewPage: React.FC = () => {
+  const { formatCurrency } = useCurrency()
+  const formatINR = formatCurrency
   const { tripId, token } = useParams<{ tripId: string; token: string }>()
 
   const [guestView, setGuestView] = useState<GuestTripView | null>(null)

@@ -15,18 +15,12 @@ import { Input } from '@/components/ui/Input'
 import { TripCard } from '../components/TripCard'
 import { AddTripModal } from '../components/AddTripModal'
 import { tripsApi } from '../api/tripsApi'
+import { useCurrency } from '../../../context/CurrencyContext'
 import type { Trip } from '../types'
 
-const formatINR = (val: number) => {
-  return new Intl.NumberFormat('en-IN', {
-    style: 'currency',
-    currency: 'INR',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(val)
-}
-
 export const TripsListPage: React.FC = () => {
+  const { formatCurrency } = useCurrency()
+  const formatINR = (val: number) => formatCurrency(val, { minimumFractionDigits: 0, maximumFractionDigits: 0 })
   const navigate = useNavigate()
   const [trips, setTrips] = useState<Trip[]>([])
   const [isLoading, setIsLoading] = useState(true)

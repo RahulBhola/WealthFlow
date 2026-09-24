@@ -54,24 +54,29 @@ export const Sidebar: React.FC<SidebarProps> = ({
   return (
     <aside
       className={cn(
-        'hidden md:flex flex-col w-64 bg-white dark:bg-slate-950 border-r border-slate-200 dark:border-slate-800/80 shrink-0 h-screen sticky top-0 select-none transition-colors',
+        'hidden md:flex flex-col w-64 bg-white dark:bg-slate-950 border-r border-slate-200 dark:border-slate-800/80 shrink-0 h-full select-none transition-colors z-20',
         className
       )}
     >
-      {/* Brand Header matching reference design */}
-      <div className="h-16 px-6 flex items-center gap-3 border-b border-slate-200 dark:border-slate-800/80">
+      {/* Brand Header */}
+      <div className="h-16 px-5 flex items-center gap-3 border-b border-slate-200 dark:border-slate-800/80 shrink-0">
         <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-500 via-sky-400 to-teal-400 flex items-center justify-center text-white font-extrabold text-base shadow-md shadow-indigo-500/20">
           <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current" xmlns="http://www.w3.org/2000/svg">
             <path d="M4 17L8.5 7L12 14L15.5 7L20 17H16.5L14 11.5L12 15.5L10 11.5L7.5 17H4Z" />
           </svg>
         </div>
-        <span className="font-bold text-lg tracking-tight text-slate-900 dark:text-white">
-          WealthFlow
-        </span>
+        <div className="flex flex-col">
+          <span className="font-bold text-base tracking-tight text-slate-900 dark:text-white leading-none">
+            WealthFlow
+          </span>
+          <span className="text-[10px] text-slate-400 dark:text-slate-500 font-mono tracking-wider mt-1">
+            FINANCIAL OS
+          </span>
+        </div>
       </div>
 
       {/* Navigation Links */}
-      <div className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+      <div className="flex-1 px-3 py-4 space-y-1 overflow-y-auto min-h-0">
         {visibleItems.map((item) => {
           const isActive = currentPath === item.href
           const Icon = item.icon
@@ -82,19 +87,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
               type="button"
               onClick={() => onNavigate?.(item.href)}
               className={cn(
-                'w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition-colors text-left cursor-pointer',
+                'w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-left cursor-pointer group',
                 isActive
-                  ? 'bg-indigo-50 text-indigo-700 dark:bg-slate-800/90 dark:text-white font-semibold shadow-xs dark:shadow-inner border border-indigo-100 dark:border-transparent'
+                  ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-400 font-semibold shadow-xs border border-indigo-100 dark:border-indigo-500/20'
                   : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100/80 dark:hover:bg-slate-900/80 hover:text-slate-900 dark:hover:text-slate-200'
               )}
             >
               <div className="flex items-center gap-3">
                 <Icon
                   className={cn(
-                    'w-4 h-4 shrink-0',
+                    'w-4 h-4 shrink-0 transition-colors',
                     isActive
                       ? 'text-indigo-600 dark:text-indigo-400'
-                      : 'text-slate-400 dark:text-slate-500'
+                      : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300'
                   )}
                 />
                 <span>{item.name}</span>
@@ -109,8 +114,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
         })}
       </div>
 
-      {/* User Profile Card matching reference design in Image 1 */}
-      <div className="p-3 border-t border-slate-200 dark:border-slate-800/80 relative" ref={profileMenuRef}>
+      {/* User Profile Card matching reference design */}
+      <div className="p-3 border-t border-slate-200 dark:border-slate-800/80 shrink-0 relative" ref={profileMenuRef}>
         <button
           type="button"
           onClick={() => setIsProfileMenuOpen((prev) => !prev)}

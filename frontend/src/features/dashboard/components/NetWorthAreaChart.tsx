@@ -1,20 +1,15 @@
 import React, { useState } from 'react'
 import type { NetWorthHistoryPointDto } from '../types'
+import { useCurrency } from '../../../context/CurrencyContext'
 
 export interface NetWorthAreaChartProps {
   data: NetWorthHistoryPointDto[]
   className?: string
 }
 
-const formatINR = (val: number) => {
-  return new Intl.NumberFormat('en-IN', {
-    style: 'currency',
-    currency: 'INR',
-    maximumFractionDigits: 0,
-  }).format(val)
-}
-
 export const NetWorthAreaChart: React.FC<NetWorthAreaChartProps> = ({ data, className }) => {
+  const { formatCurrency } = useCurrency()
+  const formatINR = (val: number) => formatCurrency(val, { maximumFractionDigits: 0 })
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null)
 
   if (!data || data.length === 0) {

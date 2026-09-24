@@ -2,21 +2,16 @@ import React, { useState } from 'react'
 import type { CategorySpendingBreakdownDto } from '../types'
 import { Badge } from '@/components/ui/Badge'
 import { Dumbbell, Shirt } from 'lucide-react'
+import { useCurrency } from '../../../context/CurrencyContext'
 
 export interface CategoryDonutChartProps {
   categories: CategorySpendingBreakdownDto[]
   className?: string
 }
 
-const formatINR = (val: number) => {
-  return new Intl.NumberFormat('en-IN', {
-    style: 'currency',
-    currency: 'INR',
-    maximumFractionDigits: 0,
-  }).format(val)
-}
-
 export const CategoryDonutChart: React.FC<CategoryDonutChartProps> = ({ categories, className }) => {
+  const { formatCurrency } = useCurrency()
+  const formatINR = (val: number) => formatCurrency(val, { maximumFractionDigits: 0 })
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null)
 
   const totalSpent = categories.reduce((sum, c) => sum + (c.amount ?? (c as any).Amount ?? 0), 0)

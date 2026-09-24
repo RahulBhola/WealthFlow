@@ -4,15 +4,7 @@ import { Card, CardBody } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import type { Investment } from '../types'
-
-const formatINR = (val: number) => {
-  return new Intl.NumberFormat('en-IN', {
-    style: 'currency',
-    currency: 'INR',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(val)
-}
+import { useCurrency } from '../../../context/CurrencyContext'
 
 const getAssetClassBadgeVariant = (
   assetClass: string
@@ -39,6 +31,8 @@ export interface PortfolioCardProps {
 }
 
 export const PortfolioCard: React.FC<PortfolioCardProps> = ({ investment, onUpdateValuation }) => {
+  const { formatCurrency } = useCurrency()
+  const formatINR = formatCurrency
   const isPositive = investment.absoluteGainLoss >= 0
 
   return (

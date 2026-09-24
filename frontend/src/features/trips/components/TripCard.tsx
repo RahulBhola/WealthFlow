@@ -3,19 +3,11 @@ import { Calendar, MapPin, Users, Wallet, ArrowRight } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import type { Trip } from '../types'
+import { useCurrency } from '../../../context/CurrencyContext'
 
 export interface TripCardProps {
   trip: Trip
   onSelect: (tripId: string) => void
-}
-
-const formatINR = (val: number) => {
-  return new Intl.NumberFormat('en-IN', {
-    style: 'currency',
-    currency: 'INR',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(val)
 }
 
 const formatDate = (dateStr: string) => {
@@ -31,6 +23,8 @@ const formatDate = (dateStr: string) => {
 }
 
 export const TripCard: React.FC<TripCardProps> = ({ trip, onSelect }) => {
+  const { formatCurrency } = useCurrency()
+  const formatINR = (val: number) => formatCurrency(val, { minimumFractionDigits: 0, maximumFractionDigits: 0 })
   const budget = trip.budget ?? 0
   const spent = trip.totalExpenses
   const pct = budget > 0 ? Math.min(Math.round((spent / budget) * 100), 100) : 0

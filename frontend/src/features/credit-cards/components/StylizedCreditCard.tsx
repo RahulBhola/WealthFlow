@@ -3,6 +3,7 @@ import { Wifi, AlertCircle, Clock, CheckCircle2, AlertTriangle, Trash2 } from 'l
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import type { CreditCard } from '../types'
+import { useCurrency } from '../../../context/CurrencyContext'
 
 export interface StylizedCreditCardProps {
   card: CreditCard
@@ -10,20 +11,13 @@ export interface StylizedCreditCardProps {
   onDelete?: (card: CreditCard) => void
 }
 
-const formatINR = (val: number) => {
-  return new Intl.NumberFormat('en-IN', {
-    style: 'currency',
-    currency: 'INR',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(val)
-}
-
 export const StylizedCreditCard: React.FC<StylizedCreditCardProps> = ({
   card,
   onPayBill,
   onDelete,
 }) => {
+  const { formatCurrency } = useCurrency()
+  const formatINR = formatCurrency
   // Utilization bar color
   const utilization = card.utilizationPercentage
   const utilizationColor =

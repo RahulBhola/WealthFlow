@@ -15,14 +15,7 @@ export interface AddSipModalProps {
   onSuccess: () => void
 }
 
-const formatINR = (val: number) => {
-  return new Intl.NumberFormat('en-IN', {
-    style: 'currency',
-    currency: 'INR',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(val)
-}
+import { useCurrency } from '../../../context/CurrencyContext'
 
 export const AddSipModal: React.FC<AddSipModalProps> = ({
   investments,
@@ -30,6 +23,8 @@ export const AddSipModal: React.FC<AddSipModalProps> = ({
   onClose,
   onSuccess,
 }) => {
+  const { formatCurrency } = useCurrency()
+  const formatINR = formatCurrency
   const [name, setName] = useState('')
   const [investmentId, setInvestmentId] = useState('')
   const [sourceAccountId, setSourceAccountId] = useState('')

@@ -17,17 +17,11 @@ import { AddCreditCardModal } from '../components/AddCreditCardModal'
 import { ConfirmModal } from '@/components/ui/ConfirmModal'
 import { creditCardsApi } from '../api/creditCardsApi'
 import type { CreditCard, CreditCardSummary } from '../types'
-
-const formatINR = (val: number) => {
-  return new Intl.NumberFormat('en-IN', {
-    style: 'currency',
-    currency: 'INR',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(val)
-}
+import { useCurrency } from '../../../context/CurrencyContext'
 
 export const CreditCardsPage: React.FC = () => {
+  const { formatCurrency } = useCurrency()
+  const formatINR = formatCurrency
   const [summary, setSummary] = useState<CreditCardSummary | null>(null)
   const [cards, setCards] = useState<CreditCard[]>([])
   const [isLoading, setIsLoading] = useState(true)

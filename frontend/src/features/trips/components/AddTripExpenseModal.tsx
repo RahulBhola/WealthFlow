@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { SplitEditor } from './SplitEditor'
 import { tripsApi } from '../api/tripsApi'
+import { useCurrency } from '../../../context/CurrencyContext'
 import type { TripMember, CreateTripExpensePayload, SplitInput } from '../types'
 
 export interface AddTripExpenseModalProps {
@@ -26,6 +27,7 @@ export const AddTripExpenseModal: React.FC<AddTripExpenseModalProps> = ({
   onClose,
   onSuccess,
 }) => {
+  const { symbol } = useCurrency()
   const [payerMemberId, setPayerMemberId] = useState(
     initialPayerId || (members.length > 0 ? members[0].id : '')
   )
@@ -158,7 +160,7 @@ export const AddTripExpenseModal: React.FC<AddTripExpenseModalProps> = ({
               </select>
             </FormField>
 
-            <FormField label="Amount (₹)" required>
+            <FormField label={`Amount (${symbol})`} required>
               <Input
                 type="number"
                 min="0.01"

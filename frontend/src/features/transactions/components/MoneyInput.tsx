@@ -1,4 +1,5 @@
 import React from 'react'
+import { useCurrency } from '../../../context/CurrencyContext'
 
 export interface MoneyInputProps {
   value: string
@@ -17,6 +18,7 @@ export const MoneyInput: React.FC<MoneyInputProps> = ({
   disabled = false,
   className = '',
 }) => {
+  const { symbol } = useCurrency()
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let input = e.target.value
     // Allow digits and up to one decimal point with 2 decimals
@@ -30,7 +32,7 @@ export const MoneyInput: React.FC<MoneyInputProps> = ({
       className={`relative flex items-center w-full px-4 py-3 bg-slate-50 dark:bg-slate-900/80 border border-slate-300 dark:border-slate-700 rounded-xl focus-within:ring-2 focus-within:ring-indigo-500/20 focus-within:border-indigo-500 transition-all ${className}`}
     >
       <span className="font-mono text-2xl font-bold text-slate-400 dark:text-slate-500 select-none mr-2">
-        ₹
+        {symbol}
       </span>
       <input
         type="text"

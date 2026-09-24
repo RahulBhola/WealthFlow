@@ -25,17 +25,11 @@ import type {
   UpdateAccountPayload,
   ReconcileResponse,
 } from '../types'
-
-const formatINR = (val: number) => {
-  return new Intl.NumberFormat('en-IN', {
-    style: 'currency',
-    currency: 'INR',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(val)
-}
+import { useCurrency } from '../../../context/CurrencyContext'
 
 export const AccountsPage: React.FC = () => {
+  const { formatCurrency } = useCurrency()
+  const formatINR = formatCurrency
   const [accounts, setAccounts] = useState<Account[]>([])
   const [summary, setSummary] = useState<AccountSummary | null>(null)
   const [isLoading, setIsLoading] = useState(true)

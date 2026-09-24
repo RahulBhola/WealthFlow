@@ -3,6 +3,7 @@ import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { CheckCircle2, ArrowRight, ShieldCheck, Sparkles } from 'lucide-react'
 import type { SettlementInstruction } from '../types'
+import { useCurrency } from '../../../context/CurrencyContext'
 
 export interface SettleUpCardProps {
   instructions: SettlementInstruction[]
@@ -10,20 +11,13 @@ export interface SettleUpCardProps {
   readOnly?: boolean
 }
 
-const formatINR = (val: number) => {
-  return new Intl.NumberFormat('en-IN', {
-    style: 'currency',
-    currency: 'INR',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(val)
-}
-
 export const SettleUpCard: React.FC<SettleUpCardProps> = ({
   instructions,
   onSettleUp,
   readOnly = false,
 }) => {
+  const { formatCurrency } = useCurrency()
+  const formatINR = formatCurrency
   if (instructions.length === 0) {
     return (
       <Card className="p-8 text-center border border-slate-200 dark:border-slate-800 bg-emerald-50/20 dark:bg-emerald-950/10">
