@@ -386,13 +386,13 @@ public class TransactionService : ITransactionService
         }
 
         string? categoryName = null;
-        if (t.CategoryId.HasValue && categoriesDict.TryGetValue(t.CategoryId.Value, out var cn))
-        {
-            categoryName = cn;
-        }
-        else if (t.EventType == TransactionEventType.Transfer)
+        if (t.EventType == TransactionEventType.Transfer)
         {
             categoryName = "Transfer to self";
+        }
+        else if (t.CategoryId.HasValue && categoriesDict.TryGetValue(t.CategoryId.Value, out var cn))
+        {
+            categoryName = cn;
         }
 
         return new TransactionDto(

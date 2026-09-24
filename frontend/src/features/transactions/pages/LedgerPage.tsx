@@ -311,7 +311,10 @@ export const LedgerPage: React.FC = () => {
                         })
 
                         const isIncome = tx.eventType === 'Income' || tx.eventType === 'Refund'
-                        const isTransfer = tx.eventType === 'Transfer'
+                        const isTransfer =
+                          tx.eventType === 'Transfer' ||
+                          (tx.description && tx.description.toLowerCase().includes('transfer to self')) ||
+                          (tx.merchant && tx.merchant.toLowerCase().includes('transfer to self'))
 
                         const amountColor = isIncome
                           ? 'text-emerald-600 dark:text-emerald-400'
@@ -342,13 +345,13 @@ export const LedgerPage: React.FC = () => {
                             </td>
 
                             <td className="px-4 py-1.5 whitespace-nowrap">
-                              {tx.categoryName ? (
-                                <Badge variant={tx.categoryName.toLowerCase().includes('transfer') ? 'indigo' : 'slate'} size="sm">
-                                  {tx.categoryName}
-                                </Badge>
-                              ) : isTransfer ? (
+                              {isTransfer || (tx.categoryName && tx.categoryName.toLowerCase().includes('transfer')) ? (
                                 <Badge variant="indigo" size="sm">
                                   Transfer to self
+                                </Badge>
+                              ) : tx.categoryName ? (
+                                <Badge variant="slate" size="sm">
+                                  {tx.categoryName}
                                 </Badge>
                               ) : (
                                 <span className="text-slate-400 text-[11px]">—</span>

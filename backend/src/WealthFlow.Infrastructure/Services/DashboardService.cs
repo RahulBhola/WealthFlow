@@ -143,9 +143,9 @@ public class DashboardService : IDashboardService
             Date: t.TransactionDate,
             Merchant: t.Merchant ?? t.Description,
             Description: t.Description,
-            CategoryName: t.CategoryId.HasValue && categoryMap.TryGetValue(t.CategoryId.Value, out var cName) 
-                ? cName 
-                : (t.EventType == TransactionEventType.Transfer ? "Transfer to self" : "General"),
+            CategoryName: t.EventType == TransactionEventType.Transfer 
+                ? "Transfer to self" 
+                : (t.CategoryId.HasValue && categoryMap.TryGetValue(t.CategoryId.Value, out var cName) ? cName : "General"),
             AccountName: accountMap.TryGetValue(t.AccountId, out var aName) ? aName : "Account",
             Amount: t.Amount,
             EventType: t.EventType.ToString(),
