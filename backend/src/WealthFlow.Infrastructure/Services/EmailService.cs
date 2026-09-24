@@ -1,5 +1,3 @@
-using System.Net;
-using System.Net.Mail;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
@@ -10,8 +8,8 @@ using WealthFlow.Application.Common.Interfaces;
 namespace WealthFlow.Infrastructure.Services;
 
 /// <summary>
-/// Email service supporting Resend HTTPS API (bypasses Render/cloud SMTP port blocks)
-/// and standard SMTP with Google App Passwords.
+/// Modern transactional email service powered by Resend HTTPS API (Port 443).
+/// Eliminates legacy SMTP dependencies and port-blocking restrictions.
 /// </summary>
 public class EmailService : IEmailService
 {
@@ -30,20 +28,30 @@ public class EmailService : IEmailService
         string otpCode,
         CancellationToken cancellationToken = default)
     {
-        var fromEmail = Environment.GetEnvironmentVariable("SMTP_FROM_EMAIL") 
-            ?? Environment.GetEnvironmentVariable("SMTP_FROM") 
-            ?? _configuration["Smtp:FromEmail"] 
+        var resendApiKey = Environment.GetEnvironmentVariable("RESEND_API_KEY") 
+            ?? _configuration["Resend:ApiKey"];
+
+        var fromEmail = Environment.GetEnvironmentVariable("RESEND_FROM_EMAIL") 
+            ?? _configuration["Resend:FromEmail"] 
             ?? "onboarding@resend.dev";
 
-        var fromName = Environment.GetEnvironmentVariable("SMTP_FROM_NAME") 
-            ?? _configuration["Smtp:FromName"] 
+        var fromName = Environment.GetEnvironmentVariable("RESEND_FROM_NAME") 
+            ?? _configuration["Resend:FromName"] 
             ?? "WealthFlow Security";
 
-        // Always log OTP in server logs for admin/developer diagnostics in cloud environments
+        // Audit log in server console for diagnostics and compliance
         _logger.LogInformation(
             "[SECURITY AUDIT] Password reset OTP generated for {Email}: {Otp}",
             recipientEmail,
             otpCode);
+
+        if (string.IsNullOrWhiteSpace(resendApiKey))
+        {
+            _logger.LogWarning(
+                "[DEV EMAIL DELIVERY] RESEND_API_KEY not configured. Simulated password reset email for {Email}",
+                recipientEmail);
+            return;
+        }
 
         var htmlBody = $@"
 <!DOCTYPE html>
@@ -121,114 +129,42 @@ public class EmailService : IEmailService
 </body>
 </html>";
 
-        // 1. Try Resend HTTPS API if RESEND_API_KEY is configured (Bypasses Render SMTP port 587 block!)
-        var resendApiKey = Environment.GetEnvironmentVariable("RESEND_API_KEY") 
-            ?? _configuration["Resend:ApiKey"];
-
-        if (!string.IsNullOrWhiteSpace(resendApiKey))
-        {
-            try
-            {
-                using var http = new HttpClient();
-                http.DefaultRequestHeaders.UserAgent.ParseAdd("WealthFlow/1.0");
-                http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", resendApiKey.Trim());
-                var payload = new
-                {
-                    from = $"{fromName} <onboarding@resend.dev>",
-                    to = new[] { recipientEmail },
-                    subject = $"WealthFlow Security: {otpCode} is your verification code",
-                    html = htmlBody
-                };
-
-                var content = new StringContent(
-                    JsonSerializer.Serialize(payload),
-                    Encoding.UTF8,
-                    "application/json");
-
-                using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-                timeoutCts.CancelAfter(TimeSpan.FromSeconds(5));
-
-                var res = await http.PostAsync("https://api.resend.com/emails", content, timeoutCts.Token);
-                if (res.IsSuccessStatusCode)
-                {
-                    _logger.LogInformation("Password reset OTP successfully dispatched via Resend HTTPS API to {Email}", recipientEmail);
-                    return;
-                }
-
-                var err = await res.Content.ReadAsStringAsync(timeoutCts.Token);
-                _logger.LogWarning("Resend HTTPS API returned status {Status}: {Error}. Falling back to SMTP...", res.StatusCode, err);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Resend HTTPS API dispatch failed. Falling back to SMTP...");
-            }
-        }
-
-        // 2. Standard SMTP Dispatch (works when port 587 is open)
-        var username = Environment.GetEnvironmentVariable("SMTP_USERNAME") 
-            ?? Environment.GetEnvironmentVariable("SMTP_USER") 
-            ?? _configuration["Smtp:UserName"];
-
-        var password = Environment.GetEnvironmentVariable("SMTP_PASSWORD") 
-            ?? Environment.GetEnvironmentVariable("SMTP_PASS") 
-            ?? _configuration["Smtp:Password"];
-
-        if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
-        {
-            _logger.LogWarning(
-                "[DEV OTP DELIVERY] Neither Resend nor SMTP credentials configured. Simulated email to {Email}",
-                recipientEmail);
-            return;
-        }
-
-        var host = Environment.GetEnvironmentVariable("SMTP_HOST") 
-            ?? _configuration["Smtp:Host"] 
-            ?? "smtp.gmail.com";
-
-        var portStr = Environment.GetEnvironmentVariable("SMTP_PORT") 
-            ?? _configuration["Smtp:Port"] 
-            ?? "587";
-        _ = int.TryParse(portStr, out var port);
-        if (port <= 0) port = 587;
-
-        var enableSslStr = Environment.GetEnvironmentVariable("SMTP_ENABLE_SSL") 
-            ?? _configuration["Smtp:EnableSsl"] 
-            ?? "true";
-        _ = bool.TryParse(enableSslStr, out var enableSsl);
-
-        var smtpFromEmail = !string.IsNullOrWhiteSpace(username) && username.Contains('@') ? username : fromEmail;
-
         try
         {
-            using var client = new SmtpClient(host, port)
+            using var http = new HttpClient();
+            http.DefaultRequestHeaders.UserAgent.ParseAdd("WealthFlow/1.0");
+            http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", resendApiKey.Trim());
+
+            var payload = new
             {
-                EnableSsl = enableSsl,
-                Credentials = new NetworkCredential(username.Trim(), password.Trim()),
-                DeliveryMethod = SmtpDeliveryMethod.Network,
-                Timeout = 20000
+                from = $"{fromName} <{fromEmail}>",
+                to = new[] { recipientEmail.Trim() },
+                subject = $"WealthFlow Security: {otpCode} is your verification code",
+                html = htmlBody
             };
 
-            using var message = new MailMessage
-            {
-                From = new MailAddress(smtpFromEmail.Trim(), fromName),
-                Subject = $"WealthFlow Security: {otpCode} is your verification code",
-                Body = htmlBody,
-                IsBodyHtml = true
-            };
-            message.To.Add(new MailAddress(recipientEmail.Trim()));
+            var content = new StringContent(
+                JsonSerializer.Serialize(payload),
+                Encoding.UTF8,
+                "application/json");
 
             using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            timeoutCts.CancelAfter(TimeSpan.FromSeconds(20));
-            await client.SendMailAsync(message, timeoutCts.Token);
-            _logger.LogInformation("Password reset OTP successfully dispatched via SMTP to {Email}", recipientEmail);
+            timeoutCts.CancelAfter(TimeSpan.FromSeconds(15));
+
+            var res = await http.PostAsync("https://api.resend.com/emails", content, timeoutCts.Token);
+            if (res.IsSuccessStatusCode)
+            {
+                _logger.LogInformation("Password reset OTP successfully dispatched via Resend to {Email}", recipientEmail);
+            }
+            else
+            {
+                var err = await res.Content.ReadAsStringAsync(timeoutCts.Token);
+                _logger.LogError("Resend API failed ({StatusCode}): {Error}", res.StatusCode, err);
+            }
         }
         catch (Exception ex)
         {
-            _logger.LogError(
-                ex,
-                "Failed to send password reset OTP via SMTP to {Email}: {ErrorMessage}",
-                recipientEmail,
-                ex.Message);
+            _logger.LogError(ex, "Failed to send password reset OTP via Resend to {Email}", recipientEmail);
         }
     }
 }

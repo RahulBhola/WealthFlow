@@ -173,7 +173,7 @@ export const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({
           {step === 'email' && (
             <form onSubmit={handleRequestOtp} className="space-y-4">
               <p className="text-xs text-slate-300 leading-relaxed">
-                Enter your registered email address. We will send a secure <strong>6-digit verification code</strong> via Gmail SMTP to authorize resetting your password.
+                Enter your registered email address. We will send a secure <strong>6-digit verification code</strong> to authorize resetting your password.
               </p>
 
               <div>
