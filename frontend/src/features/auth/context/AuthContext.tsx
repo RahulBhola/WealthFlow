@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react'
-import { apiClient, setAccessToken } from '@/lib/api'
+import { apiClient, setAccessToken, setRefreshToken, clearAuthTokens, getRefreshToken } from '@/lib/api'
 import { AuthContext } from './authContextDef'
 import type { AuthResponse, LoginCredentials, RegisterCredentials, User, Session } from '../types'
 
@@ -8,25 +8,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
-  // Automatic silent session restoration on app load via rotating refresh token cookie
+  // Automatic silent session restoration on app load via rotating refresh token
   useEffect(() => {
     let isMounted = true
 
     async function initAuth() {
       try {
+        const storedRefresh = getRefreshToken()
         const response = await apiClient<AuthResponse>('/api/v1/auth/refresh-token', {
           method: 'POST',
-          body: JSON.stringify({}),
+          body: JSON.stringify({ refreshToken: storedRefresh || undefined }),
           skipAuth: true,
         })
         if (isMounted && response?.accessToken) {
           setAccessToken(response.accessToken)
+          if (response.refreshToken) {
+            setRefreshToken(response.refreshToken)
+          }
           setUser(response.user)
           setSession(response.session)
         }
       } catch {
         if (isMounted) {
-          setAccessToken(null)
+          clearAuthTokens()
           setUser(null)
           setSession(null)
         }
@@ -53,6 +57,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         skipAuth: true,
       })
       setAccessToken(response.accessToken)
+      if (response.refreshToken) {
+        setRefreshToken(response.refreshToken)
+      }
       setUser(response.user)
       setSession(response.session)
     } finally {
@@ -69,6 +76,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         skipAuth: true,
       })
       setAccessToken(response.accessToken)
+      if (response.refreshToken) {
+        setRefreshToken(response.refreshToken)
+      }
       setUser(response.user)
       setSession(response.session)
     } finally {
@@ -82,7 +92,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch {
       // Ignore network errors on logout
     } finally {
-      setAccessToken(null)
+      clearAuthTokens()
       setUser(null)
       setSession(null)
     }

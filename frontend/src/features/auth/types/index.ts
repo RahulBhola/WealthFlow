@@ -23,6 +23,7 @@ export interface AuthResponse {
   expiresInMinutes: number
   user: User
   session: Session
+  refreshToken?: string
 }
 
 export interface LoginCredentials {

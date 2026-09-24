@@ -17,7 +17,8 @@ public record AuthResponse(
     string AccessToken,
     int ExpiresInMinutes,
     UserDto User,
-    SessionDto Session);
+    SessionDto Session,
+    string? RefreshToken = null);
 
 public record UserDto(
     Guid Id,

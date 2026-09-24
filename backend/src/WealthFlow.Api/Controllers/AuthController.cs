@@ -28,7 +28,7 @@ public class AuthController : ControllerBase
             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
             var (response, rawRefreshToken) = await _authService.RegisterAsync(request, ipAddress, cancellationToken);
             SetRefreshTokenCookie(rawRefreshToken);
-            return StatusCode(StatusCodes.Status201Created, response);
+            return StatusCode(StatusCodes.Status201Created, response with { RefreshToken = rawRefreshToken });
         }
         catch (InvalidOperationException ex)
         {
@@ -44,7 +44,7 @@ public class AuthController : ControllerBase
             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
             var (response, rawRefreshToken) = await _authService.LoginAsync(request, ipAddress, cancellationToken);
             SetRefreshTokenCookie(rawRefreshToken);
-            return Ok(response);
+            return Ok(response with { RefreshToken = rawRefreshToken });
         }
         catch (UnauthorizedAccessException ex)
         {
@@ -67,7 +67,7 @@ public class AuthController : ControllerBase
             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
             var (response, newRawRefreshToken) = await _authService.RefreshTokenAsync(rawRefreshToken, ipAddress, cancellationToken);
             SetRefreshTokenCookie(newRawRefreshToken);
-            return Ok(response);
+            return Ok(response with { RefreshToken = newRawRefreshToken });
         }
         catch (UnauthorizedAccessException ex)
         {
@@ -151,11 +151,12 @@ public class AuthController : ControllerBase
 
     private void SetRefreshTokenCookie(string refreshToken)
     {
+        var isLocalHttp = !Request.IsHttps && HttpContext.Request.Host.Host.Equals("localhost", StringComparison.OrdinalIgnoreCase);
         var cookieOptions = new CookieOptions
         {
             HttpOnly = true,
-            Secure = Request.IsHttps || !HttpContext.Request.Host.Host.Equals("localhost", StringComparison.OrdinalIgnoreCase),
-            SameSite = SameSiteMode.Strict,
+            Secure = !isLocalHttp,
+            SameSite = isLocalHttp ? SameSiteMode.Lax : SameSiteMode.None,
             Expires = DateTime.UtcNow.AddDays(14)
         };
         Response.Cookies.Append(RefreshTokenCookieName, refreshToken, cookieOptions);
@@ -163,11 +164,12 @@ public class AuthController : ControllerBase
 
     private void ClearRefreshTokenCookie()
     {
+        var isLocalHttp = !Request.IsHttps && HttpContext.Request.Host.Host.Equals("localhost", StringComparison.OrdinalIgnoreCase);
         Response.Cookies.Delete(RefreshTokenCookieName, new CookieOptions
         {
             HttpOnly = true,
-            Secure = Request.IsHttps || !HttpContext.Request.Host.Host.Equals("localhost", StringComparison.OrdinalIgnoreCase),
-            SameSite = SameSiteMode.Strict
+            Secure = !isLocalHttp,
+            SameSite = isLocalHttp ? SameSiteMode.Lax : SameSiteMode.None
         });
     }
 }
