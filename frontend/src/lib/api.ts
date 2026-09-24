@@ -4,7 +4,9 @@
  * and automatic 401 refresh token rotation retry loop.
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
+const API_BASE_URL = import.meta.env.VITE_API_URL !== undefined 
+  ? import.meta.env.VITE_API_URL 
+  : (import.meta.env.PROD ? '' : 'http://localhost:5000')
 
 let currentAccessToken: string | null = null
 let refreshPromise: Promise<string | null> | null = null
