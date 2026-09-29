@@ -14,6 +14,8 @@ public class Account : BaseEntity, IAggregateRoot
     public AccountType AccountType { get; private set; }
     public decimal OpeningBalance { get; private set; }
     public decimal CurrentBalance { get; private set; }
+    public decimal BlockedBalance { get; private set; } = 0m;
+    public decimal AvailableBalance => CurrentBalance - BlockedBalance;
     public string Currency { get; private set; } = "INR";
     public string? AccountNumberMask { get; private set; }
     public string? ColorTag { get; private set; }
@@ -43,6 +45,7 @@ public class Account : BaseEntity, IAggregateRoot
         AccountType = accountType;
         OpeningBalance = openingBalance;
         CurrentBalance = openingBalance;
+        BlockedBalance = 0m;
         AccountNumberMask = accountNumberMask;
         SortOrder = sortOrder;
         ColorTag = colorTag;
@@ -53,6 +56,22 @@ public class Account : BaseEntity, IAggregateRoot
     public void AdjustBalance(decimal netDelta)
     {
         CurrentBalance += netDelta;
+        SetUpdated();
+    }
+
+    public void AdjustBlockedBalance(decimal netDelta)
+    {
+        BlockedBalance += netDelta;
+        if (BlockedBalance < 0m)
+        {
+            BlockedBalance = 0m;
+        }
+        SetUpdated();
+    }
+
+    public void SetBlockedBalance(decimal blockedBalance)
+    {
+        BlockedBalance = blockedBalance < 0m ? 0m : blockedBalance;
         SetUpdated();
     }
 

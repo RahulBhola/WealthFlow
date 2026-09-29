@@ -197,7 +197,9 @@ public class AccountService : IAccountService
         ColorTag: a.ColorTag,
         IsActive: a.IsActive,
         SortOrder: a.SortOrder,
-        CreatedAtUtc: a.CreatedAtUtc
+        CreatedAtUtc: a.CreatedAtUtc,
+        BlockedBalance: a.BlockedBalance,
+        AvailableBalance: a.AvailableBalance
     );
 
     private static AccountType ParseAccountType(string accountTypeStr)

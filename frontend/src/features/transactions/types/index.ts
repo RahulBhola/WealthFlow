@@ -1,4 +1,6 @@
-export type TransactionType = 'Expense' | 'Income' | 'Transfer'
+export type TransactionType = 'Expense' | 'Income' | 'Transfer' | 'IpoApplication'
+
+export type TransactionStatus = 'Completed' | 'Blocked' | 'Allotted' | 'Released'
 
 export interface Transaction {
   id: string
@@ -19,6 +21,9 @@ export interface Transaction {
   idempotencyKey: string
   syncStatus: string
   createdAtUtc: string
+  status?: TransactionStatus | string
+  allottedUnits?: number | null
+  resolutionDate?: string | null
 }
 
 export interface TransactionSummary {
@@ -40,6 +45,18 @@ export interface CreateTransactionPayload {
   notes?: string | null
   tags?: string | null
   idempotencyKey?: string
+  status?: TransactionStatus | string
+  allottedUnits?: number | null
+}
+
+export interface AllotIpoPayload {
+  allottedUnits: number
+  allottedAmount?: number | null
+  stockName?: string | null
+}
+
+export interface ReleaseIpoPayload {
+  reason?: string | null
 }
 
 export interface UpdateTransactionPayload {

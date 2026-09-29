@@ -28,7 +28,9 @@ public record AccountDto(
     string? ColorTag,
     bool IsActive,
     int SortOrder,
-    DateTime CreatedAtUtc);
+    DateTime CreatedAtUtc,
+    decimal BlockedBalance = 0m,
+    decimal AvailableBalance = 0m);
 
 public record AccountSummaryDto(
     decimal TotalLiquidBalance,

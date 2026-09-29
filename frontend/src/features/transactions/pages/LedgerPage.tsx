@@ -18,6 +18,7 @@ import {
   Wallet,
   CheckCircle2,
   Loader2,
+  Ban,
 } from 'lucide-react'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { MetricCard } from '@/components/layout/MetricCard'
@@ -26,6 +27,8 @@ import { Input } from '@/components/ui/Input'
 import { Badge } from '@/components/ui/Badge'
 import { Card, CardHeader, CardBody } from '@/components/ui/Card'
 import { QuickAddModal } from '../components/QuickAddModal'
+import { AllotIpoModal } from '../components/AllotIpoModal'
+import { ReleaseIpoModal } from '../components/ReleaseIpoModal'
 import { ConfirmModal } from '@/components/ui/ConfirmModal'
 import { BudgetHealthWidget } from '@/features/budgets/components/BudgetHealthWidget'
 import { transactionsApi } from '../api/transactionsApi'
@@ -76,6 +79,7 @@ export const LedgerPage: React.FC = () => {
   const [selectedAccount, setSelectedAccount] = useState<string>('')
   const [isLoading, setIsLoading] = useState(true)
   const [isQuickAddOpen, setIsQuickAddOpen] = useState(false)
+  const [selectedIpoForAction, setSelectedIpoForAction] = useState<{ tx: Transaction; action: 'allot' | 'release' } | null>(null)
 
   // Cloud Archive State
   const [isArchiving, setIsArchiving] = useState(false)
@@ -95,7 +99,12 @@ export const LedgerPage: React.FC = () => {
   const loadData = useCallback(async () => {
     try {
       setIsLoading(true)
-      const eventTypeParam = selectedType === 'All' ? undefined : selectedType
+      const eventTypeParam =
+        selectedType === 'All'
+          ? undefined
+          : selectedType === 'IPO Hold'
+          ? 'IpoApplication'
+          : selectedType
 
       const [txResult, sumResult, bSummary, accList] = await Promise.all([
         transactionsApi.getTransactions({
@@ -456,6 +465,11 @@ export const LedgerPage: React.FC = () => {
                 <span className="font-mono font-bold text-slate-900 dark:text-white tabular-nums">
                   {formatINR(acc.currentBalance)}
                 </span>
+                {acc.blockedBalance && acc.blockedBalance > 0 ? (
+                  <span className="text-[10px] text-amber-600 dark:text-amber-400 font-normal">
+                    (Avail: {formatINR(acc.availableBalance ?? (acc.currentBalance - acc.blockedBalance))} | {formatINR(acc.blockedBalance)} hold)
+                  </span>
+                ) : null}
               </div>
             ))}
 
@@ -560,7 +574,7 @@ export const LedgerPage: React.FC = () => {
 
           {/* Segmented Type Pills */}
           <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-lg text-xs">
-            {['All', 'Expense', 'Income', 'Transfer'].map((type) => (
+            {['All', 'Expense', 'Income', 'Transfer', 'IPO Hold'].map((type) => (
               <button
                 key={type}
                 type="button"
@@ -618,10 +632,10 @@ export const LedgerPage: React.FC = () => {
                       <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/40 text-[11px] font-semibold text-slate-500 uppercase tracking-wider h-9">
                         <th className="px-4 py-2 w-28 font-mono">Date</th>
                         <th className="px-4 py-2">Description</th>
-                        <th className="px-4 py-2">Category</th>
+                        <th className="px-4 py-2">Category / Status</th>
                         <th className="px-4 py-2">Account</th>
                         <th className="px-4 py-2 text-right">Amount</th>
-                        <th className="px-4 py-2 w-12 text-center">Action</th>
+                        <th className="px-4 py-2 w-20 text-center">Action</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 font-medium">
@@ -632,34 +646,61 @@ export const LedgerPage: React.FC = () => {
                           year: 'numeric',
                         })
 
+                        const isIpo = tx.eventType === 'IpoApplication'
+                        const isIpoBlocked = isIpo && (tx.status === 'Blocked' || !tx.status)
+                        const isIpoReleased = isIpo && tx.status === 'Released'
+                        const isIpoAllotted = isIpo && tx.status === 'Allotted'
+
                         const isIncome = tx.eventType === 'Income' || tx.eventType === 'Refund'
                         const isTransfer =
                           tx.eventType === 'Transfer' ||
                           (tx.description && tx.description.toLowerCase().includes('transfer to self')) ||
                           (tx.merchant && tx.merchant.toLowerCase().includes('transfer to self'))
 
-                        const amountColor = isIncome
+                        const amountColor = isIpoReleased
+                          ? 'text-slate-400 dark:text-slate-500'
+                          : isIpoBlocked
+                          ? 'text-amber-600 dark:text-amber-400'
+                          : isIncome
                           ? 'text-emerald-600 dark:text-emerald-400'
                           : isTransfer
                           ? 'text-indigo-600 dark:text-indigo-400'
                           : 'text-rose-600 dark:text-rose-400'
 
-                        const prefix = isIncome ? '+ ' : isTransfer ? '⇄ ' : '- '
+                        const prefix = isIpoReleased ? '— ' : isIpoBlocked ? '⏳ ' : isIncome ? '+ ' : isTransfer ? '⇄ ' : '- '
 
                         return (
                           <tr
                             key={tx.id}
-                            className="h-9 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors"
+                            className={`h-9 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors ${
+                              isIpoReleased ? 'bg-slate-50/40 dark:bg-slate-900/30' : ''
+                            }`}
                           >
                             <td className="px-4 py-1.5 font-mono text-slate-500 dark:text-slate-400 whitespace-nowrap">
                               {dateFormatted}
                             </td>
 
                             <td className="px-4 py-1.5 min-w-[180px]">
-                              <div className="font-semibold text-slate-900 dark:text-slate-100 truncate">
+                              <div
+                                className={`font-semibold truncate ${
+                                  isIpoReleased
+                                    ? 'text-slate-400 dark:text-slate-500 line-through decoration-slate-400 dark:decoration-slate-500 decoration-1'
+                                    : 'text-slate-900 dark:text-slate-100'
+                                }`}
+                              >
                                 {tx.description}
                               </div>
-                              {tx.merchant && (
+                              {isIpoAllotted && tx.allottedUnits && (
+                                <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium truncate">
+                                  ✓ Allotted: {tx.allottedUnits} shares (Added to Portfolio)
+                                </div>
+                              )}
+                              {isIpoReleased && (
+                                <div className="text-[10px] text-slate-400 dark:text-slate-500 italic truncate">
+                                  {tx.notes ? tx.notes : 'Lien released — ₹0 debited from bank'}
+                                </div>
+                              )}
+                              {tx.merchant && !isIpoReleased && (
                                 <div className="text-[10px] text-slate-400 truncate">
                                   {tx.merchant}
                                 </div>
@@ -667,7 +708,21 @@ export const LedgerPage: React.FC = () => {
                             </td>
 
                             <td className="px-4 py-1.5 whitespace-nowrap">
-                              {isTransfer || (tx.categoryName && tx.categoryName.toLowerCase().includes('transfer')) ? (
+                              {isIpo ? (
+                                isIpoBlocked ? (
+                                  <Badge variant="amber" size="sm" className="bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border-amber-200">
+                                    ASBA Hold
+                                  </Badge>
+                                ) : isIpoReleased ? (
+                                  <Badge variant="slate" size="sm" className="line-through decoration-1 decoration-slate-400 text-slate-400 dark:text-slate-500">
+                                    Not Allotted
+                                  </Badge>
+                                ) : (
+                                  <Badge variant="emerald" size="sm" className="bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300">
+                                    IPO Allotted
+                                  </Badge>
+                                )
+                              ) : isTransfer || (tx.categoryName && tx.categoryName.toLowerCase().includes('transfer')) ? (
                                 <Badge variant="indigo" size="sm">
                                   Transfer to self
                                 </Badge>
@@ -697,19 +752,58 @@ export const LedgerPage: React.FC = () => {
                             <td
                               className={`px-4 py-1.5 text-right font-mono font-bold whitespace-nowrap tabular-nums ${amountColor}`}
                             >
-                              {prefix}
-                              {formatINR(tx.amount)}
+                              {isIpoReleased ? (
+                                <div>
+                                  <span className="line-through decoration-slate-400 dark:decoration-slate-500 decoration-2">
+                                    {formatINR(tx.amount)}
+                                  </span>
+                                  <span className="block text-[9px] text-slate-400 font-normal tracking-tight">
+                                    Cut / Released (₹0)
+                                  </span>
+                                </div>
+                              ) : isIpoBlocked ? (
+                                <div>
+                                  <span>{prefix}{formatINR(tx.amount)}</span>
+                                  <span className="block text-[9px] text-amber-600 dark:text-amber-400 font-normal tracking-tight">
+                                    Blocked / On Hold
+                                  </span>
+                                </div>
+                              ) : (
+                                <span>{prefix}{formatINR(tx.amount)}</span>
+                              )}
                             </td>
 
                             <td className="px-4 py-1.5 text-center">
-                              <button
-                                type="button"
-                                onClick={() => handleDelete(tx)}
-                                title="Delete transaction and reverse balance impact"
-                                className="p-1 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
+                              <div className="flex items-center justify-center gap-1">
+                                {isIpoBlocked && (
+                                  <>
+                                    <button
+                                      type="button"
+                                      onClick={() => setSelectedIpoForAction({ tx, action: 'allot' })}
+                                      title="Approve / Allot IPO (Debit bank & credit shares to portfolio)"
+                                      className="p-1 rounded text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition-colors"
+                                    >
+                                      <CheckCircle2 className="w-3.5 h-3.5" />
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => setSelectedIpoForAction({ tx, action: 'release' })}
+                                      title="Release Hold (Not Allotted - keep in ledger with cut/strikethrough)"
+                                      className="p-1 rounded text-slate-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/40 transition-colors"
+                                    >
+                                      <Ban className="w-3.5 h-3.5" />
+                                    </button>
+                                  </>
+                                )}
+                                <button
+                                  type="button"
+                                  onClick={() => handleDelete(tx)}
+                                  title="Delete transaction and reverse balance impact"
+                                  className="p-1 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
                             </td>
                           </tr>
                         )
@@ -795,6 +889,22 @@ export const LedgerPage: React.FC = () => {
       <QuickAddModal
         isOpen={isQuickAddOpen}
         onClose={() => setIsQuickAddOpen(false)}
+        onSuccess={loadData}
+      />
+
+      {/* Allot IPO Modal */}
+      <AllotIpoModal
+        isOpen={selectedIpoForAction?.action === 'allot'}
+        transaction={selectedIpoForAction?.tx ?? null}
+        onClose={() => setSelectedIpoForAction(null)}
+        onSuccess={loadData}
+      />
+
+      {/* Release IPO Lien Modal (Not Allotted - Cut Section) */}
+      <ReleaseIpoModal
+        isOpen={selectedIpoForAction?.action === 'release'}
+        transaction={selectedIpoForAction?.tx ?? null}
+        onClose={() => setSelectedIpoForAction(null)}
         onSuccess={loadData}
       />
 

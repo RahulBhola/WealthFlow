@@ -96,4 +96,98 @@ public class BalanceCalculationServiceTests
         result.ReconciledBalance.Should().Be(5000.00m);
         destinationAccount.CurrentBalance.Should().Be(5000.00m);
     }
+
+    [Fact]
+    public void ReconcileAccount_WithPendingIpoApplication_ShouldKeepCurrentBalanceAndSetBlockedBalance()
+    {
+        // Arrange: Bank account with ₹1,00,000 opening balance
+        var account = new Account(
+            userId: _userId,
+            name: "HDFC Bank",
+            accountType: AccountType.Bank,
+            openingBalance: 100000.00m
+        );
+
+        var ipoTx = new Transaction(
+            userId: _userId,
+            accountId: account.Id,
+            amount: 15000.00m,
+            transactionDate: DateTime.UtcNow,
+            eventType: TransactionEventType.IpoApplication,
+            description: "Swiggy IPO Application",
+            status: TransactionStatus.Blocked
+        );
+
+        // Act
+        var result = _service.ReconcileAccount(account, new[] { ipoTx });
+
+        // Assert: Funds are on hold under ASBA lien, CurrentBalance remains ₹1,00,000, BlockedBalance = ₹15,000, AvailableBalance = ₹85,000
+        result.ReconciledBalance.Should().Be(100000.00m);
+        account.CurrentBalance.Should().Be(100000.00m);
+        account.BlockedBalance.Should().Be(15000.00m);
+        account.AvailableBalance.Should().Be(85000.00m);
+    }
+
+    [Fact]
+    public void ReconcileAccount_WithAllottedIpo_ShouldDebitCurrentBalanceAndClearBlockedBalance()
+    {
+        // Arrange
+        var account = new Account(
+            userId: _userId,
+            name: "HDFC Bank",
+            accountType: AccountType.Bank,
+            openingBalance: 100000.00m
+        );
+
+        var ipoTx = new Transaction(
+            userId: _userId,
+            accountId: account.Id,
+            amount: 15000.00m,
+            transactionDate: DateTime.UtcNow,
+            eventType: TransactionEventType.IpoApplication,
+            description: "Tata Technologies IPO",
+            status: TransactionStatus.Allotted,
+            allottedUnits: 30m
+        );
+
+        // Act
+        var result = _service.ReconcileAccount(account, new[] { ipoTx });
+
+        // Assert: Allotted IPO debits ₹15,000 from CurrentBalance, BlockedBalance is 0, AvailableBalance = ₹85,000
+        result.ReconciledBalance.Should().Be(85000.00m);
+        account.CurrentBalance.Should().Be(85000.00m);
+        account.BlockedBalance.Should().Be(0.00m);
+        account.AvailableBalance.Should().Be(85000.00m);
+    }
+
+    [Fact]
+    public void ReconcileAccount_WithReleasedIpo_ShouldKeepCurrentBalanceAndClearBlockedBalance()
+    {
+        // Arrange
+        var account = new Account(
+            userId: _userId,
+            name: "HDFC Bank",
+            accountType: AccountType.Bank,
+            openingBalance: 100000.00m
+        );
+
+        var ipoTx = new Transaction(
+            userId: _userId,
+            accountId: account.Id,
+            amount: 15000.00m,
+            transactionDate: DateTime.UtcNow,
+            eventType: TransactionEventType.IpoApplication,
+            description: "Hyundai IPO Application",
+            status: TransactionStatus.Released
+        );
+
+        // Act
+        var result = _service.ReconcileAccount(account, new[] { ipoTx });
+
+        // Assert: Released/unallotted IPO preserves original balance ₹1,00,000, BlockedBalance = 0
+        result.ReconciledBalance.Should().Be(100000.00m);
+        account.CurrentBalance.Should().Be(100000.00m);
+        account.BlockedBalance.Should().Be(0.00m);
+        account.AvailableBalance.Should().Be(100000.00m);
+    }
 }

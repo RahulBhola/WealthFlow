@@ -21,6 +21,9 @@ public class Transaction : BaseEntity, IAggregateRoot
     public Guid? LinkedEntityId { get; private set; }
     public Guid IdempotencyKey { get; private set; }
     public SyncStatus SyncStatus { get; private set; } = SyncStatus.Synced;
+    public TransactionStatus Status { get; private set; } = TransactionStatus.Completed;
+    public decimal? AllottedUnits { get; private set; }
+    public DateTime? ResolutionDate { get; private set; }
 
     protected Transaction() { }
 
@@ -38,6 +41,9 @@ public class Transaction : BaseEntity, IAggregateRoot
         Guid? linkedEntityId = null,
         Guid? idempotencyKey = null,
         SyncStatus syncStatus = SyncStatus.Synced,
+        TransactionStatus status = TransactionStatus.Completed,
+        decimal? allottedUnits = null,
+        DateTime? resolutionDate = null,
         Guid? id = null)
     {
         if (id.HasValue && id.Value != Guid.Empty)
@@ -58,6 +64,34 @@ public class Transaction : BaseEntity, IAggregateRoot
         LinkedEntityId = linkedEntityId;
         IdempotencyKey = idempotencyKey ?? Guid.NewGuid();
         SyncStatus = syncStatus;
+        Status = status;
+        AllottedUnits = allottedUnits;
+        ResolutionDate = resolutionDate.HasValue
+            ? (resolutionDate.Value.Kind == DateTimeKind.Utc ? resolutionDate.Value : DateTime.SpecifyKind(resolutionDate.Value, DateTimeKind.Utc))
+            : null;
+    }
+
+    public void MarkAllotted(decimal allottedUnits, Guid? investmentId = null)
+    {
+        Status = TransactionStatus.Allotted;
+        AllottedUnits = allottedUnits;
+        if (investmentId.HasValue)
+        {
+            LinkedEntityId = investmentId.Value;
+        }
+        ResolutionDate = DateTime.UtcNow;
+        SetUpdated();
+    }
+
+    public void MarkReleased(string? reason = null)
+    {
+        Status = TransactionStatus.Released;
+        if (!string.IsNullOrWhiteSpace(reason))
+        {
+            Notes = string.IsNullOrWhiteSpace(Notes) ? reason : $"{Notes} | {reason}";
+        }
+        ResolutionDate = DateTime.UtcNow;
+        SetUpdated();
     }
 
     public void Update(

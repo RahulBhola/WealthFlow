@@ -16,6 +16,8 @@ vi.mock('./api/transactionsApi', () => ({
     createTransaction: vi.fn(),
     updateTransaction: vi.fn(),
     deleteTransaction: vi.fn(),
+    allotIpo: vi.fn(),
+    releaseIpo: vi.fn(),
   },
 }))
 
@@ -295,5 +297,78 @@ describe('LedgerPage and Transactions UI', () => {
     await waitFor(() => {
       expect(transactionsApi.deleteTransaction).toHaveBeenCalledWith('tx-1')
     })
+  })
+
+  it('renders IPO transactions with ASBA hold and strikethrough cut section for released bids', async () => {
+    const ipoTransactions: Transaction[] = [
+      {
+        id: 'ipo-1',
+        userId: 'user-1',
+        accountId: 'acc-1',
+        accountName: 'HDFC Bank',
+        categoryId: null,
+        categoryName: 'IPO Application',
+        amount: 15000,
+        eventType: 'IpoApplication',
+        status: 'Blocked',
+        transactionDate: new Date('2026-09-18T10:00:00Z').toISOString(),
+        description: 'Swiggy Ltd IPO Application',
+        merchant: 'Zerodha',
+        notes: null,
+        targetAccountId: null,
+        targetAccountName: null,
+        idempotencyKey: 'idemp-1',
+        syncStatus: 'Synced',
+        createdAtUtc: new Date().toISOString(),
+      },
+      {
+        id: 'ipo-2',
+        userId: 'user-1',
+        accountId: 'acc-1',
+        accountName: 'HDFC Bank',
+        categoryId: null,
+        categoryName: 'IPO Application',
+        amount: 14750,
+        eventType: 'IpoApplication',
+        status: 'Released',
+        transactionDate: new Date('2026-09-10T10:00:00Z').toISOString(),
+        description: 'Hyundai India IPO Application',
+        merchant: 'Groww',
+        notes: 'Not Allotted / Lien Released',
+        targetAccountId: null,
+        targetAccountName: null,
+        idempotencyKey: 'idemp-2',
+        syncStatus: 'Synced',
+        createdAtUtc: new Date().toISOString(),
+      },
+    ]
+
+    vi.mocked(transactionsApi.getTransactions).mockResolvedValueOnce({
+      items: ipoTransactions,
+      totalCount: 2,
+      page: 1,
+      pageSize: 15,
+      totalPages: 1,
+    })
+
+    render(<LedgerPage />)
+
+    await waitFor(() => {
+      expect(screen.getByText('Swiggy Ltd IPO Application')).toBeInTheDocument()
+      expect(screen.getByText('Hyundai India IPO Application')).toBeInTheDocument()
+    })
+
+    // Check ASBA Hold badge on active IPO
+    expect(screen.getByText('ASBA Hold')).toBeInTheDocument()
+
+    // Check Not Allotted badge on released IPO
+    expect(screen.getByText('Not Allotted')).toBeInTheDocument()
+
+    // Check that Cut / Released text is rendered for the unallotted IPO
+    expect(screen.getByText('Cut / Released (₹0)')).toBeInTheDocument()
+
+    // Verify Action buttons (Allot / Release) exist for the Blocked IPO
+    expect(screen.getByTitle(/approve \/ allot ipo/i)).toBeInTheDocument()
+    expect(screen.getByTitle(/release hold/i)).toBeInTheDocument()
   })
 })

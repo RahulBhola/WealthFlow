@@ -11,7 +11,9 @@ public record CreateTransactionRequest(
     string? Merchant = null,
     string? Notes = null,
     string? Tags = null,
-    Guid? IdempotencyKey = null
+    Guid? IdempotencyKey = null,
+    string? Status = null,
+    decimal? AllottedUnits = null
 );
 
 public record UpdateTransactionRequest(
@@ -45,7 +47,20 @@ public record TransactionDto(
     string? TargetAccountName,
     Guid IdempotencyKey,
     string SyncStatus,
-    DateTime CreatedAtUtc
+    DateTime CreatedAtUtc,
+    string Status = "Completed",
+    decimal? AllottedUnits = null,
+    DateTime? ResolutionDate = null
+);
+
+public record AllotIpoRequest(
+    decimal AllottedUnits,
+    decimal? AllottedAmount = null,
+    string? StockName = null
+);
+
+public record ReleaseIpoRequest(
+    string? Reason = null
 );
 
 public record TransactionSummaryDto(

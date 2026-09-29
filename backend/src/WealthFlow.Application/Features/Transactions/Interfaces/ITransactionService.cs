@@ -45,4 +45,16 @@ public interface ITransactionService
         DateTime? startDate = null,
         DateTime? endDate = null,
         CancellationToken cancellationToken = default);
+
+    Task<TransactionDto> AllotIpoAsync(
+        Guid userId,
+        Guid transactionId,
+        AllotIpoRequest request,
+        CancellationToken cancellationToken = default);
+
+    Task<TransactionDto> ReleaseIpoAsync(
+        Guid userId,
+        Guid transactionId,
+        ReleaseIpoRequest request,
+        CancellationToken cancellationToken = default);
 }

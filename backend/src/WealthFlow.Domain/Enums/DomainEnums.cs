@@ -26,7 +26,19 @@ public enum TransactionEventType
     Gift = 7,
     Refund = 8,
     CreditCardPayment = 9,
-    TripSettlement = 10
+    TripSettlement = 10,
+    IpoApplication = 11
+}
+
+/// <summary>
+/// Operational and settlement lifecycle state of a transactional record.
+/// </summary>
+public enum TransactionStatus
+{
+    Completed = 1,        // Standard confirmed transaction (Income, Expense, Transfer, etc.)
+    Blocked = 2,          // Funds blocked under lien (IPO / ASBA application on hold)
+    Allotted = 3,         // IPO approved & allotted; debited from bank and moved to Holdings
+    Released = 4          // IPO rejected/not allotted; lien released, transaction preserved with cut/strikethrough
 }
 
 /// <summary>

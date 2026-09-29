@@ -18,6 +18,15 @@ public class BalanceCalculationService
         // Outgoing or direct transaction on this account
         if (transaction.AccountId == accountId)
         {
+            // If the transaction is an IPO Application:
+            // - Blocked (Funds on hold): Net impact on CurrentBalance is 0.
+            // - Released (Lien unblocked/not allotted): Net impact on CurrentBalance is 0.
+            // - Allotted (Approved/shares credited): Net impact is -Amount (debited from bank).
+            if (transaction.EventType == TransactionEventType.IpoApplication)
+            {
+                return transaction.Status == TransactionStatus.Allotted ? -transaction.Amount : 0m;
+            }
+
             return transaction.EventType switch
             {
                 TransactionEventType.Income => transaction.Amount,
@@ -44,8 +53,18 @@ public class BalanceCalculationService
     }
 
     /// <summary>
-    /// Reconciles an account's materialized CurrentBalance against its complete transaction audit trail.
-    /// Updates the account's CurrentBalance if a discrepancy is detected.
+    /// Computes the sum of all actively blocked / on-hold funds (e.g. pending IPO ASBA applications) for an account.
+    /// </summary>
+    public static decimal CalculateBlockedBalance(IEnumerable<Transaction> transactions, Guid accountId)
+    {
+        return transactions
+            .Where(t => t.AccountId == accountId && t.EventType == TransactionEventType.IpoApplication && t.Status == TransactionStatus.Blocked)
+            .Sum(t => t.Amount);
+    }
+
+    /// <summary>
+    /// Reconciles an account's materialized CurrentBalance and BlockedBalance against its complete transaction audit trail.
+    /// Updates the account's CurrentBalance and BlockedBalance if a discrepancy is detected.
     /// </summary>
     public ReconciliationResult ReconcileAccount(Account account, IEnumerable<Transaction> transactions)
     {
@@ -60,6 +79,9 @@ public class BalanceCalculationService
         {
             account.Reconcile(expectedBalance);
         }
+
+        var expectedBlockedBalance = CalculateBlockedBalance(txList, account.Id);
+        account.SetBlockedBalance(expectedBlockedBalance);
 
         return new ReconciliationResult(
             AccountId: account.Id,

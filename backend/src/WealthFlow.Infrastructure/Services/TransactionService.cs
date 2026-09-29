@@ -164,6 +164,11 @@ public class TransactionService : ITransactionService
             );
             await _dbContext.Transfers.AddAsync(transfer, cancellationToken);
         }
+        else if (eventType == TransactionEventType.IpoApplication)
+        {
+            // Funds are not immediately debited; they are placed under lien / on hold
+            sourceAccount.AdjustBlockedBalance(request.Amount);
+        }
         else if (IsCreditEvent(eventType))
         {
             sourceAccount.AdjustBalance(request.Amount);
@@ -186,7 +191,9 @@ public class TransactionService : ITransactionService
             notes: request.Notes?.Trim(),
             tags: request.Tags?.Trim(),
             linkedEntityId: targetAccount?.Id,
-            idempotencyKey: request.IdempotencyKey
+            idempotencyKey: request.IdempotencyKey,
+            status: eventType == TransactionEventType.IpoApplication ? TransactionStatus.Blocked : TransactionStatus.Completed,
+            allottedUnits: request.AllottedUnits
         );
 
         await _unitOfWork.Transactions.AddAsync(transaction, cancellationToken);
@@ -337,7 +344,11 @@ public class TransactionService : ITransactionService
 
         // Calculate Inflows and Outflows (strictly excluding Transfers to preserve neutrality)
         var totalInflows = allTx.Where(t => IsCreditEvent(t.EventType)).Sum(t => t.Amount);
-        var totalOutflows = allTx.Where(t => IsDebitEvent(t.EventType)).Sum(t => t.Amount);
+        var totalOutflows = allTx.Where(t =>
+            t.EventType == TransactionEventType.IpoApplication
+                ? t.Status == TransactionStatus.Allotted
+                : IsDebitEvent(t.EventType)
+        ).Sum(t => t.Amount);
         var netCashFlow = totalInflows - totalOutflows;
 
         return new TransactionSummaryDto(
@@ -348,12 +359,146 @@ public class TransactionService : ITransactionService
         );
     }
 
+    public async Task<TransactionDto> AllotIpoAsync(
+        Guid userId,
+        Guid transactionId,
+        AllotIpoRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        if (request.AllottedUnits <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(request.AllottedUnits), "Allotted units must be greater than zero.");
+        }
+
+        var tx = await _unitOfWork.Transactions.GetByIdAsync(transactionId, cancellationToken);
+        if (tx == null || tx.UserId != userId)
+        {
+            throw new KeyNotFoundException($"Transaction with ID {transactionId} was not found.");
+        }
+
+        if (tx.EventType != TransactionEventType.IpoApplication)
+        {
+            throw new InvalidOperationException("Only IPO application transactions can be marked as allotted.");
+        }
+
+        if (tx.Status != TransactionStatus.Blocked)
+        {
+            throw new InvalidOperationException($"Transaction cannot be allotted because its status is already '{tx.Status}'.");
+        }
+
+        var account = await _unitOfWork.Accounts.GetByIdAsync(tx.AccountId, cancellationToken);
+        if (account == null)
+        {
+            throw new KeyNotFoundException($"Account associated with this transaction was not found.");
+        }
+
+        var finalAmount = request.AllottedAmount ?? tx.Amount;
+        if (finalAmount <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(request.AllottedAmount), "Allotted amount must be greater than zero.");
+        }
+
+        // Release the blocked hold and deduct the actual finalized amount from CurrentBalance
+        account.AdjustBlockedBalance(-tx.Amount);
+        account.AdjustBalance(-finalAmount);
+
+        // Provision Stock entry in Investments table
+        var stockName = !string.IsNullOrWhiteSpace(request.StockName)
+            ? request.StockName.Trim()
+            : tx.Description.Replace("IPO Application", "", StringComparison.OrdinalIgnoreCase).Trim();
+        if (string.IsNullOrWhiteSpace(stockName))
+        {
+            stockName = tx.Description;
+        }
+
+        var investment = new Investment(
+            userId: userId,
+            name: stockName,
+            assetClass: AssetClass.Stock,
+            investedAmount: finalAmount,
+            currentValue: finalAmount,
+            units: request.AllottedUnits,
+            lastValuationDate: DateTime.UtcNow
+        );
+
+        await _unitOfWork.Investments.AddAsync(investment, cancellationToken);
+
+        // Update transaction status to Allotted and link to created investment
+        tx.MarkAllotted(request.AllottedUnits, investment.Id);
+
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        var userAccounts = await _unitOfWork.Accounts.GetAccountsByUserAsync(userId, includeArchived: true, cancellationToken);
+        var accountsDict = userAccounts.ToDictionary(a => a.Id, a => a.Name);
+
+        var userCategories = await _unitOfWork.Categories.GetCategoriesByUserAsync(userId, cancellationToken);
+        var categoriesDict = userCategories.ToDictionary(c => c.Id, c => c.Name);
+
+        return MapToDto(tx, accountsDict, categoriesDict);
+    }
+
+    public async Task<TransactionDto> ReleaseIpoAsync(
+        Guid userId,
+        Guid transactionId,
+        ReleaseIpoRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var tx = await _unitOfWork.Transactions.GetByIdAsync(transactionId, cancellationToken);
+        if (tx == null || tx.UserId != userId)
+        {
+            throw new KeyNotFoundException($"Transaction with ID {transactionId} was not found.");
+        }
+
+        if (tx.EventType != TransactionEventType.IpoApplication)
+        {
+            throw new InvalidOperationException("Only IPO application transactions can be released.");
+        }
+
+        if (tx.Status != TransactionStatus.Blocked)
+        {
+            throw new InvalidOperationException($"Transaction cannot be released because its status is already '{tx.Status}'.");
+        }
+
+        var account = await _unitOfWork.Accounts.GetByIdAsync(tx.AccountId, cancellationToken);
+        if (account == null)
+        {
+            throw new KeyNotFoundException($"Account associated with this transaction was not found.");
+        }
+
+        // Release the blocked lien on the bank account (CurrentBalance remains untouched!)
+        account.AdjustBlockedBalance(-tx.Amount);
+
+        // Mark transaction as Released (retains the transaction in the ledger with cut/strikethrough styling)
+        tx.MarkReleased(request.Reason ?? "Not Allotted / Lien Released");
+
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        var userAccounts = await _unitOfWork.Accounts.GetAccountsByUserAsync(userId, includeArchived: true, cancellationToken);
+        var accountsDict = userAccounts.ToDictionary(a => a.Id, a => a.Name);
+
+        var userCategories = await _unitOfWork.Categories.GetCategoriesByUserAsync(userId, cancellationToken);
+        var categoriesDict = userCategories.ToDictionary(c => c.Id, c => c.Name);
+
+        return MapToDto(tx, accountsDict, categoriesDict);
+    }
+
     private async Task RevertBalanceImpactAsync(Transaction tx, CancellationToken cancellationToken)
     {
         var account = await _unitOfWork.Accounts.GetByIdAsync(tx.AccountId, cancellationToken);
         if (account != null)
         {
-            if (tx.EventType == TransactionEventType.Transfer)
+            if (tx.EventType == TransactionEventType.IpoApplication)
+            {
+                if (tx.Status == TransactionStatus.Blocked)
+                {
+                    account.AdjustBlockedBalance(-tx.Amount);
+                }
+                else if (tx.Status == TransactionStatus.Allotted)
+                {
+                    account.AdjustBalance(tx.Amount);
+                }
+            }
+            else if (tx.EventType == TransactionEventType.Transfer)
             {
                 account.AdjustBalance(tx.Amount); // Revert source deduction
                 if (tx.LinkedEntityId.HasValue)
@@ -390,6 +535,10 @@ public class TransactionService : ITransactionService
         {
             categoryName = "Transfer to self";
         }
+        else if (t.EventType == TransactionEventType.IpoApplication)
+        {
+            categoryName = "IPO Application";
+        }
         else if (t.CategoryId.HasValue && categoriesDict.TryGetValue(t.CategoryId.Value, out var cn))
         {
             categoryName = cn;
@@ -413,7 +562,10 @@ public class TransactionService : ITransactionService
             TargetAccountName: targetAccountName,
             IdempotencyKey: t.IdempotencyKey,
             SyncStatus: t.SyncStatus.ToString(),
-            CreatedAtUtc: t.CreatedAtUtc
+            CreatedAtUtc: t.CreatedAtUtc,
+            Status: t.Status.ToString(),
+            AllottedUnits: t.AllottedUnits,
+            ResolutionDate: t.ResolutionDate
         );
     }
 

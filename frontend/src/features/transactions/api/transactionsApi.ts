@@ -55,4 +55,18 @@ export const transactionsApi = {
     const qs = query.toString()
     return apiClient<TransactionSummary>(`/api/v1/transactions/summary${qs ? `?${qs}` : ''}`)
   },
+
+  async allotIpo(id: string, payload: import('../types').AllotIpoPayload): Promise<Transaction> {
+    return apiClient<Transaction>(`/api/v1/transactions/${id}/ipo-allot`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    })
+  },
+
+  async releaseIpo(id: string, payload: import('../types').ReleaseIpoPayload = {}): Promise<Transaction> {
+    return apiClient<Transaction>(`/api/v1/transactions/${id}/ipo-release`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    })
+  },
 }

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { X, ArrowDownRight, ArrowUpRight, ArrowRightLeft, ShieldCheck } from 'lucide-react'
+import { X, ArrowDownRight, ArrowUpRight, ArrowRightLeft, ShieldCheck, Lock, Info } from 'lucide-react'
 import { FormField } from '@/components/ui/FormField'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
@@ -36,6 +36,7 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({
   const [categoryId, setCategoryId] = useState('')
   const [merchant, setMerchant] = useState('')
   const [notes, setNotes] = useState('')
+  const [allottedUnits, setAllottedUnits] = useState('')
 
   const [accounts, setAccounts] = useState<Account[]>([])
   const [categories, setCategories] = useState<CategoryOption[]>([])
@@ -132,6 +133,7 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({
         targetAccountId: activeTab === 'Transfer' ? targetAccountId : undefined,
         merchant: merchant.trim() || undefined,
         notes: notes.trim() || undefined,
+        allottedUnits: allottedUnits && parseFloat(allottedUnits) > 0 ? parseFloat(allottedUnits) : undefined,
       }
 
       await transactionsApi.createTransaction(payload)
@@ -142,6 +144,7 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({
       setDescription('')
       setMerchant('')
       setNotes('')
+      setAllottedUnits('')
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to record transaction.'
       setError(msg)
@@ -172,7 +175,7 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({
           </div>
 
           {/* Segmented Tabs */}
-          <div className="grid grid-cols-3 p-1 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-semibold">
+          <div className="grid grid-cols-4 p-1 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-semibold">
             <button
               type="button"
               onClick={() => setActiveTab('Expense')}
@@ -211,6 +214,19 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({
               <ArrowRightLeft className="w-3.5 h-3.5" />
               Transfer
             </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveTab('IpoApplication')}
+              className={`flex items-center justify-center gap-1.5 py-2 rounded-lg transition-all ${
+                activeTab === 'IpoApplication'
+                  ? 'bg-white dark:bg-slate-900 text-amber-600 dark:text-amber-400 shadow-sm'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+              }`}
+            >
+              <Lock className="w-3.5 h-3.5" />
+              IPO Hold
+            </button>
           </div>
         </div>
 
@@ -222,8 +238,21 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({
             </div>
           )}
 
+          {/* ASBA Mandate Info Banner */}
+          {activeTab === 'IpoApplication' && (
+            <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 flex items-start gap-2.5 text-xs text-amber-800 dark:text-amber-300">
+              <Info className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold">ASBA Lien / Fund Block</p>
+                <p className="text-[11px] text-amber-700 dark:text-amber-400 mt-0.5">
+                  Funds will be placed on hold in your bank account under ASBA mandate. Your balance will not be deducted until allotment is confirmed.
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Amount (MoneyInput) */}
-          <FormField label="Amount" required>
+          <FormField label={activeTab === 'IpoApplication' ? 'Blocked / Hold Amount' : 'Amount'} required>
             <MoneyInput
               value={amount}
               onChange={setAmount}
@@ -274,6 +303,34 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({
                 </span>
               </div>
             </div>
+          ) : activeTab === 'IpoApplication' ? (
+            <div className="grid grid-cols-2 gap-4">
+              <FormField label="Bank Account (Lien)" required>
+                <select
+                  value={accountId}
+                  onChange={(e) => setAccountId(e.target.value)}
+                  disabled={isLoadingMetadata || isSubmitting}
+                  className="w-full h-10 px-3 py-2 text-sm bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 disabled:opacity-60"
+                >
+                  {accounts.map((acc) => (
+                    <option key={acc.id} value={acc.id}>
+                      {acc.name}
+                    </option>
+                  ))}
+                </select>
+              </FormField>
+
+              <FormField label="Bid Lot / Units (Optional)">
+                <Input
+                  type="number"
+                  min="1"
+                  step="1"
+                  value={allottedUnits}
+                  onChange={(e) => setAllottedUnits(e.target.value)}
+                  placeholder="e.g. 50 shares"
+                />
+              </FormField>
+            </div>
           ) : (
             <div className="grid grid-cols-2 gap-4">
               <FormField label="Account" required>
@@ -312,13 +369,15 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({
           {/* Description & Date */}
           <div className="grid grid-cols-3 gap-3">
             <div className="col-span-2">
-              <FormField label="Description" required>
+              <FormField label={activeTab === 'IpoApplication' ? 'IPO / Company Name' : 'Description'} required>
                 <Input
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder={
                     activeTab === 'Transfer'
                       ? 'e.g. Wallet refill via UPI'
+                      : activeTab === 'IpoApplication'
+                      ? 'e.g. Swiggy Ltd IPO Application'
                       : activeTab === 'Expense'
                       ? 'e.g. Weekly Groceries (Blinkit)'
                       : 'e.g. Monthly Salary Credit'
@@ -340,23 +399,23 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({
             </div>
           </div>
 
-          {/* Merchant / Payee for Expense/Income */}
+          {/* Merchant / Payee / Demat */}
           {activeTab !== 'Transfer' && (
-            <FormField label="Merchant / Payee (Optional)">
+            <FormField label={activeTab === 'IpoApplication' ? 'Broker / Demat App (Optional)' : 'Merchant / Payee (Optional)'}>
               <Input
                 value={merchant}
                 onChange={(e) => setMerchant(e.target.value)}
-                placeholder="e.g. Swiggy, Amazon, Client Ltd"
+                placeholder={activeTab === 'IpoApplication' ? 'e.g. Zerodha, Groww, AngelOne' : 'e.g. Swiggy, Amazon, Client Ltd'}
               />
             </FormField>
           )}
 
           {/* Notes */}
-          <FormField label="Notes / Tag Reference (Optional)">
+          <FormField label="Notes / Application No. (Optional)">
             <Input
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="e.g. UPI ref: 489218209312"
+              placeholder={activeTab === 'IpoApplication' ? 'e.g. Mandate / Application Ref #89201' : 'e.g. UPI ref: 489218209312'}
             />
           </FormField>
 
@@ -381,10 +440,12 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({
                     ? 'bg-rose-600 hover:bg-rose-700'
                     : activeTab === 'Income'
                     ? 'bg-emerald-600 hover:bg-emerald-700'
+                    : activeTab === 'IpoApplication'
+                    ? 'bg-amber-600 hover:bg-amber-700'
                     : 'bg-indigo-600 hover:bg-indigo-700'
                 }
               >
-                Record {activeTab}
+                {activeTab === 'IpoApplication' ? 'Apply IPO Hold' : `Record ${activeTab}`}
               </Button>
             </div>
           </div>

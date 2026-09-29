@@ -153,4 +153,58 @@ public class TransactionsController : ControllerBase
             return NotFound(new { message = ex.Message });
         }
     }
+
+    [HttpPost("{id:guid}/ipo-allot")]
+    public async Task<IActionResult> AllotIpo(Guid id, [FromBody] AllotIpoRequest request, CancellationToken cancellationToken = default)
+    {
+        if (_currentUserService.UserId == null)
+        {
+            return Unauthorized();
+        }
+
+        try
+        {
+            var allotted = await _transactionService.AllotIpoAsync(_currentUserService.UserId.Value, id, request, cancellationToken);
+            return Ok(allotted);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
+    [HttpPost("{id:guid}/ipo-release")]
+    public async Task<IActionResult> ReleaseIpo(Guid id, [FromBody] ReleaseIpoRequest request, CancellationToken cancellationToken = default)
+    {
+        if (_currentUserService.UserId == null)
+        {
+            return Unauthorized();
+        }
+
+        try
+        {
+            var released = await _transactionService.ReleaseIpoAsync(_currentUserService.UserId.Value, id, request, cancellationToken);
+            return Ok(released);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
 }

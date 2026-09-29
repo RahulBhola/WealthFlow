@@ -6,6 +6,8 @@ export interface Account {
   accountType: AccountType
   openingBalance: number
   currentBalance: number
+  blockedBalance?: number
+  availableBalance?: number
   currency: string
   accountNumberMask?: string | null
   colorTag?: string | null

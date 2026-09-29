@@ -243,4 +243,116 @@ public class TransactionsIntegrationTests : IClassFixture<CustomWebApplicationFa
         catStatus2.UtilizationPercentage.Should().Be(110m);
         catStatus2.IsExceeded.Should().BeTrue();
     }
+
+    [Fact]
+    public async Task CreateIpoApplication_AndAllot_ShouldDebitAccountAndCreateInvestment()
+    {
+        // Arrange
+        var client = await CreateAuthenticatedClientAsync();
+
+        // 1. Create a Bank account with ₹1,00,000
+        var accRes = await client.PostAsJsonAsync("/api/v1/accounts", new CreateAccountRequest(
+            Name: $"HDFC Demat Linked {Guid.NewGuid():N}",
+            AccountType: "Bank",
+            OpeningBalance: 100000m
+        ));
+        accRes.StatusCode.Should().Be(HttpStatusCode.Created);
+        var account = await accRes.Content.ReadFromJsonAsync<AccountDto>();
+
+        // 2. Apply for IPO: ₹15,000 for Swiggy IPO (funds blocked under ASBA lien)
+        var createTxRes = await client.PostAsJsonAsync("/api/v1/transactions", new CreateTransactionRequest(
+            AccountId: account!.Id,
+            Amount: 15000m,
+            EventType: "IpoApplication",
+            TransactionDate: DateTime.UtcNow,
+            Description: "Swiggy IPO Application",
+            AllottedUnits: 50m
+        ));
+        createTxRes.StatusCode.Should().Be(HttpStatusCode.Created);
+        var ipoTx = await createTxRes.Content.ReadFromJsonAsync<TransactionDto>();
+        ipoTx.Should().NotBeNull();
+        ipoTx!.Status.Should().Be("Blocked");
+        ipoTx.Amount.Should().Be(15000m);
+
+        // 3. Verify Account balances: CurrentBalance remains 100,000, BlockedBalance is 15,000, AvailableBalance is 85,000
+        var accCheck = await client.GetAsync($"/api/v1/accounts/{account.Id}");
+        var updatedAcc = await accCheck.Content.ReadFromJsonAsync<AccountDto>();
+        updatedAcc!.CurrentBalance.Should().Be(100000m);
+        updatedAcc.BlockedBalance.Should().Be(15000m);
+        updatedAcc.AvailableBalance.Should().Be(85000m);
+
+        // 4. Act: Allot the IPO (approved!)
+        var allotRes = await client.PostAsJsonAsync($"/api/v1/transactions/{ipoTx.Id}/ipo-allot", new AllotIpoRequest(
+            AllottedUnits: 50m,
+            AllottedAmount: 15000m,
+            StockName: "Swiggy Ltd"
+        ));
+        allotRes.StatusCode.Should().Be(HttpStatusCode.OK);
+        var allottedTx = await allotRes.Content.ReadFromJsonAsync<TransactionDto>();
+        allottedTx!.Status.Should().Be("Allotted");
+        allottedTx.AllottedUnits.Should().Be(50m);
+
+        // 5. Verify Account: Now debited by 15,000 => CurrentBalance = 85,000, BlockedBalance = 0
+        var accCheckAfterAllot = await client.GetAsync($"/api/v1/accounts/{account.Id}");
+        var allottedAcc = await accCheckAfterAllot.Content.ReadFromJsonAsync<AccountDto>();
+        allottedAcc!.CurrentBalance.Should().Be(85000m);
+        allottedAcc.BlockedBalance.Should().Be(0m);
+        allottedAcc.AvailableBalance.Should().Be(85000m);
+
+        // 6. Verify Investment: Stock holding was automatically created
+        var invRes = await client.GetAsync("/api/v1/investments");
+        invRes.StatusCode.Should().Be(HttpStatusCode.OK);
+        var invSummary = await invRes.Content.ReadFromJsonAsync<WealthFlow.Application.Features.Investments.DTOs.InvestmentSummaryDto>();
+        invSummary!.Investments.Should().Contain(i => i.Name == "Swiggy Ltd" && i.InvestedAmount == 15000m && i.Units == 50m);
+    }
+
+    [Fact]
+    public async Task CreateIpoApplication_AndRelease_ShouldUnblockWithoutDebitAndRetainTransaction()
+    {
+        // Arrange
+        var client = await CreateAuthenticatedClientAsync();
+
+        // 1. Create a Bank account with ₹1,00,000
+        var accRes = await client.PostAsJsonAsync("/api/v1/accounts", new CreateAccountRequest(
+            Name: $"ICICI Demat {Guid.NewGuid():N}",
+            AccountType: "Bank",
+            OpeningBalance: 100000m
+        ));
+        accRes.StatusCode.Should().Be(HttpStatusCode.Created);
+        var account = await accRes.Content.ReadFromJsonAsync<AccountDto>();
+
+        // 2. Apply for IPO: ₹15,000
+        var createTxRes = await client.PostAsJsonAsync("/api/v1/transactions", new CreateTransactionRequest(
+            AccountId: account!.Id,
+            Amount: 15000m,
+            EventType: "IpoApplication",
+            TransactionDate: DateTime.UtcNow,
+            Description: "Hyundai India IPO Application"
+        ));
+        createTxRes.StatusCode.Should().Be(HttpStatusCode.Created);
+        var ipoTx = await createTxRes.Content.ReadFromJsonAsync<TransactionDto>();
+        ipoTx!.Status.Should().Be("Blocked");
+
+        // 3. Act: Release the hold (not allotted / rejected)
+        var releaseRes = await client.PostAsJsonAsync($"/api/v1/transactions/{ipoTx.Id}/ipo-release", new ReleaseIpoRequest(
+            Reason: "Not Allotted in Retail Category"
+        ));
+        releaseRes.StatusCode.Should().Be(HttpStatusCode.OK);
+        var releasedTx = await releaseRes.Content.ReadFromJsonAsync<TransactionDto>();
+        releasedTx!.Status.Should().Be("Released");
+
+        // 4. Verify Account: Balance untouched (100,000), BlockedBalance = 0, AvailableBalance = 100,000
+        var accCheckAfterRelease = await client.GetAsync($"/api/v1/accounts/{account.Id}");
+        var releasedAcc = await accCheckAfterRelease.Content.ReadFromJsonAsync<AccountDto>();
+        releasedAcc!.CurrentBalance.Should().Be(100000m);
+        releasedAcc.BlockedBalance.Should().Be(0m);
+        releasedAcc.AvailableBalance.Should().Be(100000m);
+
+        // 5. Verify Transaction is STILL PRESENT in ledger (never deleted!)
+        var txGet = await client.GetAsync($"/api/v1/transactions/{ipoTx.Id}");
+        txGet.StatusCode.Should().Be(HttpStatusCode.OK);
+        var fetchedTx = await txGet.Content.ReadFromJsonAsync<TransactionDto>();
+        fetchedTx!.Status.Should().Be("Released");
+        fetchedTx.Amount.Should().Be(15000m);
+    }
 }
