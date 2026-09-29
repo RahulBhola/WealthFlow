@@ -92,10 +92,25 @@ public class DashboardService : IDashboardService
         var categories = await _unitOfWork.Categories.GetCategoriesByUserAsync(userId, cancellationToken);
         var categoryMap = categories.ToDictionary(c => c.Id, c => c.Name);
 
+        var budgetedCatIds = new HashSet<Guid>(budgets.Select(b => b.CategoryId));
+        var childLookup = categories
+            .Where(c => c.ParentCategoryId.HasValue)
+            .GroupBy(c => c.ParentCategoryId!.Value)
+            .ToDictionary(g => g.Key, g => g.Select(c => c.Id).ToList());
+
         var budgetGlances = budgets
             .Select(b =>
             {
-                var spent = categorySpending.TryGetValue(b.CategoryId, out var s) ? s : 0m;
+                var contributingIds = GetContributingCategoryIds(b.CategoryId, childLookup, budgetedCatIds);
+                decimal spent = 0m;
+                foreach (var catId in contributingIds)
+                {
+                    if (categorySpending.TryGetValue(catId, out var s))
+                    {
+                        spent += s;
+                    }
+                }
+
                 var util = b.MonthlyLimit > 0 ? Math.Round((spent / b.MonthlyLimit) * 100m, 1) : 0m;
                 var color = util < 80m ? "emerald" : util < 90m ? "amber" : util < 100m ? "orange" : "rose";
                 categoryMap.TryGetValue(b.CategoryId, out var name);
@@ -248,5 +263,35 @@ public class DashboardService : IDashboardService
             TotalInvestments: summary.NetWorthHistory.LastOrDefault()?.Assets ?? 0m,
             TotalLiquidCash: summary.TotalLiquidCash
         );
+    }
+
+    private static HashSet<Guid> GetContributingCategoryIds(
+        Guid categoryId,
+        Dictionary<Guid, List<Guid>> childrenLookup,
+        HashSet<Guid> budgetedCategoryIds)
+    {
+        var result = new HashSet<Guid> { categoryId };
+        var queue = new Queue<Guid>();
+        queue.Enqueue(categoryId);
+
+        while (queue.Count > 0)
+        {
+            var current = queue.Dequeue();
+            if (childrenLookup.TryGetValue(current, out var children))
+            {
+                foreach (var childId in children)
+                {
+                    if (!budgetedCategoryIds.Contains(childId) || childId == categoryId)
+                    {
+                        if (result.Add(childId))
+                        {
+                            queue.Enqueue(childId);
+                        }
+                    }
+                }
+            }
+        }
+
+        return result;
     }
 }

@@ -35,11 +35,26 @@ public class BudgetService : IBudgetService
         var categories = await _unitOfWork.Categories.GetCategoriesByUserAsync(userId, cancellationToken);
         var categoriesDict = categories.ToDictionary(c => c.Id, c => c);
 
+        var budgetedCategoryIds = new HashSet<Guid>(budgets.Select(b => b.CategoryId));
+        var childrenLookup = categories
+            .Where(c => c.ParentCategoryId.HasValue)
+            .GroupBy(c => c.ParentCategoryId!.Value)
+            .ToDictionary(g => g.Key, g => g.Select(c => c.Id).ToList());
+
         var statusList = new List<BudgetStatusDto>();
 
         foreach (var budget in budgets)
         {
-            spendingDict.TryGetValue(budget.CategoryId, out var spent);
+            var contributingCategoryIds = GetContributingCategoryIds(budget.CategoryId, childrenLookup, budgetedCategoryIds);
+            decimal spent = 0m;
+            foreach (var catId in contributingCategoryIds)
+            {
+                if (spendingDict.TryGetValue(catId, out var s))
+                {
+                    spent += s;
+                }
+            }
+
             categoriesDict.TryGetValue(budget.CategoryId, out var category);
 
             var eval = _evaluationService.Evaluate(budget, spent);
@@ -215,6 +230,37 @@ public class BudgetService : IBudgetService
 
         await _unitOfWork.Budgets.DeleteAsync(budget, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
+    }
+
+    private static HashSet<Guid> GetContributingCategoryIds(
+        Guid categoryId,
+        Dictionary<Guid, List<Guid>> childrenLookup,
+        HashSet<Guid> budgetedCategoryIds)
+    {
+        var result = new HashSet<Guid> { categoryId };
+        var queue = new Queue<Guid>();
+        queue.Enqueue(categoryId);
+
+        while (queue.Count > 0)
+        {
+            var current = queue.Dequeue();
+            if (childrenLookup.TryGetValue(current, out var children))
+            {
+                foreach (var childId in children)
+                {
+                    // Include child category if it does not have its own dedicated active budget
+                    if (!budgetedCategoryIds.Contains(childId) || childId == categoryId)
+                    {
+                        if (result.Add(childId))
+                        {
+                            queue.Enqueue(childId);
+                        }
+                    }
+                }
+            }
+        }
+
+        return result;
     }
 
     private static BudgetPeriod ParsePeriod(string? periodStr)
