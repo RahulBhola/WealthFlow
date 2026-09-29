@@ -19,7 +19,7 @@ export interface SetBudgetModalProps {
   isLoading?: boolean
   existingCategoryIds?: string[]
   existingCategoryNames?: string[]
-  onDelete?: (budgetId: string) => Promise<void>
+  onDelete?: (budgetId: string) => void | Promise<void>
 }
 
 export const SetBudgetModal: React.FC<SetBudgetModalProps> = ({
@@ -274,11 +274,9 @@ export const SetBudgetModal: React.FC<SetBudgetModalProps> = ({
             {initialBudgetId && onDelete ? (
               <button
                 type="button"
-                onClick={async () => {
-                  if (window.confirm(`Are you sure you want to remove the budget for ${categoryName || 'this category'}?`)) {
-                    await onDelete(initialBudgetId)
-                    onClose()
-                  }
+                onClick={() => {
+                  onDelete(initialBudgetId)
+                  onClose()
                 }}
                 disabled={isLoading}
                 className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 rounded-lg transition-colors cursor-pointer disabled:opacity-50"

@@ -124,8 +124,7 @@ describe('BudgetsPage and Category Spending Limits', () => {
     expect(screen.getByRole('option', { name: 'Healthcare' })).toBeInTheDocument()
   })
 
-  it('removes a budget when clicking the delete button on an envelope card', async () => {
-    vi.spyOn(window, 'confirm').mockReturnValue(true)
+  it('removes a budget when clicking the delete button and confirming in ConfirmModal', async () => {
     vi.mocked(budgetsApi.deleteBudget).mockResolvedValue(undefined)
 
     render(<BudgetsPage />)
@@ -137,7 +136,15 @@ describe('BudgetsPage and Category Spending Limits', () => {
     const deleteBtn = screen.getByLabelText('Remove Groceries budget')
     fireEvent.click(deleteBtn)
 
-    expect(window.confirm).toHaveBeenCalledWith(expect.stringContaining('Groceries'))
-    expect(budgetsApi.deleteBudget).toHaveBeenCalledWith('b-1')
+    // ConfirmModal dialog should open
+    expect(screen.getByText('Remove Budget Envelope')).toBeInTheDocument()
+    expect(screen.getByText(/Are you sure you want to remove the monthly spending limit for Groceries\?/i)).toBeInTheDocument()
+
+    const confirmBtn = screen.getByRole('button', { name: 'Remove Budget' })
+    fireEvent.click(confirmBtn)
+
+    await waitFor(() => {
+      expect(budgetsApi.deleteBudget).toHaveBeenCalledWith('b-1')
+    })
   })
 })

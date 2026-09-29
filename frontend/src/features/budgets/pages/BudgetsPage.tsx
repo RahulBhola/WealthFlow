@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { Card, CardBody } from '@/components/ui/Card'
 import { SetBudgetModal } from '../components/SetBudgetModal'
+import { ConfirmModal } from '@/components/ui/ConfirmModal'
 import { budgetsApi } from '../api/budgetsApi'
 import type { BudgetSummary, BudgetStatus, CreateBudgetPayload } from '../types'
 import { cn } from '@/lib/utils'
@@ -107,7 +108,8 @@ export const BudgetsPage: React.FC = () => {
     name: string
     limit: number
   } | null>(null)
-  const [isDeletingId, setIsDeletingId] = useState<string | null>(null)
+  const [budgetToDelete, setBudgetToDelete] = useState<{ id: string; name: string } | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   const loadData = useCallback(async () => {
     try {
@@ -162,18 +164,22 @@ export const BudgetsPage: React.FC = () => {
     setIsModalOpen(true)
   }
 
-  const handleDeleteBudget = async (budgetId: string, categoryName: string) => {
-    if (window.confirm(`Are you sure you want to remove the monthly spending limit for ${categoryName}?`)) {
-      try {
-        setIsDeletingId(budgetId)
-        await budgetsApi.deleteBudget(budgetId)
-        await loadData()
-      } catch (err) {
-        console.error('Failed to remove budget:', err)
-        alert('Failed to remove budget envelope. Please try again.')
-      } finally {
-        setIsDeletingId(null)
-      }
+  const handleRequestDeleteBudget = (budgetId: string, categoryName: string) => {
+    setBudgetToDelete({ id: budgetId, name: categoryName })
+  }
+
+  const handleConfirmDeleteBudget = async () => {
+    if (!budgetToDelete) return
+    try {
+      setIsDeleting(true)
+      await budgetsApi.deleteBudget(budgetToDelete.id)
+      setBudgetToDelete(null)
+      await loadData()
+    } catch (err) {
+      console.error('Failed to remove budget:', err)
+      alert('Failed to remove budget envelope. Please try again.')
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -442,8 +448,8 @@ export const BudgetsPage: React.FC = () => {
 
                       <button
                         type="button"
-                        onClick={() => handleDeleteBudget(item.budgetId, item.categoryName)}
-                        disabled={isDeletingId === item.budgetId}
+                        onClick={() => handleRequestDeleteBudget(item.budgetId, item.categoryName)}
+                        disabled={isDeleting && budgetToDelete?.id === item.budgetId}
                         className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/50 transition-colors cursor-pointer disabled:opacity-50"
                         title={`Remove ${item.categoryName} budget`}
                         aria-label={`Remove ${item.categoryName} budget`}
@@ -464,13 +470,27 @@ export const BudgetsPage: React.FC = () => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSubmit={handleSaveBudget}
-        onDelete={(budgetId) => handleDeleteBudget(budgetId, editingCategory?.name || 'this category')}
+        onDelete={(budgetId) => handleRequestDeleteBudget(budgetId, editingCategory?.name || 'this category')}
         initialCategoryId={editingCategory?.id}
         initialBudgetId={editingCategory?.budgetId}
         initialLimit={editingCategory?.limit}
         categoryName={editingCategory?.name}
         existingCategoryIds={summary?.categories?.map((c) => c.categoryId) ?? []}
         existingCategoryNames={summary?.categories?.map((c) => c.categoryName) ?? []}
+      />
+
+      {/* Modern Glassmorphic Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={!!budgetToDelete}
+        onClose={() => setBudgetToDelete(null)}
+        onConfirm={handleConfirmDeleteBudget}
+        title="Remove Budget Envelope"
+        message={`Are you sure you want to remove the monthly spending limit for ${budgetToDelete?.name}?`}
+        subMessage="Active transactions will remain intact in your ledger, but monthly envelope alerts and utilization tracking for this category will be removed."
+        confirmText="Remove Budget"
+        cancelText="Keep Budget"
+        variant="danger"
+        isLoading={isDeleting}
       />
     </div>
   )
