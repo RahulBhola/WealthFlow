@@ -41,6 +41,12 @@ export const tripsApi = {
     })
   },
 
+  async deleteTrip(id: string): Promise<void> {
+    return apiClient<void>(`/api/v1/trips/${id}`, {
+      method: 'DELETE',
+    })
+  },
+
   async addMember(tripId: string, payload: AddTripMemberPayload): Promise<TripMember> {
     return apiClient<TripMember>(`/api/v1/trips/${tripId}/members`, {
       method: 'POST',

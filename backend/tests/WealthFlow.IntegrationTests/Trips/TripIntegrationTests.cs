@@ -199,4 +199,36 @@ public class TripIntegrationTests : IClassFixture<CustomWebApplicationFactory>
         finalSum!.SimplifiedRepayments.Should().BeEmpty();
         finalSum.MemberSummaries.All(m => m.IsSettled).Should().BeTrue();
     }
+
+    [Fact]
+    public async Task Trip_Delete_Should_SoftDeleteTripAndDisallowAccess()
+    {
+        var client = await CreateAuthenticatedClientAsync();
+
+        // 1. Create Trip
+        var createTripRes = await client.PostAsJsonAsync("/api/v1/trips", new CreateTripRequest(
+            Name: $"Delete Test Trip {Guid.NewGuid():N}",
+            Destination: "Alibaug, India",
+            StartDate: DateTime.UtcNow,
+            EndDate: DateTime.UtcNow.AddDays(3),
+            Budget: 15000m
+        ));
+        createTripRes.StatusCode.Should().Be(HttpStatusCode.Created);
+        var trip = await createTripRes.Content.ReadFromJsonAsync<TripDto>();
+        trip.Should().NotBeNull();
+
+        // 2. Delete Trip
+        var deleteRes = await client.DeleteAsync($"/api/v1/trips/{trip!.Id}");
+        deleteRes.StatusCode.Should().Be(HttpStatusCode.NoContent);
+
+        // 3. Verify Trip is no longer retrievable
+        var getRes = await client.GetAsync($"/api/v1/trips/{trip.Id}");
+        getRes.StatusCode.Should().Be(HttpStatusCode.NotFound);
+
+        // 4. Verify Trip no longer appears in GetTrips list
+        var listRes = await client.GetAsync("/api/v1/trips");
+        listRes.StatusCode.Should().Be(HttpStatusCode.OK);
+        var trips = await listRes.Content.ReadFromJsonAsync<List<TripDto>>();
+        trips.Should().NotContain(t => t.Id == trip.Id);
+    }
 }

@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { TripsListPage } from './pages/TripsListPage'
@@ -13,6 +13,7 @@ vi.mock('./api/tripsApi', () => ({
     getTrip: vi.fn(),
     createTrip: vi.fn(),
     updateTrip: vi.fn(),
+    deleteTrip: vi.fn(),
     addMember: vi.fn(),
     createGuestLink: vi.fn(),
     revokeGuestLink: vi.fn(),
@@ -402,5 +403,73 @@ describe('Milestone 7: Trips Workspace & Settlement Tests', () => {
     })
 
     expect(tripsApi.getGuestTripView).toHaveBeenCalledWith('trip-1', 'test-crypto-token-64')
+  })
+
+  it('deletes trip from TripsListPage when confirmed via ConfirmModal', async () => {
+    vi.mocked(tripsApi.getTrips).mockResolvedValue([...mockTrips])
+    vi.mocked(tripsApi.deleteTrip).mockResolvedValue(undefined)
+
+    render(
+      <MemoryRouter>
+        <TripsListPage />
+      </MemoryRouter>
+    )
+
+    await waitFor(() => {
+      expect(screen.getByText('Goa Summer Retreat')).toBeInTheDocument()
+    })
+
+    // Find delete button on first trip card
+    const deleteBtn = screen.getByLabelText('Delete Goa Summer Retreat')
+    fireEvent.click(deleteBtn)
+
+    // ConfirmModal dialog should open
+    await waitFor(() => {
+      expect(screen.getByText('Delete Trip Workspace')).toBeInTheDocument()
+      expect(screen.getByText(/Are you sure you want to delete "Goa Summer Retreat"?/i)).toBeInTheDocument()
+    })
+
+    // Click Delete Trip in modal
+    const confirmBtn = screen.getByRole('button', { name: 'Delete Trip' })
+    fireEvent.click(confirmBtn)
+
+    await waitFor(() => {
+      expect(tripsApi.deleteTrip).toHaveBeenCalledWith('trip-1')
+    })
+  })
+
+  it('deletes trip from TripWorkspacePage and redirects to trips list', async () => {
+    vi.mocked(tripsApi.getTrip).mockResolvedValue(mockTripDetail)
+    vi.mocked(tripsApi.deleteTrip).mockResolvedValue(undefined)
+
+    render(
+      <MemoryRouter initialEntries={['/trips/trip-1']}>
+        <Routes>
+          <Route path="/trips/:tripId" element={<TripWorkspacePage />} />
+          <Route path="/trips" element={<div>Trips List Destination</div>} />
+        </Routes>
+      </MemoryRouter>
+    )
+
+    await waitFor(() => {
+      expect(screen.getByText('Goa Summer Retreat')).toBeInTheDocument()
+    })
+
+    // Click Delete Trip button in header
+    const deleteTripHeaderBtn = screen.getByRole('button', { name: /Delete Trip/i })
+    fireEvent.click(deleteTripHeaderBtn)
+
+    // ConfirmModal should open
+    await waitFor(() => {
+      expect(screen.getByText('Delete Trip Workspace')).toBeInTheDocument()
+    })
+
+    const confirmBtn = within(screen.getByRole('dialog')).getByRole('button', { name: 'Delete Trip' })
+    fireEvent.click(confirmBtn)
+
+    await waitFor(() => {
+      expect(tripsApi.deleteTrip).toHaveBeenCalledWith('trip-1')
+      expect(screen.getByText('Trips List Destination')).toBeInTheDocument()
+    })
   })
 })

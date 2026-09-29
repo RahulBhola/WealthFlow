@@ -1,5 +1,5 @@
 import React from 'react'
-import { Calendar, MapPin, Users, Wallet, ArrowRight } from 'lucide-react'
+import { Calendar, MapPin, Users, Wallet, ArrowRight, Trash2 } from 'lucide-react'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import type { Trip } from '../types'
@@ -8,6 +8,7 @@ import { useCurrency } from '../../../context/CurrencyContext'
 export interface TripCardProps {
   trip: Trip
   onSelect: (tripId: string) => void
+  onDelete?: (trip: Trip) => void
 }
 
 const formatDate = (dateStr: string) => {
@@ -22,7 +23,7 @@ const formatDate = (dateStr: string) => {
   }
 }
 
-export const TripCard: React.FC<TripCardProps> = ({ trip, onSelect }) => {
+export const TripCard: React.FC<TripCardProps> = ({ trip, onSelect, onDelete }) => {
   const { formatCurrency } = useCurrency()
   const formatINR = (val: number) => formatCurrency(val, { minimumFractionDigits: 0, maximumFractionDigits: 0 })
   const budget = trip.budget ?? 0
@@ -56,9 +57,25 @@ export const TripCard: React.FC<TripCardProps> = ({ trip, onSelect }) => {
               <span>{trip.destination}</span>
             </div>
           </div>
-          <Badge variant={statusVariant} size="sm">
-            {trip.status}
-          </Badge>
+          <div className="flex items-center gap-2 shrink-0">
+            <Badge variant={statusVariant} size="sm">
+              {trip.status}
+            </Badge>
+            {onDelete && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onDelete(trip)
+                }}
+                title="Delete Trip"
+                aria-label={`Delete ${trip.name}`}
+                className="p-1.5 text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 rounded-lg transition-colors cursor-pointer"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Dates and Member Count */}

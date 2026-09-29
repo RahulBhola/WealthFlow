@@ -149,6 +149,48 @@ public class TripService : ITripService
         return MapToDto(trip, totalExpenses, memberCount);
     }
 
+    public async Task DeleteTripAsync(Guid tripId, Guid userId, CancellationToken cancellationToken = default)
+    {
+        var trip = await _unitOfWork.Trips.GetByIdAsync(tripId, cancellationToken);
+        if (trip == null)
+        {
+            throw new KeyNotFoundException($"Trip with ID '{tripId}' was not found.");
+        }
+
+        if (trip.HostUserId != userId)
+        {
+            throw new UnauthorizedAccessException("Only the trip host can delete this trip.");
+        }
+
+        await _unitOfWork.Trips.DeleteAsync(trip, cancellationToken);
+
+        var members = await _dbContext.TripMembers.Where(m => m.TripId == tripId).ToListAsync(cancellationToken);
+        foreach (var m in members)
+        {
+            m.SoftDelete();
+        }
+
+        var expenses = await _dbContext.TripExpenses.Where(e => e.TripId == tripId).ToListAsync(cancellationToken);
+        foreach (var e in expenses)
+        {
+            e.SoftDelete();
+        }
+
+        var advances = await _dbContext.TripAdvances.Where(a => a.TripId == tripId).ToListAsync(cancellationToken);
+        foreach (var a in advances)
+        {
+            a.SoftDelete();
+        }
+
+        var settlements = await _dbContext.TripSettlements.Where(s => s.TripId == tripId).ToListAsync(cancellationToken);
+        foreach (var s in settlements)
+        {
+            s.SoftDelete();
+        }
+
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+    }
+
     public async Task<TripMemberDto> AddMemberAsync(Guid tripId, Guid userId, AddTripMemberRequest request, CancellationToken cancellationToken = default)
     {
         var trip = await _unitOfWork.Trips.GetByIdAsync(tripId, cancellationToken);

@@ -93,6 +93,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
         builder.Entity<Loan>().HasQueryFilter(e => !e.IsDeleted);
         builder.Entity<LoanRepayment>().HasQueryFilter(e => !e.IsDeleted);
         builder.Entity<Trip>().HasQueryFilter(e => !e.IsDeleted);
+        builder.Entity<TripMember>().HasQueryFilter(e => !e.IsDeleted);
         builder.Entity<TripExpense>().HasQueryFilter(e => !e.IsDeleted);
         builder.Entity<TripAdvance>().HasQueryFilter(e => !e.IsDeleted);
         builder.Entity<TripSettlement>().HasQueryFilter(e => !e.IsDeleted);

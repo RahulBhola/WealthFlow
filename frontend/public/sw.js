@@ -1,4 +1,4 @@
-const CACHE_NAME = 'wealthflow-cache-v10'
+const CACHE_NAME = 'wealthflow-cache-v11'
 const STATIC_ASSETS = [
   '/',
   '/index.html',

@@ -77,6 +77,24 @@ public class TripsController : ControllerBase
         }
     }
 
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> DeleteTrip(Guid id, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await _tripService.DeleteTripAsync(id, GetUserId(), cancellationToken);
+            return NoContent();
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { error = ex.Message });
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return Forbid();
+        }
+    }
+
     [HttpPost("{id:guid}/members")]
     public async Task<ActionResult<TripMemberDto>> AddMember(
         Guid id,

@@ -11,6 +11,7 @@ public interface ITripService
     Task<TripDetailDto> GetTripByIdAsync(Guid tripId, Guid userId, CancellationToken cancellationToken = default);
     Task<TripDto> CreateTripAsync(Guid hostUserId, CreateTripRequest request, CancellationToken cancellationToken = default);
     Task<TripDto> UpdateTripAsync(Guid tripId, Guid userId, UpdateTripRequest request, CancellationToken cancellationToken = default);
+    Task DeleteTripAsync(Guid tripId, Guid userId, CancellationToken cancellationToken = default);
 
     Task<TripMemberDto> AddMemberAsync(Guid tripId, Guid userId, AddTripMemberRequest request, CancellationToken cancellationToken = default);
     Task<CreateGuestLinkResponse> CreateGuestLinkAsync(Guid tripId, Guid memberId, Guid userId, CreateGuestLinkRequest request, CancellationToken cancellationToken = default);

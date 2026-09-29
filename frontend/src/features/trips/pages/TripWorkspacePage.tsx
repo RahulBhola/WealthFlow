@@ -11,11 +11,13 @@ import {
   CheckCircle2,
   Sparkles,
   Link2,
+  Trash2,
 } from 'lucide-react'
 import { MetricCard } from '@/components/layout/MetricCard'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { Card } from '@/components/ui/Card'
+import { ConfirmModal } from '@/components/ui/ConfirmModal'
 import { TripSummaryMatrix } from '../components/TripSummaryMatrix'
 import { SettleUpCard } from '../components/SettleUpCard'
 import { AddTripExpenseModal } from '../components/AddTripExpenseModal'
@@ -58,6 +60,21 @@ export const TripWorkspacePage: React.FC = () => {
   const [isAddMemberOpen, setIsAddMemberOpen] = useState(false)
   const [selectedMemberForGuestLink, setSelectedMemberForGuestLink] = useState<TripMember | null>(null)
   const [selectedInstructionForSettleUp, setSelectedInstructionForSettleUp] = useState<SettlementInstruction | null>(null)
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const [isDeletingTrip, setIsDeletingTrip] = useState(false)
+
+  const handleDeleteTrip = async () => {
+    if (!tripId) return
+    try {
+      setIsDeletingTrip(true)
+      await tripsApi.deleteTrip(tripId)
+      navigate('/trips')
+    } catch (err) {
+      console.error('Failed to delete trip:', err)
+    } finally {
+      setIsDeletingTrip(false)
+    }
+  }
 
   const loadData = useCallback(async () => {
     if (!tripId) return
@@ -178,6 +195,15 @@ export const TripWorkspacePage: React.FC = () => {
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Add Expense</span>
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsDeleteModalOpen(true)}
+              className="flex items-center gap-1.5 text-xs text-rose-500 hover:text-rose-600 hover:border-rose-300 dark:hover:border-rose-800"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              <span>Delete Trip</span>
             </Button>
           </div>
         </div>
@@ -627,6 +653,19 @@ export const TripWorkspacePage: React.FC = () => {
         instruction={selectedInstructionForSettleUp}
         onClose={() => setSelectedInstructionForSettleUp(null)}
         onSuccess={loadData}
+      />
+
+      {/* Authoritative Glassmorphic Confirm Deletion Modal */}
+      <ConfirmModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleDeleteTrip}
+        title="Delete Trip Workspace"
+        message={`Are you sure you want to delete "${trip.name}"?`}
+        subMessage="All recorded expenses, advances, and split calculations for this journey will be permanently archived."
+        confirmText="Delete Trip"
+        variant="danger"
+        isLoading={isDeletingTrip}
       />
     </div>
   )

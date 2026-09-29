@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { TripCard } from '../components/TripCard'
 import { AddTripModal } from '../components/AddTripModal'
+import { ConfirmModal } from '@/components/ui/ConfirmModal'
 import { tripsApi } from '../api/tripsApi'
 import { useCurrency } from '../../../context/CurrencyContext'
 import type { Trip } from '../types'
@@ -27,6 +28,8 @@ export const TripsListPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('All')
   const [isAddTripOpen, setIsAddTripOpen] = useState(false)
+  const [tripToDelete, setTripToDelete] = useState<Trip | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   const loadTrips = useCallback(async () => {
     try {
@@ -58,6 +61,20 @@ export const TripsListPage: React.FC = () => {
   const totalSpending = trips.reduce((sum, t) => sum + t.totalExpenses, 0)
   const totalTravelers = trips.reduce((sum, t) => sum + t.memberCount, 0)
   const completedTripsCount = trips.filter((t) => t.status === 'Completed').length
+
+  const handleConfirmDelete = async () => {
+    if (!tripToDelete) return
+    try {
+      setIsDeleting(true)
+      await tripsApi.deleteTrip(tripToDelete.id)
+      setTrips((prev) => prev.filter((t) => t.id !== tripToDelete.id))
+      setTripToDelete(null)
+    } catch (err) {
+      console.error('Failed to delete trip:', err)
+    } finally {
+      setIsDeleting(false)
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -160,6 +177,7 @@ export const TripsListPage: React.FC = () => {
               key={trip.id}
               trip={trip}
               onSelect={(tripId) => navigate(`/trips/${tripId}`)}
+              onDelete={(tripToDel) => setTripToDelete(tripToDel)}
             />
           ))}
         </div>
@@ -173,6 +191,19 @@ export const TripsListPage: React.FC = () => {
           loadTrips()
           navigate(`/trips/${newTripId}`)
         }}
+      />
+
+      {/* Authoritative Glassmorphic Confirm Deletion Modal */}
+      <ConfirmModal
+        isOpen={!!tripToDelete}
+        onClose={() => setTripToDelete(null)}
+        onConfirm={handleConfirmDelete}
+        title="Delete Trip Workspace"
+        message={`Are you sure you want to delete "${tripToDelete?.name}"?`}
+        subMessage="All recorded expenses, advances, and split calculations for this journey will be permanently archived."
+        confirmText="Delete Trip"
+        variant="danger"
+        isLoading={isDeleting}
       />
     </div>
   )
