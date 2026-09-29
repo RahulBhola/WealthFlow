@@ -1,0 +1,496 @@
+import React, { useState, useEffect } from 'react'
+import { X, ArrowDownRight, ArrowUpRight, ArrowRightLeft, ShieldCheck, Lock, Info, Pencil } from 'lucide-react'
+import { FormField } from '@/components/ui/FormField'
+import { Input } from '@/components/ui/Input'
+import { Button } from '@/components/ui/Button'
+import { MoneyInput } from './MoneyInput'
+import { accountsApi } from '@/features/accounts/api/accountsApi'
+import { categoriesApi } from '@/features/categories/api/categoriesApi'
+import { transactionsApi } from '../api/transactionsApi'
+import type { Account } from '@/features/accounts/types'
+import type { Transaction, TransactionType, TransactionStatus, UpdateTransactionPayload } from '../types'
+
+export interface EditTransactionModalProps {
+  isOpen: boolean
+  transaction: Transaction | null
+  onClose: () => void
+  onSuccess?: () => void
+}
+
+interface CategoryOption {
+  id: string
+  name: string
+  parentName?: string
+}
+
+export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
+  isOpen,
+  transaction,
+  onClose,
+  onSuccess,
+}) => {
+  const [activeTab, setActiveTab] = useState<TransactionType>('Expense')
+  const [amount, setAmount] = useState('')
+  const [description, setDescription] = useState('')
+  const [transactionDate, setTransactionDate] = useState('')
+  const [accountId, setAccountId] = useState('')
+  const [targetAccountId, setTargetAccountId] = useState('')
+  const [categoryId, setCategoryId] = useState('')
+  const [merchant, setMerchant] = useState('')
+  const [notes, setNotes] = useState('')
+  const [status, setStatus] = useState<TransactionStatus>('Blocked')
+  const [allottedUnits, setAllottedUnits] = useState('')
+
+  const [accounts, setAccounts] = useState<Account[]>([])
+  const [categories, setCategories] = useState<CategoryOption[]>([])
+  const [isLoadingMetadata, setIsLoadingMetadata] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!isOpen || !transaction) return
+
+    const validEventTypes: TransactionType[] = ['Expense', 'Income', 'Transfer', 'IpoApplication']
+    const parsedEventType = validEventTypes.includes(transaction.eventType as TransactionType)
+      ? (transaction.eventType as TransactionType)
+      : 'Expense'
+    setActiveTab(parsedEventType)
+
+    setAmount(transaction.amount.toString())
+    setDescription(transaction.description)
+    setTransactionDate(
+      transaction.transactionDate ? new Date(transaction.transactionDate).toISOString().slice(0, 10) : ''
+    )
+    setAccountId(transaction.accountId)
+    setTargetAccountId(transaction.targetAccountId || '')
+    setCategoryId(transaction.categoryId || '')
+    setMerchant(transaction.merchant || '')
+    setNotes(transaction.notes || '')
+
+    const validStatuses: TransactionStatus[] = ['Blocked', 'Allotted', 'Released', 'Completed']
+    const parsedStatus = transaction.status && validStatuses.includes(transaction.status as TransactionStatus)
+      ? (transaction.status as TransactionStatus)
+      : 'Blocked'
+    setStatus(parsedStatus)
+    setAllottedUnits(transaction.allottedUnits ? transaction.allottedUnits.toString() : '')
+    setError(null)
+  }, [isOpen, transaction])
+
+  useEffect(() => {
+    if (!isOpen) return
+
+    let ignore = false
+    async function loadMeta() {
+      setIsLoadingMetadata(true)
+      try {
+        const [accList, catRes] = await Promise.all([
+          accountsApi.getAccounts(false),
+          categoriesApi.getCategories().catch(() => []),
+        ])
+
+        if (!ignore) {
+          setAccounts(accList)
+
+          // Flatten categories tree
+          const flatCats: CategoryOption[] = []
+          for (const parent of catRes) {
+            flatCats.push({ id: parent.id, name: parent.name })
+            if (parent.subcategories) {
+              for (const sub of parent.subcategories) {
+                flatCats.push({ id: sub.id, name: sub.name, parentName: parent.name })
+              }
+            }
+          }
+          setCategories(flatCats)
+        }
+      } catch (err) {
+        console.error('Failed to load accounts/categories metadata:', err)
+      } finally {
+        if (!ignore) {
+          setIsLoadingMetadata(false)
+        }
+      }
+    }
+
+    loadMeta()
+    return () => {
+      ignore = true
+    }
+  }, [isOpen])
+
+  if (!isOpen || !transaction) return null
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const numericAmount = parseFloat(amount)
+    if (!numericAmount || numericAmount <= 0) {
+      setError('Please enter a valid amount greater than zero.')
+      return
+    }
+
+    if (!accountId) {
+      setError('Please select an account.')
+      return
+    }
+
+    if (activeTab === 'Transfer') {
+      if (!targetAccountId) {
+        setError('Please select a destination account for the transfer.')
+        return
+      }
+      if (accountId === targetAccountId) {
+        setError('Source and destination accounts must be different.')
+        return
+      }
+    }
+
+    if (!description.trim()) {
+      setError('Please enter a description or payee name.')
+      return
+    }
+
+    setIsSubmitting(true)
+    setError(null)
+
+    try {
+      const payload: UpdateTransactionPayload = {
+        accountId,
+        amount: numericAmount,
+        eventType: activeTab,
+        transactionDate: new Date(transactionDate).toISOString(),
+        description: description.trim(),
+        categoryId: categoryId || undefined,
+        targetAccountId: activeTab === 'Transfer' ? targetAccountId : undefined,
+        merchant: merchant.trim() || undefined,
+        notes: notes.trim() || undefined,
+        status: activeTab === 'IpoApplication' ? status : undefined,
+        allottedUnits:
+          activeTab === 'IpoApplication' && allottedUnits && parseFloat(allottedUnits) > 0
+            ? parseFloat(allottedUnits)
+            : undefined,
+      }
+
+      await transactionsApi.updateTransaction(transaction.id, payload)
+      onSuccess?.()
+      onClose()
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to update transaction.'
+      setError(msg)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
+      <div className="relative w-full max-w-lg bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+        {/* Header with Segmented Tabs */}
+        <div className="px-6 pt-5 pb-4 border-b border-slate-100 dark:border-slate-800">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+              <Pencil className="w-4 h-4 text-sky-500" />
+              <span>Edit Ledger Entry</span>
+            </h2>
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* Segmented Type Tabs */}
+          <div className="grid grid-cols-4 p-1 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-semibold">
+            <button
+              type="button"
+              onClick={() => setActiveTab('Expense')}
+              className={`flex items-center justify-center gap-1.5 py-2 rounded-lg transition-all ${
+                activeTab === 'Expense'
+                  ? 'bg-white dark:bg-slate-900 text-rose-600 dark:text-rose-400 shadow-sm'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+              }`}
+            >
+              <ArrowDownRight className="w-3.5 h-3.5" />
+              Expense
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveTab('Income')}
+              className={`flex items-center justify-center gap-1.5 py-2 rounded-lg transition-all ${
+                activeTab === 'Income'
+                  ? 'bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-sm'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+              }`}
+            >
+              <ArrowUpRight className="w-3.5 h-3.5" />
+              Income
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveTab('Transfer')}
+              className={`flex items-center justify-center gap-1.5 py-2 rounded-lg transition-all ${
+                activeTab === 'Transfer'
+                  ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+              }`}
+            >
+              <ArrowRightLeft className="w-3.5 h-3.5" />
+              Transfer
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveTab('IpoApplication')}
+              className={`flex items-center justify-center gap-1.5 py-2 rounded-lg transition-all ${
+                activeTab === 'IpoApplication'
+                  ? 'bg-white dark:bg-slate-900 text-amber-600 dark:text-amber-400 shadow-sm'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+              }`}
+            >
+              <Lock className="w-3.5 h-3.5" />
+              IPO Hold
+            </button>
+          </div>
+        </div>
+
+        {/* Form Body */}
+        <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
+          {error && (
+            <div className="p-3 rounded-lg bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 text-xs text-rose-600 dark:text-rose-400 font-medium">
+              {error}
+            </div>
+          )}
+
+          {/* ASBA Mandate Info Banner */}
+          {activeTab === 'IpoApplication' && (
+            <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 flex items-start gap-2.5 text-xs text-amber-800 dark:text-amber-300">
+              <Info className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold">ASBA Lien / Fund Block</p>
+                <p className="text-[11px] text-amber-700 dark:text-amber-400 mt-0.5">
+                  Funds will be placed on hold in your bank account under ASBA mandate. Balance will not be debited until allotment is approved.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Amount (MoneyInput) */}
+          <FormField label={activeTab === 'IpoApplication' ? 'Blocked / Hold Amount' : 'Amount'} required>
+            <MoneyInput
+              value={amount}
+              onChange={setAmount}
+              placeholder="0.00"
+            />
+          </FormField>
+
+          {/* Transfer Specific: Source & Destination Accounts */}
+          {activeTab === 'Transfer' ? (
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-4">
+                <FormField label="From Account" required>
+                  <select
+                    value={accountId}
+                    onChange={(e) => setAccountId(e.target.value)}
+                    disabled={isLoadingMetadata || isSubmitting}
+                    className="w-full h-10 px-3 py-2 text-sm bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 disabled:opacity-60"
+                  >
+                    {accounts.map((acc) => (
+                      <option key={acc.id} value={acc.id}>
+                        {acc.name} ({acc.accountType})
+                      </option>
+                    ))}
+                  </select>
+                </FormField>
+
+                <FormField label="To Account" required>
+                  <select
+                    value={targetAccountId}
+                    onChange={(e) => setTargetAccountId(e.target.value)}
+                    disabled={isLoadingMetadata || isSubmitting}
+                    className="w-full h-10 px-3 py-2 text-sm bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 disabled:opacity-60"
+                  >
+                    {accounts.map((acc) => (
+                      <option key={acc.id} value={acc.id}>
+                        {acc.name} ({acc.accountType})
+                      </option>
+                    ))}
+                  </select>
+                </FormField>
+              </div>
+
+              <div className="p-2.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-800/50 flex items-center justify-between text-xs text-indigo-700 dark:text-indigo-300">
+                <span className="font-medium">Category</span>
+                <span className="px-2 py-0.5 rounded-md bg-indigo-100 dark:bg-indigo-900/60 font-semibold text-indigo-700 dark:text-indigo-200">
+                  Transfer to self
+                </span>
+              </div>
+            </div>
+          ) : activeTab === 'IpoApplication' ? (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <FormField label="Bank Account (Lien)" required>
+                  <select
+                    value={accountId}
+                    onChange={(e) => setAccountId(e.target.value)}
+                    disabled={isLoadingMetadata || isSubmitting}
+                    className="w-full h-10 px-3 py-2 text-sm bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 disabled:opacity-60"
+                  >
+                    {accounts.map((acc) => (
+                      <option key={acc.id} value={acc.id}>
+                        {acc.name}
+                      </option>
+                    ))}
+                  </select>
+                </FormField>
+
+                <FormField label="IPO Status">
+                  <select
+                    value={status}
+                    onChange={(e) => setStatus(e.target.value as TransactionStatus)}
+                    disabled={isSubmitting}
+                    className="w-full h-10 px-3 py-2 text-sm bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 disabled:opacity-60"
+                  >
+                    <option value="Blocked">ASBA Hold (Active Lien)</option>
+                    <option value="Allotted">Allotted (Debited & Added to Portfolio)</option>
+                    <option value="Released">Released (Not Allotted - ₹0 Debited)</option>
+                  </select>
+                </FormField>
+              </div>
+
+              <FormField label="Bid Lot / Units (Optional)">
+                <Input
+                  type="number"
+                  min="1"
+                  step="1"
+                  value={allottedUnits}
+                  onChange={(e) => setAllottedUnits(e.target.value)}
+                  placeholder="e.g. 50 shares"
+                />
+              </FormField>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-4">
+              <FormField label="Account" required>
+                <select
+                  value={accountId}
+                  onChange={(e) => setAccountId(e.target.value)}
+                  disabled={isLoadingMetadata || isSubmitting}
+                  className="w-full h-10 px-3 py-2 text-sm bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 disabled:opacity-60"
+                >
+                  {accounts.map((acc) => (
+                    <option key={acc.id} value={acc.id}>
+                      {acc.name}
+                    </option>
+                  ))}
+                </select>
+              </FormField>
+
+              <FormField label="Category">
+                <select
+                  value={categoryId}
+                  onChange={(e) => setCategoryId(e.target.value)}
+                  disabled={isLoadingMetadata || isSubmitting}
+                  className="w-full h-10 px-3 py-2 text-sm bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 disabled:opacity-60"
+                >
+                  <option value="">Uncategorized</option>
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.parentName ? `${cat.parentName} › ${cat.name}` : cat.name}
+                    </option>
+                  ))}
+                </select>
+              </FormField>
+            </div>
+          )}
+
+          {/* Description & Date */}
+          <div className="grid grid-cols-3 gap-3">
+            <div className="col-span-2">
+              <FormField label={activeTab === 'IpoApplication' ? 'IPO / Company Name' : 'Description'} required>
+                <Input
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder={
+                    activeTab === 'Transfer'
+                      ? 'e.g. Wallet refill via UPI'
+                      : activeTab === 'IpoApplication'
+                      ? 'e.g. Swiggy Ltd IPO Application'
+                      : activeTab === 'Expense'
+                      ? 'e.g. Weekly Groceries (Blinkit)'
+                      : 'e.g. Monthly Salary Credit'
+                  }
+                  required
+                />
+              </FormField>
+            </div>
+
+            <div>
+              <FormField label="Date" required>
+                <Input
+                  type="date"
+                  value={transactionDate}
+                  onChange={(e) => setTransactionDate(e.target.value)}
+                  required
+                />
+              </FormField>
+            </div>
+          </div>
+
+          {/* Merchant / Payee / Demat */}
+          {activeTab !== 'Transfer' && (
+            <FormField label={activeTab === 'IpoApplication' ? 'Broker / Demat App (Optional)' : 'Merchant / Payee (Optional)'}>
+              <Input
+                value={merchant}
+                onChange={(e) => setMerchant(e.target.value)}
+                placeholder={activeTab === 'IpoApplication' ? 'e.g. Zerodha, Groww, AngelOne' : 'e.g. Swiggy, Amazon, Client Ltd'}
+              />
+            </FormField>
+          )}
+
+          {/* Notes */}
+          <FormField label="Notes / Application No. (Optional)">
+            <Input
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder={activeTab === 'IpoApplication' ? 'e.g. Mandate / Application Ref #89201' : 'e.g. UPI ref: 489218209312'}
+            />
+          </FormField>
+
+          {/* Footer Actions */}
+          <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800">
+            <div className="text-[11px] text-slate-400 flex items-center gap-1.5">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+              <span>Atomic Ledger Update</span>
+            </div>
+
+            <div className="flex items-center gap-2.5">
+              <Button type="button" variant="outline" size="sm" onClick={onClose} disabled={isSubmitting}>
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                variant="primary"
+                size="sm"
+                isLoading={isSubmitting}
+                className={
+                  activeTab === 'Expense'
+                    ? 'bg-rose-600 hover:bg-rose-700'
+                    : activeTab === 'Income'
+                    ? 'bg-emerald-600 hover:bg-emerald-700'
+                    : activeTab === 'IpoApplication'
+                    ? 'bg-amber-600 hover:bg-amber-700'
+                    : 'bg-indigo-600 hover:bg-indigo-700'
+                }
+              >
+                Save Changes
+              </Button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}

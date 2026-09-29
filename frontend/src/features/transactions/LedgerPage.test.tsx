@@ -371,4 +371,38 @@ describe('LedgerPage and Transactions UI', () => {
     expect(screen.getByTitle(/approve \/ allot ipo/i)).toBeInTheDocument()
     expect(screen.getByTitle(/release hold/i)).toBeInTheDocument()
   })
+
+  it('opens EditTransactionModal when clicking Edit button and updates transaction', async () => {
+    vi.mocked(transactionsApi.updateTransaction).mockResolvedValueOnce({
+      ...mockTransactions[0],
+      description: 'Updated Blinkit Delivery',
+    })
+
+    render(<LedgerPage />)
+
+    await waitFor(() => {
+      expect(screen.getByText('Blinkit Instant Delivery')).toBeInTheDocument()
+    })
+
+    // Click the edit button for the first transaction
+    const editButtons = screen.getAllByTitle(/edit transaction/i)
+    expect(editButtons.length).toBeGreaterThan(0)
+    fireEvent.click(editButtons[0])
+
+    // Verify modal is open
+    expect(screen.getByText('Edit Ledger Entry')).toBeInTheDocument()
+
+    // Submit changes
+    const saveButton = screen.getByRole('button', { name: /save changes/i })
+    fireEvent.click(saveButton)
+
+    await waitFor(() => {
+      expect(transactionsApi.updateTransaction).toHaveBeenCalledWith(
+        'tx-1',
+        expect.objectContaining({
+          description: 'Blinkit Instant Delivery',
+        })
+      )
+    })
+  })
 })

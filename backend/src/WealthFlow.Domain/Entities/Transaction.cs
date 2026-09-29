@@ -102,7 +102,10 @@ public class Transaction : BaseEntity, IAggregateRoot
         string description,
         string? merchant,
         string? notes,
-        string? tags)
+        string? tags,
+        TransactionEventType? eventType = null,
+        TransactionStatus? status = null,
+        decimal? allottedUnits = null)
     {
         AccountId = accountId;
         CategoryId = categoryId;
@@ -112,6 +115,18 @@ public class Transaction : BaseEntity, IAggregateRoot
         Merchant = merchant;
         Notes = notes;
         Tags = tags;
+        if (eventType.HasValue)
+        {
+            EventType = eventType.Value;
+        }
+        if (status.HasValue)
+        {
+            Status = status.Value;
+        }
+        if (allottedUnits.HasValue)
+        {
+            AllottedUnits = allottedUnits.Value;
+        }
         SetUpdated();
     }
 

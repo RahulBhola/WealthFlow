@@ -19,6 +19,7 @@ import {
   CheckCircle2,
   Loader2,
   Ban,
+  Pencil,
 } from 'lucide-react'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { MetricCard } from '@/components/layout/MetricCard'
@@ -27,6 +28,7 @@ import { Input } from '@/components/ui/Input'
 import { Badge } from '@/components/ui/Badge'
 import { Card, CardHeader, CardBody } from '@/components/ui/Card'
 import { QuickAddModal } from '../components/QuickAddModal'
+import { EditTransactionModal } from '../components/EditTransactionModal'
 import { AllotIpoModal } from '../components/AllotIpoModal'
 import { ReleaseIpoModal } from '../components/ReleaseIpoModal'
 import { ConfirmModal } from '@/components/ui/ConfirmModal'
@@ -79,6 +81,7 @@ export const LedgerPage: React.FC = () => {
   const [selectedAccount, setSelectedAccount] = useState<string>('')
   const [isLoading, setIsLoading] = useState(true)
   const [isQuickAddOpen, setIsQuickAddOpen] = useState(false)
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null)
   const [selectedIpoForAction, setSelectedIpoForAction] = useState<{ tx: Transaction; action: 'allot' | 'release' } | null>(null)
 
   // Cloud Archive State
@@ -797,6 +800,14 @@ export const LedgerPage: React.FC = () => {
                                 )}
                                 <button
                                   type="button"
+                                  onClick={() => setEditingTransaction(tx)}
+                                  title="Edit transaction"
+                                  className="p-1 rounded text-slate-400 hover:text-sky-600 hover:bg-sky-50 dark:hover:bg-sky-950/40 transition-colors"
+                                >
+                                  <Pencil className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  type="button"
                                   onClick={() => handleDelete(tx)}
                                   title="Delete transaction and reverse balance impact"
                                   className="p-1 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
@@ -889,6 +900,14 @@ export const LedgerPage: React.FC = () => {
       <QuickAddModal
         isOpen={isQuickAddOpen}
         onClose={() => setIsQuickAddOpen(false)}
+        onSuccess={loadData}
+      />
+
+      {/* Edit Transaction Modal */}
+      <EditTransactionModal
+        isOpen={!!editingTransaction}
+        transaction={editingTransaction}
+        onClose={() => setEditingTransaction(null)}
         onSuccess={loadData}
       />
 

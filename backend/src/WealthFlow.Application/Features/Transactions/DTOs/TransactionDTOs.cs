@@ -26,7 +26,9 @@ public record UpdateTransactionRequest(
     Guid? TargetAccountId = null,
     string? Merchant = null,
     string? Notes = null,
-    string? Tags = null
+    string? Tags = null,
+    string? Status = null,
+    decimal? AllottedUnits = null
 );
 
 public record TransactionDto(

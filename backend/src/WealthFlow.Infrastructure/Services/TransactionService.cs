@@ -267,11 +267,34 @@ public class TransactionService : ITransactionService
             }
         }
 
-        // 3. Apply New Balance Impact
+        // 3. Determine new Status
+        var newStatus = existingTx.Status;
+        if (!string.IsNullOrWhiteSpace(request.Status) && Enum.TryParse<TransactionStatus>(request.Status, true, out var parsedStatus))
+        {
+            newStatus = parsedStatus;
+        }
+        else if (newEventType == TransactionEventType.IpoApplication && existingTx.EventType != TransactionEventType.IpoApplication)
+        {
+            newStatus = TransactionStatus.Blocked;
+        }
+
+        // 4. Apply New Balance Impact
         if (newEventType == TransactionEventType.Transfer)
         {
             sourceAccount.AdjustBalance(-request.Amount);
             targetAccount!.AdjustBalance(request.Amount);
+        }
+        else if (newEventType == TransactionEventType.IpoApplication)
+        {
+            if (newStatus == TransactionStatus.Blocked)
+            {
+                sourceAccount.AdjustBlockedBalance(request.Amount);
+            }
+            else if (newStatus == TransactionStatus.Allotted)
+            {
+                sourceAccount.AdjustBalance(-request.Amount);
+            }
+            // Released status has 0 balance impact
         }
         else if (IsCreditEvent(newEventType))
         {
@@ -282,7 +305,7 @@ public class TransactionService : ITransactionService
             sourceAccount.AdjustBalance(-request.Amount);
         }
 
-        // 4. Update Transaction
+        // 5. Update Transaction
         existingTx.Update(
             accountId: sourceAccount.Id,
             categoryId: request.CategoryId,
@@ -291,7 +314,10 @@ public class TransactionService : ITransactionService
             description: request.Description.Trim(),
             merchant: request.Merchant?.Trim(),
             notes: request.Notes?.Trim(),
-            tags: request.Tags?.Trim()
+            tags: request.Tags?.Trim(),
+            eventType: newEventType,
+            status: newStatus,
+            allottedUnits: request.AllottedUnits
         );
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);

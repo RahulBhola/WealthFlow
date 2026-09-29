@@ -70,6 +70,8 @@ export interface UpdateTransactionPayload {
   merchant?: string | null
   notes?: string | null
   tags?: string | null
+  status?: TransactionStatus
+  allottedUnits?: number | null
 }
 
 export interface PagedResult<T> {
