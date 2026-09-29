@@ -434,6 +434,8 @@ export const BudgetsPage: React.FC = () => {
         initialCategoryId={editingCategory?.id}
         initialLimit={editingCategory?.limit}
         categoryName={editingCategory?.name}
+        existingCategoryIds={summary?.categories?.map((c) => c.categoryId) ?? []}
+        existingCategoryNames={summary?.categories?.map((c) => c.categoryName) ?? []}
       />
     </div>
   )

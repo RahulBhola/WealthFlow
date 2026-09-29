@@ -66,6 +66,8 @@ describe('BudgetsPage and Category Spending Limits', () => {
     vi.mocked(categoriesApi.getCategories).mockResolvedValue([
       { id: 'cat-1', name: 'Groceries', isSystem: true },
       { id: 'cat-2', name: 'Dining & Restaurants', isSystem: true },
+      { id: 'cat-3', name: 'Shopping', isSystem: true },
+      { id: 'cat-4', name: 'Healthcare', isSystem: true },
     ])
   })
 
@@ -96,5 +98,28 @@ describe('BudgetsPage and Category Spending Limits', () => {
     await waitFor(() => {
       expect(screen.getByText('Set Category Budget', { selector: 'h2' })).toBeInTheDocument()
     })
+  })
+
+  it('excludes categories that are already budgeted on the board from the dropdown', async () => {
+    render(<BudgetsPage />)
+
+    await waitFor(() => {
+      expect(screen.getByText('Groceries')).toBeInTheDocument()
+    })
+
+    const setBtn = screen.getByRole('button', { name: /set category budget/i })
+    fireEvent.click(setBtn)
+
+    await waitFor(() => {
+      expect(screen.getByText('Set Category Budget', { selector: 'h2' })).toBeInTheDocument()
+    })
+
+    // Groceries (cat-1) and Dining & Restaurants (cat-2) should NOT be in the select options
+    expect(screen.queryByRole('option', { name: 'Groceries' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('option', { name: 'Dining & Restaurants' })).not.toBeInTheDocument()
+
+    // Unbudgeted categories should be present
+    expect(screen.getByRole('option', { name: 'Shopping' })).toBeInTheDocument()
+    expect(screen.getByRole('option', { name: 'Healthcare' })).toBeInTheDocument()
   })
 })

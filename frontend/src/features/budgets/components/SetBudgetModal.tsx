@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { X, Sparkles } from 'lucide-react'
 import { FormField } from '@/components/ui/FormField'
 import { Input } from '@/components/ui/Input'
@@ -16,6 +16,8 @@ export interface SetBudgetModalProps {
   initialLimit?: number
   categoryName?: string
   isLoading?: boolean
+  existingCategoryIds?: string[]
+  existingCategoryNames?: string[]
 }
 
 export const SetBudgetModal: React.FC<SetBudgetModalProps> = ({
@@ -26,6 +28,8 @@ export const SetBudgetModal: React.FC<SetBudgetModalProps> = ({
   initialLimit,
   categoryName,
   isLoading = false,
+  existingCategoryIds = [],
+  existingCategoryNames = [],
 }) => {
   const { symbol, currency } = useCurrency()
   const [categories, setCategories] = useState<CategoryDto[]>([])
@@ -38,6 +42,47 @@ export const SetBudgetModal: React.FC<SetBudgetModalProps> = ({
   })
   const [loadingCategories, setLoadingCategories] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const existingIdSet = useMemo(() => new Set(existingCategoryIds || []), [existingCategoryIds])
+  const existingNameSet = useMemo(
+    () => new Set((existingCategoryNames || []).map((n) => n.trim().toLowerCase())),
+    [existingCategoryNames]
+  )
+
+  const availableCategories = useMemo(() => {
+    return categories.filter((cat) => {
+      // If editing an existing budget, allow this category
+      if (initialCategoryId && cat.id === initialCategoryId) {
+        return true
+      }
+      // Exclude categories already added to the board
+      if (existingIdSet.has(cat.id)) {
+        return false
+      }
+      if (existingNameSet.has(cat.name.trim().toLowerCase())) {
+        return false
+      }
+      // Filter out non-expense system categories
+      const lower = cat.name.trim().toLowerCase()
+      if (lower === 'income' || lower === 'transfers' || lower === 'transfer') {
+        return false
+      }
+      return true
+    })
+  }, [categories, existingIdSet, existingNameSet, initialCategoryId])
+
+  // Synchronize categoryId selection whenever availableCategories changes
+  useEffect(() => {
+    if (!initialCategoryId) {
+      if (availableCategories.length > 0) {
+        if (!categoryId || !availableCategories.some((c) => c.id === categoryId)) {
+          setCategoryId(availableCategories[0].id)
+        }
+      } else {
+        setCategoryId('')
+      }
+    }
+  }, [availableCategories, categoryId, initialCategoryId])
 
   useEffect(() => {
     if (isOpen) {
@@ -57,9 +102,6 @@ export const SetBudgetModal: React.FC<SetBudgetModalProps> = ({
           const list = await categoriesApi.getCategories()
           if (!ignore) {
             setCategories(list)
-            if (!initialCategoryId && list.length > 0) {
-              setCategoryId(list[0].id)
-            }
           }
         } catch (err) {
           console.error('Failed to load categories:', err)
@@ -73,7 +115,7 @@ export const SetBudgetModal: React.FC<SetBudgetModalProps> = ({
         ignore = true
       }
     }
-  }, [isOpen, initialCategoryId, initialLimit])
+  }, [isOpen, initialCategoryId, initialLimit, currency])
 
   if (!isOpen) return null
 
@@ -82,7 +124,11 @@ export const SetBudgetModal: React.FC<SetBudgetModalProps> = ({
     const limitNum = parseFloat(monthlyLimit)
 
     if (!categoryId) {
-      setError('Please select a category.')
+      setError(
+        availableCategories.length === 0
+          ? 'All categories already have an active budget.'
+          : 'Please select a category.'
+      )
       return
     }
 
@@ -159,19 +205,23 @@ export const SetBudgetModal: React.FC<SetBudgetModalProps> = ({
                 />
                 {categoryName}
               </div>
-            ) : (
+            ) : availableCategories.length > 0 ? (
               <select
                 value={categoryId}
                 onChange={(e) => setCategoryId(e.target.value)}
                 disabled={loadingCategories || Boolean(initialCategoryId)}
-                className="w-full h-10 px-3 py-2 text-sm bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                className="w-full h-10 px-3 py-2 text-sm bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 cursor-pointer"
               >
-                {categories.map((cat) => (
+                {availableCategories.map((cat) => (
                   <option key={cat.id} value={cat.id}>
                     {cat.name}
                   </option>
                 ))}
               </select>
+            ) : (
+              <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 text-xs text-amber-800 dark:text-amber-300">
+                All expense categories already have an active budget on the board. You can adjust any category limit directly using &quot;Adjust Limit&quot; on its envelope card.
+              </div>
             )}
           </FormField>
 
@@ -220,7 +270,12 @@ export const SetBudgetModal: React.FC<SetBudgetModalProps> = ({
             <Button type="button" variant="outline" onClick={onClose} disabled={isLoading}>
               Cancel
             </Button>
-            <Button type="submit" variant="primary" isLoading={isLoading}>
+            <Button
+              type="submit"
+              variant="primary"
+              isLoading={isLoading}
+              disabled={!initialCategoryId && availableCategories.length === 0}
+            >
               {initialCategoryId ? 'Update Budget' : 'Save Budget'}
             </Button>
           </div>
