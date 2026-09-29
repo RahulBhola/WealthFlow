@@ -20,4 +20,10 @@ export const budgetsApi = {
   async getBudgets(): Promise<unknown[]> {
     return apiClient<unknown[]>('/api/v1/budgets')
   },
+
+  async deleteBudget(id: string): Promise<void> {
+    return apiClient<void>(`/api/v1/budgets/${id}`, {
+      method: 'DELETE',
+    })
+  },
 }

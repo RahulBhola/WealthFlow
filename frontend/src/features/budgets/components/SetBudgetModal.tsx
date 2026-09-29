@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react'
-import { X, Sparkles } from 'lucide-react'
+import { X, Sparkles, Trash2 } from 'lucide-react'
 import { FormField } from '@/components/ui/FormField'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
@@ -13,11 +13,13 @@ export interface SetBudgetModalProps {
   onClose: () => void
   onSubmit: (payload: CreateBudgetPayload) => Promise<void>
   initialCategoryId?: string
+  initialBudgetId?: string
   initialLimit?: number
   categoryName?: string
   isLoading?: boolean
   existingCategoryIds?: string[]
   existingCategoryNames?: string[]
+  onDelete?: (budgetId: string) => Promise<void>
 }
 
 export const SetBudgetModal: React.FC<SetBudgetModalProps> = ({
@@ -25,11 +27,13 @@ export const SetBudgetModal: React.FC<SetBudgetModalProps> = ({
   onClose,
   onSubmit,
   initialCategoryId,
+  initialBudgetId,
   initialLimit,
   categoryName,
   isLoading = false,
   existingCategoryIds = [],
   existingCategoryNames = [],
+  onDelete,
 }) => {
   const { symbol, currency } = useCurrency()
   const [categories, setCategories] = useState<CategoryDto[]>([])
@@ -266,18 +270,38 @@ export const SetBudgetModal: React.FC<SetBudgetModalProps> = ({
           </div>
 
           {/* Footer */}
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
-            <Button type="button" variant="outline" onClick={onClose} disabled={isLoading}>
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              variant="primary"
-              isLoading={isLoading}
-              disabled={!initialCategoryId && availableCategories.length === 0}
-            >
-              {initialCategoryId ? 'Update Budget' : 'Save Budget'}
-            </Button>
+          <div className="flex items-center justify-between gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+            {initialBudgetId && onDelete ? (
+              <button
+                type="button"
+                onClick={async () => {
+                  if (window.confirm(`Are you sure you want to remove the budget for ${categoryName || 'this category'}?`)) {
+                    await onDelete(initialBudgetId)
+                    onClose()
+                  }
+                }}
+                disabled={isLoading}
+                className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Remove Budget</span>
+              </button>
+            ) : (
+              <div />
+            )}
+            <div className="flex items-center gap-3">
+              <Button type="button" variant="outline" onClick={onClose} disabled={isLoading}>
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                variant="primary"
+                isLoading={isLoading}
+                disabled={!initialCategoryId && availableCategories.length === 0}
+              >
+                {initialCategoryId ? 'Update Budget' : 'Save Budget'}
+              </Button>
+            </div>
           </div>
         </form>
       </div>

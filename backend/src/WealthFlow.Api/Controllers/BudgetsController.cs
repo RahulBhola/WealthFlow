@@ -97,4 +97,23 @@ public class BudgetsController : ControllerBase
             return NotFound(new { message = ex.Message });
         }
     }
+
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken = default)
+    {
+        if (_currentUserService.UserId == null)
+        {
+            return Unauthorized();
+        }
+
+        try
+        {
+            await _budgetService.DeleteBudgetAsync(_currentUserService.UserId.Value, id, cancellationToken);
+            return NoContent();
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
 }

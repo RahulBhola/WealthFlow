@@ -10,6 +10,7 @@ vi.mock('./api/budgetsApi', () => ({
     getBudgetSummary: vi.fn(),
     createOrUpdateBudget: vi.fn(),
     getBudgets: vi.fn(),
+    deleteBudget: vi.fn(),
   },
 }))
 
@@ -121,5 +122,22 @@ describe('BudgetsPage and Category Spending Limits', () => {
     // Unbudgeted categories should be present
     expect(screen.getByRole('option', { name: 'Shopping' })).toBeInTheDocument()
     expect(screen.getByRole('option', { name: 'Healthcare' })).toBeInTheDocument()
+  })
+
+  it('removes a budget when clicking the delete button on an envelope card', async () => {
+    vi.spyOn(window, 'confirm').mockReturnValue(true)
+    vi.mocked(budgetsApi.deleteBudget).mockResolvedValue(undefined)
+
+    render(<BudgetsPage />)
+
+    await waitFor(() => {
+      expect(screen.getByText('Groceries')).toBeInTheDocument()
+    })
+
+    const deleteBtn = screen.getByLabelText('Remove Groceries budget')
+    fireEvent.click(deleteBtn)
+
+    expect(window.confirm).toHaveBeenCalledWith(expect.stringContaining('Groceries'))
+    expect(budgetsApi.deleteBudget).toHaveBeenCalledWith('b-1')
   })
 })

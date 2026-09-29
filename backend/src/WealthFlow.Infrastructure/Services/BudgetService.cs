@@ -202,6 +202,21 @@ public class BudgetService : IBudgetService
         );
     }
 
+    public async Task DeleteBudgetAsync(
+        Guid userId,
+        Guid budgetId,
+        CancellationToken cancellationToken = default)
+    {
+        var budget = await _unitOfWork.Budgets.GetByIdAsync(budgetId, cancellationToken);
+        if (budget == null || budget.UserId != userId)
+        {
+            throw new KeyNotFoundException($"Budget with ID {budgetId} was not found.");
+        }
+
+        await _unitOfWork.Budgets.DeleteAsync(budget, cancellationToken);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+    }
+
     private static BudgetPeriod ParsePeriod(string? periodStr)
     {
         if (Enum.TryParse<BudgetPeriod>(periodStr, ignoreCase: true, out var period))

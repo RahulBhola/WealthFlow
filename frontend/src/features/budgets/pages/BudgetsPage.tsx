@@ -11,6 +11,7 @@ import {
   Calendar,
   Sparkles,
   Sliders,
+  Trash2,
 } from 'lucide-react'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { MetricCard } from '@/components/layout/MetricCard'
@@ -102,9 +103,11 @@ export const BudgetsPage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingCategory, setEditingCategory] = useState<{
     id: string
+    budgetId?: string
     name: string
     limit: number
   } | null>(null)
+  const [isDeletingId, setIsDeletingId] = useState<string | null>(null)
 
   const loadData = useCallback(async () => {
     try {
@@ -149,6 +152,7 @@ export const BudgetsPage: React.FC = () => {
     if (category) {
       setEditingCategory({
         id: category.categoryId,
+        budgetId: category.budgetId,
         name: category.categoryName,
         limit: category.monthlyLimit,
       })
@@ -156,6 +160,21 @@ export const BudgetsPage: React.FC = () => {
       setEditingCategory(null)
     }
     setIsModalOpen(true)
+  }
+
+  const handleDeleteBudget = async (budgetId: string, categoryName: string) => {
+    if (window.confirm(`Are you sure you want to remove the monthly spending limit for ${categoryName}?`)) {
+      try {
+        setIsDeletingId(budgetId)
+        await budgetsApi.deleteBudget(budgetId)
+        await loadData()
+      } catch (err) {
+        console.error('Failed to remove budget:', err)
+        alert('Failed to remove budget envelope. Please try again.')
+      } finally {
+        setIsDeletingId(null)
+      }
+    }
   }
 
   const handleSaveBudget = async (payload: CreateBudgetPayload) => {
@@ -410,14 +429,28 @@ export const BudgetsPage: React.FC = () => {
                       )}
                     </span>
 
-                    <button
-                      type="button"
-                      onClick={() => handleOpenSetBudget(item)}
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/60 border border-transparent hover:border-indigo-200 dark:hover:border-indigo-800/50 transition-all cursor-pointer"
-                    >
-                      <Sliders className="w-3.5 h-3.5 shrink-0" />
-                      <span>Adjust Limit</span>
-                    </button>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => handleOpenSetBudget(item)}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/60 border border-transparent hover:border-indigo-200 dark:hover:border-indigo-800/50 transition-all cursor-pointer"
+                        title="Adjust envelope spending limit"
+                      >
+                        <Sliders className="w-3.5 h-3.5 shrink-0" />
+                        <span>Adjust Limit</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteBudget(item.budgetId, item.categoryName)}
+                        disabled={isDeletingId === item.budgetId}
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/50 transition-colors cursor-pointer disabled:opacity-50"
+                        title={`Remove ${item.categoryName} budget`}
+                        aria-label={`Remove ${item.categoryName} budget`}
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -431,7 +464,9 @@ export const BudgetsPage: React.FC = () => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSubmit={handleSaveBudget}
+        onDelete={(budgetId) => handleDeleteBudget(budgetId, editingCategory?.name || 'this category')}
         initialCategoryId={editingCategory?.id}
+        initialBudgetId={editingCategory?.budgetId}
         initialLimit={editingCategory?.limit}
         categoryName={editingCategory?.name}
         existingCategoryIds={summary?.categories?.map((c) => c.categoryId) ?? []}
