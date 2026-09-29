@@ -20,6 +20,8 @@ import {
   Loader2,
   Ban,
   Pencil,
+  Lock,
+  ShieldCheck,
 } from 'lucide-react'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { MetricCard } from '@/components/layout/MetricCard'
@@ -315,9 +317,15 @@ export const LedgerPage: React.FC = () => {
       .filter((a) => a.accountType !== 'CreditCard')
       .reduce((sum, a) => sum + a.currentBalance, 0)
 
+    const totalBlocked = accounts
+      .filter((a) => a.accountType !== 'CreditCard')
+      .reduce((sum, a) => sum + (a.blockedBalance || 0), 0)
+
+    const totalAvailable = Math.max(0, totalLiquid - totalBlocked)
+
     const totalCardDebt = cards.reduce((sum, a) => sum + (a.currentBalance < 0 ? Math.abs(a.currentBalance) : 0), 0)
 
-    return { banks, cards, wallets, totalLiquid, totalCardDebt }
+    return { banks, cards, wallets, totalLiquid, totalBlocked, totalAvailable, totalCardDebt }
   }, [accounts])
 
   const isCurrentMonth =
@@ -445,102 +453,244 @@ export const LedgerPage: React.FC = () => {
         </div>
       )}
 
-      {/* Tier 1.5: Account Standings Strip (Live Bank Balances & Credit Card Standings) */}
-      {accounts.length > 0 && (
-        <div className="p-3.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs">
-          <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-wider text-[11px] shrink-0">
-            <Landmark className="w-4 h-4 text-indigo-500" />
-            <span>Account Standings:</span>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2.5">
-            {/* Banks & Cash Accounts */}
-            {accountBreakdown.banks.map((acc) => (
-              <div
-                key={acc.id}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 font-medium"
-              >
-                <span
-                  className="w-2.5 h-2.5 rounded-full"
-                  style={{ backgroundColor: acc.colorTag || '#3B82F6' }}
-                />
-                <span className="text-slate-700 dark:text-slate-200">{acc.name}:</span>
-                <span className="font-mono font-bold text-slate-900 dark:text-white tabular-nums">
-                  {formatINR(acc.currentBalance)}
-                </span>
-                {acc.blockedBalance && acc.blockedBalance > 0 ? (
-                  <span className="text-[10px] text-amber-600 dark:text-amber-400 font-normal">
-                    (Avail: {formatINR(acc.availableBalance ?? (acc.currentBalance - acc.blockedBalance))} | {formatINR(acc.blockedBalance)} hold)
-                  </span>
-                ) : null}
-              </div>
-            ))}
-
-            {/* Cash / Wallets */}
-            {accountBreakdown.wallets.map((acc) => (
-              <div
-                key={acc.id}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 font-medium"
-              >
-                <Wallet className="w-3.5 h-3.5 text-emerald-500" />
-                <span className="text-slate-700 dark:text-slate-200">{acc.name}:</span>
-                <span className="font-mono font-bold text-slate-900 dark:text-white tabular-nums">
-                  {formatINR(acc.currentBalance)}
-                </span>
-              </div>
-            ))}
-
-            {/* Credit Cards */}
-            {accountBreakdown.cards.map((acc) => (
-              <div
-                key={acc.id}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-50/50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900/40 font-medium text-rose-700 dark:text-rose-300"
-              >
-                <CreditCardIcon className="w-3.5 h-3.5 text-rose-500" />
-                <span>{acc.name}:</span>
-                <span className="font-mono font-bold tabular-nums">
-                  {formatINR(Math.abs(acc.currentBalance))}
-                </span>
-              </div>
-            ))}
-
-            {/* Net Liquid Summary */}
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-900 font-semibold text-indigo-700 dark:text-indigo-300 ml-auto">
-              <span>Total Liquid:</span>
-              <span className="font-mono font-bold tabular-nums">
-                {formatINR(accountBreakdown.totalLiquid)}
-              </span>
+      {/* Tier 1.5: 4-Card Primary Liquidity, Pending Hold, & Outflows Strip */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
+        {/* 1. Total Liquid Balance */}
+        <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between space-y-3 hover:border-indigo-400 dark:hover:border-indigo-600 transition-colors">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+              Total Liquid Funds
+            </span>
+            <div className="p-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400">
+              <Landmark className="w-4 h-4" />
             </div>
           </div>
+          <div>
+            <div className="text-xl sm:text-2xl font-bold font-mono tabular-nums text-slate-900 dark:text-white tracking-tight">
+              {formatINR(accountBreakdown.totalLiquid)}
+            </div>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+              Combined Bank & Cash Deposits
+            </p>
+          </div>
         </div>
-      )}
 
-      {/* Tier 2: 4-Card Metric Strip (Dynamically Calculated for Selected Month) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
-        <MetricCard
-          label="Total Monthly Inflows"
-          value={formatINR(summary?.totalInflows ?? 0)}
-          icon={<TrendingUp className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />}
-          subtext={`Inflows in ${isMonthlyView ? MONTH_NAMES[selectedMonth - 1] : 'All Time'}`}
-        />
+        {/* 2. Pending Money on Hold (ASBA / IPO Lien) */}
+        <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-amber-200 dark:border-amber-900/60 shadow-sm flex flex-col justify-between space-y-3 hover:border-amber-400 transition-colors">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-amber-600 dark:text-amber-400 uppercase tracking-wider flex items-center gap-1">
+              <span>Pending on Hold</span>
+              <span className="px-1.5 py-0.5 rounded text-[9px] bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300 font-bold">
+                ASBA
+              </span>
+            </span>
+            <div className="p-2 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400">
+              <Lock className="w-4 h-4" />
+            </div>
+          </div>
+          <div>
+            <div className="text-xl sm:text-2xl font-bold font-mono tabular-nums text-amber-600 dark:text-amber-400 tracking-tight">
+              {formatINR(accountBreakdown.totalBlocked)}
+            </div>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+              Active IPO Mandates Blocked in Bank
+            </p>
+          </div>
+        </div>
+
+        {/* 3. Available to Spend (Free Balance) */}
+        <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between space-y-3 hover:border-emerald-400 dark:hover:border-emerald-600 transition-colors">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
+              Available to Spend
+            </span>
+            <div className="p-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400">
+              <ShieldCheck className="w-4 h-4" />
+            </div>
+          </div>
+          <div>
+            <div className="text-xl sm:text-2xl font-bold font-mono tabular-nums text-emerald-600 dark:text-emerald-400 tracking-tight">
+              {formatINR(accountBreakdown.totalAvailable)}
+            </div>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+              Unencumbered Free Cash Balance
+            </p>
+          </div>
+        </div>
+
+        {/* 4. Total Monthly Outflows (How Much Spent) */}
         <MetricCard
           label="Total Monthly Outflows"
           value={formatINR(summary?.totalOutflows ?? 0)}
           icon={<TrendingDown className="w-4 h-4 text-rose-600 dark:text-rose-400" />}
           subtext={`Expenditures in ${isMonthlyView ? MONTH_NAMES[selectedMonth - 1] : 'All Time'}`}
         />
-        <MetricCard
-          label="Net Cash Flow"
-          value={formatINR(summary?.netCashFlow ?? 0)}
-          icon={<ReceiptText className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />}
-          subtext={(summary?.netCashFlow ?? 0) >= 0 ? 'Positive savings rate' : 'Deficit burn'}
-        />
-        <MetricCard
-          label="Total Transactions"
-          value={(summary?.totalCount ?? 0).toString()}
-          icon={<ArrowRightLeft className="w-4 h-4 text-sky-600 dark:text-sky-400" />}
-          subtext={`${totalCount} matching active filters`}
-        />
+      </div>
+
+      {/* Tier 2: Account Statement & Depository Standings Card */}
+      <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-3.5">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-3">
+          <div className="flex items-center gap-2 text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider">
+            <Landmark className="w-4 h-4 text-indigo-500" />
+            <span>Live Account Standings</span>
+            <span className="text-[11px] font-normal text-slate-400 normal-case">
+              (Click any card to filter ledger)
+            </span>
+          </div>
+
+          {/* Monthly Inflows, Net Cash Flow, and Transactions Secondary Badges */}
+          <div className="flex flex-wrap items-center gap-2.5 text-xs font-mono">
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/60">
+              <TrendingUp className="w-3.5 h-3.5" />
+              <span className="text-[10px] font-sans font-medium uppercase text-emerald-800 dark:text-emerald-300">Total Monthly Inflows</span>
+              <span className="font-bold">{formatINR(summary?.totalInflows ?? 0)}</span>
+            </div>
+
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800/60">
+              <ReceiptText className="w-3.5 h-3.5" />
+              <span className="text-[10px] font-sans font-medium uppercase text-indigo-800 dark:text-indigo-300">Net Cash Flow</span>
+              <span className="font-bold">{formatINR(summary?.netCashFlow ?? 0)}</span>
+            </div>
+
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700/60 font-sans text-xs">
+              <ArrowRightLeft className="w-3.5 h-3.5 text-sky-500" />
+              <span className="font-bold font-mono">{summary?.totalCount ?? 0}</span>
+              <span className="text-slate-500 text-[10px]">txns</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Account Cards Grid */}
+        {accounts.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {/* Banks & Savings Accounts */}
+            {accountBreakdown.banks.map((acc) => {
+              const isSelected = selectedAccount === acc.id
+              const hasHold = acc.blockedBalance && acc.blockedBalance > 0
+              const avail = acc.availableBalance ?? (acc.currentBalance - (acc.blockedBalance || 0))
+
+              return (
+                <button
+                  type="button"
+                  key={acc.id}
+                  onClick={() => setSelectedAccount(isSelected ? '' : acc.id)}
+                  className={`p-3.5 rounded-xl border text-left transition-all ${
+                    isSelected
+                      ? 'border-indigo-500 bg-indigo-50/40 dark:bg-indigo-950/30 ring-2 ring-indigo-500/20'
+                      : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 bg-slate-50/50 dark:bg-slate-800/40'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <span
+                        className="w-2.5 h-2.5 rounded-full"
+                        style={{ backgroundColor: acc.colorTag || '#3B82F6' }}
+                      />
+                      <span className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                        {acc.name}
+                      </span>
+                      {acc.accountNumberMask && (
+                        <span className="text-[10px] font-mono text-slate-400">
+                          {acc.accountNumberMask}
+                        </span>
+                      )}
+                    </div>
+                    {isSelected ? (
+                      <Badge variant="indigo" size="sm">Filtered</Badge>
+                    ) : (
+                      <span className="text-[10px] uppercase font-semibold text-slate-400">
+                        {acc.accountType}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex items-baseline justify-between">
+                    <div>
+                      <span className="text-[10px] uppercase font-semibold text-slate-400 block">Total Balance</span>
+                      <span className="text-lg font-extrabold font-mono text-slate-900 dark:text-white tabular-nums">
+                        {formatINR(acc.currentBalance)}
+                      </span>
+                    </div>
+
+                    {hasHold ? (
+                      <div className="text-right">
+                        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-700 dark:text-amber-400 bg-amber-100 dark:bg-amber-950/80 px-2 py-0.5 rounded-md">
+                          <Lock className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+                          <span>{formatINR(acc.blockedBalance!)} hold</span>
+                        </span>
+                        <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium mt-0.5">
+                          Avail: {formatINR(avail)}
+                        </div>
+                      </div>
+                    ) : (
+                      <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-md">
+                        100% Available
+                      </span>
+                    )}
+                  </div>
+                </button>
+              )
+            })}
+
+            {/* Cash / Wallets */}
+            {accountBreakdown.wallets.map((acc) => {
+              const isSelected = selectedAccount === acc.id
+              return (
+                <button
+                  type="button"
+                  key={acc.id}
+                  onClick={() => setSelectedAccount(isSelected ? '' : acc.id)}
+                  className={`p-3.5 rounded-xl border text-left transition-all ${
+                    isSelected
+                      ? 'border-indigo-500 bg-indigo-50/40 dark:bg-indigo-950/30 ring-2 ring-indigo-500/20'
+                      : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 bg-slate-50/50 dark:bg-slate-800/40'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <Wallet className="w-4 h-4 text-emerald-500" />
+                      <span className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                        {acc.name}
+                      </span>
+                    </div>
+                    {isSelected && (
+                      <Badge variant="indigo" size="sm">Filtered</Badge>
+                    )}
+                  </div>
+                  <div>
+                    <span className="text-[10px] uppercase font-semibold text-slate-400 block">Cash Reserve</span>
+                    <span className="text-lg font-extrabold font-mono text-slate-900 dark:text-white tabular-nums">
+                      {formatINR(acc.currentBalance)}
+                    </span>
+                  </div>
+                </button>
+              )
+            })}
+
+            {/* Credit Cards (if any) */}
+            {accountBreakdown.cards.map((acc) => (
+              <div
+                key={acc.id}
+                className="p-3.5 rounded-xl border border-rose-200 dark:border-rose-900/40 bg-rose-50/30 dark:bg-rose-950/20"
+              >
+                <div className="flex items-center gap-2 mb-2 text-rose-600 dark:text-rose-400">
+                  <CreditCardIcon className="w-4 h-4" />
+                  <span className="text-sm font-bold">{acc.name}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] uppercase font-semibold text-rose-400 block">Outstanding Due</span>
+                  <span className="text-lg font-extrabold font-mono text-rose-600 dark:text-rose-400 tabular-nums">
+                    {formatINR(Math.abs(acc.currentBalance))}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="py-2 text-xs text-slate-400">
+            No accounts configured or loading balance standings...
+          </div>
+        )}
       </div>
 
       {/* Tier 3: Search & Filter Toolbar */}
