@@ -69,18 +69,19 @@ export const InvestmentsPage: React.FC = () => {
   const loadData = useCallback(async () => {
     try {
       setIsLoading(true)
-      const [invSummary, sipList, jointSum, recList, ipoList] = await Promise.all([
+      const [invSummaryRes, sipsRes, jointSumRes, recListRes, ipoListRes] = await Promise.allSettled([
         investmentsApi.getInvestmentSummary(),
         investmentsApi.getSips(),
         investmentsApi.getJointSipSummary(),
         investmentsApi.getReconciliations(),
         investmentsApi.getIpoApplications(),
       ])
-      setSummary(invSummary)
-      setSips(sipList)
-      setJointSummary(jointSum)
-      setReconciliations(recList)
-      setIpoApplications(ipoList)
+
+      if (invSummaryRes.status === 'fulfilled') setSummary(invSummaryRes.value)
+      if (sipsRes.status === 'fulfilled') setSips(sipsRes.value)
+      if (jointSumRes.status === 'fulfilled') setJointSummary(jointSumRes.value)
+      if (recListRes.status === 'fulfilled') setReconciliations(recListRes.value)
+      if (ipoListRes.status === 'fulfilled') setIpoApplications(ipoListRes.value)
     } catch (err) {
       console.error('Failed to load investments, SIP, and IPO data:', err)
     } finally {
@@ -92,19 +93,20 @@ export const InvestmentsPage: React.FC = () => {
     let ignore = false
     async function init() {
       try {
-        const [invSummary, sipList, jointSum, recList, ipoList] = await Promise.all([
+        const [invSummaryRes, sipsRes, jointSumRes, recListRes, ipoListRes] = await Promise.allSettled([
           investmentsApi.getInvestmentSummary(),
           investmentsApi.getSips(),
           investmentsApi.getJointSipSummary(),
           investmentsApi.getReconciliations(),
           investmentsApi.getIpoApplications(),
         ])
+
         if (!ignore) {
-          setSummary(invSummary)
-          setSips(sipList)
-          setJointSummary(jointSum)
-          setReconciliations(recList)
-          setIpoApplications(ipoList)
+          if (invSummaryRes.status === 'fulfilled') setSummary(invSummaryRes.value)
+          if (sipsRes.status === 'fulfilled') setSips(sipsRes.value)
+          if (jointSumRes.status === 'fulfilled') setJointSummary(jointSumRes.value)
+          if (recListRes.status === 'fulfilled') setReconciliations(recListRes.value)
+          if (ipoListRes.status === 'fulfilled') setIpoApplications(ipoListRes.value)
         }
       } catch (err) {
         console.error('Failed to load investments data:', err)

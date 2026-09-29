@@ -232,6 +232,33 @@ public class InvestmentsController : ControllerBase
         return Ok(summary);
     }
 
+    [HttpGet("joint-sips/reconciliations")]
+    public async Task<IActionResult> GetReconciliations(
+        [FromQuery] Guid? sipId = null,
+        [FromQuery] bool? pendingOnly = null,
+        CancellationToken cancellationToken = default)
+    {
+        if (_currentUserService.UserId == null)
+        {
+            return Unauthorized();
+        }
+
+        var summary = await _investmentService.GetJointSipsSummaryAsync(_currentUserService.UserId.Value, cancellationToken);
+        var allRecons = summary.JointSips.SelectMany(s => s.Reconciliations).ToList();
+
+        if (sipId.HasValue)
+        {
+            allRecons = allRecons.Where(r => r.SIPId == sipId.Value).ToList();
+        }
+
+        if (pendingOnly == true)
+        {
+            allRecons = allRecons.Where(r => r.SettlementStatus != "Settled").ToList();
+        }
+
+        return Ok(allRecons);
+    }
+
     [HttpGet("joint-sips/{id:guid}")]
     public async Task<IActionResult> GetJointSipDetail(Guid id, CancellationToken cancellationToken = default)
     {

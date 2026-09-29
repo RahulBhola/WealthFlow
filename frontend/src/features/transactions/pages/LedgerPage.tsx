@@ -143,7 +143,12 @@ export const LedgerPage: React.FC = () => {
     let ignore = false
     async function init() {
       try {
-        const eventTypeParam = selectedType === 'All' ? undefined : selectedType
+        const eventTypeParam =
+          selectedType === 'All'
+            ? undefined
+            : selectedType === 'IPO Hold'
+            ? 'IpoApplication'
+            : selectedType
         const [txResult, sumResult, bSummary, accList] = await Promise.all([
           transactionsApi.getTransactions({
             page,
