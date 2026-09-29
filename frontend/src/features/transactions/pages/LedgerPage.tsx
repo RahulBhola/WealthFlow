@@ -475,13 +475,13 @@ export const LedgerPage: React.FC = () => {
           </div>
         </div>
 
-        {/* 2. Pending Money on Hold (ASBA / IPO Lien) */}
+        {/* 2. Pending Money on Hold (IPO Application Hold) */}
         <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-amber-200 dark:border-amber-900/60 shadow-sm flex flex-col justify-between space-y-3 hover:border-amber-400 transition-colors">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-amber-600 dark:text-amber-400 uppercase tracking-wider flex items-center gap-1">
+            <span className="text-xs font-semibold text-amber-600 dark:text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
               <span>Pending on Hold</span>
               <span className="px-1.5 py-0.5 rounded text-[9px] bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300 font-bold">
-                ASBA
+                IPO Hold
               </span>
             </span>
             <div className="p-2 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400">
@@ -493,7 +493,7 @@ export const LedgerPage: React.FC = () => {
               {formatINR(accountBreakdown.totalBlocked)}
             </div>
             <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
-              Active IPO Mandates Blocked in Bank
+              Active IPO Applications (Funds on Hold in Bank)
             </p>
           </div>
         </div>
@@ -864,7 +864,7 @@ export const LedgerPage: React.FC = () => {
                               {isIpo ? (
                                 isIpoBlocked ? (
                                   <Badge variant="amber" size="sm" className="bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border-amber-200">
-                                    ASBA Hold
+                                    IPO Hold
                                   </Badge>
                                 ) : isIpoReleased ? (
                                   <Badge variant="slate" size="sm" className="line-through decoration-1 decoration-slate-400 text-slate-400 dark:text-slate-500">

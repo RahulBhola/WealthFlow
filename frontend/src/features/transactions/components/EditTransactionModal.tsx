@@ -264,14 +264,14 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
             </div>
           )}
 
-          {/* ASBA Mandate Info Banner */}
+          {/* IPO Mandate Info Banner */}
           {activeTab === 'IpoApplication' && (
             <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 flex items-start gap-2.5 text-xs text-amber-800 dark:text-amber-300">
               <Info className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
               <div>
-                <p className="font-semibold">ASBA Lien / Fund Block</p>
+                <p className="font-semibold">IPO Application (Funds Kept on Hold in Bank)</p>
                 <p className="text-[11px] text-amber-700 dark:text-amber-400 mt-0.5">
-                  Funds will be placed on hold in your bank account under ASBA mandate. Balance will not be debited until allotment is approved.
+                  Funds will be temporarily placed on hold in your bank account for this IPO bid. Balance will not be debited until allotment is approved.
                 </p>
               </div>
             </div>
@@ -353,7 +353,7 @@ export const EditTransactionModal: React.FC<EditTransactionModalProps> = ({
                     disabled={isSubmitting}
                     className="w-full h-10 px-3 py-2 text-sm bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 disabled:opacity-60"
                   >
-                    <option value="Blocked">ASBA Hold (Active Lien)</option>
+                    <option value="Blocked">IPO On Hold (Funds Blocked in Bank)</option>
                     <option value="Allotted">Allotted (Debited & Added to Portfolio)</option>
                     <option value="Released">Released (Not Allotted - ₹0 Debited)</option>
                   </select>

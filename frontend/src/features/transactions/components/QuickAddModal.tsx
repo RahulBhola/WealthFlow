@@ -238,21 +238,21 @@ export const QuickAddModal: React.FC<QuickAddModalProps> = ({
             </div>
           )}
 
-          {/* ASBA Mandate Info Banner */}
+          {/* IPO Mandate Info Banner */}
           {activeTab === 'IpoApplication' && (
             <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 flex items-start gap-2.5 text-xs text-amber-800 dark:text-amber-300">
               <Info className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
               <div>
-                <p className="font-semibold">ASBA Lien / Fund Block</p>
+                <p className="font-semibold">IPO Application (Funds Kept on Hold in Bank)</p>
                 <p className="text-[11px] text-amber-700 dark:text-amber-400 mt-0.5">
-                  Funds will be placed on hold in your bank account under ASBA mandate. Your balance will not be deducted until allotment is confirmed.
+                  Funds will be temporarily placed on hold in your bank account for this IPO bid. Your balance will not be deducted until shares are officially allotted.
                 </p>
               </div>
             </div>
           )}
 
           {/* Amount (MoneyInput) */}
-          <FormField label={activeTab === 'IpoApplication' ? 'Blocked / Hold Amount' : 'Amount'} required>
+          <FormField label={activeTab === 'IpoApplication' ? 'IPO Hold / Bid Amount' : 'Amount'} required>
             <MoneyInput
               value={amount}
               onChange={setAmount}

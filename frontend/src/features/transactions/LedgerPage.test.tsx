@@ -358,8 +358,8 @@ describe('LedgerPage and Transactions UI', () => {
       expect(screen.getByText('Hyundai India IPO Application')).toBeInTheDocument()
     })
 
-    // Check ASBA Hold badge on active IPO
-    expect(screen.getByText('ASBA Hold')).toBeInTheDocument()
+    // Check IPO Hold badge on active IPO
+    expect(screen.getAllByText('IPO Hold').length).toBeGreaterThan(0)
 
     // Check Not Allotted badge on released IPO
     expect(screen.getByText('Not Allotted')).toBeInTheDocument()

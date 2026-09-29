@@ -25,12 +25,21 @@ vi.mock('./api/investmentsApi', () => ({
     getJointSipSummary: vi.fn(),
     getReconciliations: vi.fn(),
     repayReconciliation: vi.fn(),
+    getIpoApplications: vi.fn(),
   },
 }))
 
 vi.mock('@/features/accounts/api/accountsApi', () => ({
   accountsApi: {
     getAccounts: vi.fn(),
+  },
+}))
+
+vi.mock('@/features/transactions/api/transactionsApi', () => ({
+  transactionsApi: {
+    createTransaction: vi.fn(),
+    allotIpo: vi.fn(),
+    releaseIpo: vi.fn(),
   },
 }))
 
@@ -164,6 +173,7 @@ describe('InvestmentsPage and Joint SIP Reconciliation UI', () => {
     vi.mocked(investmentsApi.getSips).mockResolvedValue(mockSips)
     vi.mocked(investmentsApi.getJointSipSummary).mockResolvedValue(mockJointSummary)
     vi.mocked(investmentsApi.getReconciliations).mockResolvedValue(mockReconciliations)
+    vi.mocked(investmentsApi.getIpoApplications).mockResolvedValue([])
     vi.mocked(accountsApi.getAccounts).mockResolvedValue(mockAccounts)
   })
 
@@ -266,5 +276,73 @@ describe('InvestmentsPage and Joint SIP Reconciliation UI', () => {
 
     expect(screen.getByText('Double-Entry Accounting Invariant')).toBeInTheDocument()
     expect(screen.getByPlaceholderText(/Rahul \(Brother\)/i)).toBeInTheDocument()
+  })
+
+  it('renders IPO Applications tab and opens Apply for IPO modal', async () => {
+    render(<InvestmentsPage />)
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Apply for IPO/i })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /IPO Applications/i })).toBeInTheDocument()
+    })
+
+    // Open Apply for IPO modal via header button
+    const applyBtn = screen.getByRole('button', { name: /Apply for IPO/i })
+    fireEvent.click(applyBtn)
+
+    expect(screen.getByText('Apply for New IPO')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText(/Swiggy Limited IPO/i)).toBeInTheDocument()
+    expect(screen.getByText('Bank Fund Hold')).toBeInTheDocument()
+
+    // Close modal
+    const cancelBtn = screen.getByRole('button', { name: /Cancel/i })
+    fireEvent.click(cancelBtn)
+
+    await waitFor(() => {
+      expect(screen.queryByText('Apply for New IPO')).not.toBeInTheDocument()
+    })
+  })
+
+  it('renders active IPO bids and executes allotment into portfolio stocks', async () => {
+    const mockIpos: import('@/features/transactions/types').Transaction[] = [
+      {
+        id: 'ipo-tx-1',
+        userId: 'u1',
+        accountId: 'acc-1',
+        accountName: 'HDFC Salary Bank',
+        amount: 15000,
+        eventType: 'IpoApplication',
+        status: 'Blocked',
+        transactionDate: new Date().toISOString(),
+        description: 'Swiggy Limited IPO',
+        allottedUnits: 50,
+        createdAtUtc: new Date().toISOString(),
+      },
+    ]
+
+    vi.mocked(investmentsApi.getIpoApplications).mockResolvedValue(mockIpos)
+
+    render(<InvestmentsPage />)
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /IPO Applications/i })).toBeInTheDocument()
+    })
+
+    // Switch to IPO Applications tab
+    const ipoTabBtn = screen.getByRole('button', { name: /IPO Applications/i })
+    fireEvent.click(ipoTabBtn)
+
+    await waitFor(() => {
+      expect(screen.getByText('Swiggy Limited IPO')).toBeInTheDocument()
+      expect(screen.getAllByText('Pending Allotment').length).toBeGreaterThan(0)
+      expect(screen.getByRole('button', { name: /Allot Shares/i })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /Release/i })).toBeInTheDocument()
+    })
+
+    // Click Allot Shares button
+    const allotBtn = screen.getByRole('button', { name: /Allot Shares/i })
+    fireEvent.click(allotBtn)
+
+    expect(screen.getByText(/Confirm IPO Allotment/i)).toBeInTheDocument()
   })
 })

@@ -15,6 +15,7 @@ import {
   Landmark,
   Layers,
   Activity,
+  Rocket,
 } from 'lucide-react'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Button } from '@/components/ui/Button'
@@ -26,6 +27,10 @@ import { AddInvestmentModal } from '../components/AddInvestmentModal'
 import { UpdateValuationModal } from '../components/UpdateValuationModal'
 import { AddSipModal } from '../components/AddSipModal'
 import { RecordSipRepaymentModal } from '../components/RecordSipRepaymentModal'
+import { ApplyIpoModal } from '../components/ApplyIpoModal'
+import { IpoApplicationsSection } from '../components/IpoApplicationsSection'
+import { AllotIpoModal } from '@/features/transactions/components/AllotIpoModal'
+import { ReleaseIpoModal } from '@/features/transactions/components/ReleaseIpoModal'
 import { investmentsApi } from '../api/investmentsApi'
 import type {
   Investment,
@@ -34,9 +39,10 @@ import type {
   JointSipSummary,
   JointSipReconciliation,
 } from '../types'
+import type { Transaction } from '@/features/transactions/types'
 import { useCurrency } from '../../../context/CurrencyContext'
 
-type TabType = 'portfolio' | 'sips' | 'reconciliation'
+type TabType = 'portfolio' | 'sips' | 'reconciliation' | 'ipos'
 
 export const InvestmentsPage: React.FC = () => {
   const { formatCurrency } = useCurrency()
@@ -46,6 +52,7 @@ export const InvestmentsPage: React.FC = () => {
   const [sips, setSips] = useState<Sip[]>([])
   const [jointSummary, setJointSummary] = useState<JointSipSummary | null>(null)
   const [reconciliations, setReconciliations] = useState<JointSipReconciliation[]>([])
+  const [ipoApplications, setIpoApplications] = useState<Transaction[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [assetClassFilter, setAssetClassFilter] = useState('All')
@@ -54,24 +61,28 @@ export const InvestmentsPage: React.FC = () => {
   const [isAddInvestmentOpen, setIsAddInvestmentOpen] = useState(false)
   const [addInvestmentInitialClass, setAddInvestmentInitialClass] = useState('Mutual Fund')
   const [isAddSipOpen, setIsAddSipOpen] = useState(false)
+  const [isApplyIpoOpen, setIsApplyIpoOpen] = useState(false)
   const [selectedInvestmentForUpdate, setSelectedInvestmentForUpdate] = useState<Investment | null>(null)
   const [selectedReconciliationForRepay, setSelectedReconciliationForRepay] = useState<JointSipReconciliation | null>(null)
+  const [selectedIpoForAction, setSelectedIpoForAction] = useState<{ tx: Transaction; action: 'allot' | 'release' } | null>(null)
 
   const loadData = useCallback(async () => {
     try {
       setIsLoading(true)
-      const [invSummary, sipList, jointSum, recList] = await Promise.all([
+      const [invSummary, sipList, jointSum, recList, ipoList] = await Promise.all([
         investmentsApi.getInvestmentSummary(),
         investmentsApi.getSips(),
         investmentsApi.getJointSipSummary(),
         investmentsApi.getReconciliations(),
+        investmentsApi.getIpoApplications(),
       ])
       setSummary(invSummary)
       setSips(sipList)
       setJointSummary(jointSum)
       setReconciliations(recList)
+      setIpoApplications(ipoList)
     } catch (err) {
-      console.error('Failed to load investments and SIP data:', err)
+      console.error('Failed to load investments, SIP, and IPO data:', err)
     } finally {
       setIsLoading(false)
     }
@@ -81,17 +92,19 @@ export const InvestmentsPage: React.FC = () => {
     let ignore = false
     async function init() {
       try {
-        const [invSummary, sipList, jointSum, recList] = await Promise.all([
+        const [invSummary, sipList, jointSum, recList, ipoList] = await Promise.all([
           investmentsApi.getInvestmentSummary(),
           investmentsApi.getSips(),
           investmentsApi.getJointSipSummary(),
           investmentsApi.getReconciliations(),
+          investmentsApi.getIpoApplications(),
         ])
         if (!ignore) {
           setSummary(invSummary)
           setSips(sipList)
           setJointSummary(jointSum)
           setReconciliations(recList)
+          setIpoApplications(ipoList)
         }
       } catch (err) {
         console.error('Failed to load investments data:', err)
@@ -149,6 +162,7 @@ export const InvestmentsPage: React.FC = () => {
   })
 
   const pendingReconciliationsCount = reconciliations.filter((r) => r.remainingDue > 0).length
+  const blockedIposCount = ipoApplications.filter((tx) => tx.status === 'Blocked' || !tx.status).length
 
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
@@ -158,6 +172,15 @@ export const InvestmentsPage: React.FC = () => {
         subtitle="Track personal portfolio assets, systematic investment schedules, and bilateral co-funded partner reconciliations."
         actionSlot={
           <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsApplyIpoOpen(true)}
+              leftIcon={<Rocket className="w-3.5 h-3.5 text-amber-400 shrink-0" />}
+              className="text-xs bg-slate-900/60 hover:bg-slate-800 border-slate-700/80 text-amber-300 hover:text-white transition-all shadow-sm"
+            >
+              Apply for IPO
+            </Button>
             <Button
               variant="outline"
               size="sm"
@@ -364,6 +387,24 @@ export const InvestmentsPage: React.FC = () => {
               </span>
             )}
           </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('ipos')}
+            className={`px-3.5 py-2 text-xs font-semibold rounded-xl transition-all flex items-center gap-2 cursor-pointer ${
+              activeTab === 'ipos'
+                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 border border-indigo-500/30'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+            }`}
+          >
+            <Rocket className="w-3.5 h-3.5" />
+            <span>IPO Applications ({ipoApplications.length})</span>
+            {blockedIposCount > 0 && (
+              <span className="ml-1 px-1.5 py-0.2 bg-amber-500/20 text-amber-300 text-[10px] rounded-full font-mono border border-amber-500/30">
+                {blockedIposCount} on hold
+              </span>
+            )}
+          </button>
         </div>
 
         {/* Search & Asset Filter */}
@@ -377,6 +418,8 @@ export const InvestmentsPage: React.FC = () => {
                   ? 'Search assets...'
                   : activeTab === 'sips'
                   ? 'Search SIPs...'
+                  : activeTab === 'ipos'
+                  ? 'Search IPO applications...'
                   : 'Search cycles...'
               }
               value={searchQuery}
@@ -674,7 +717,7 @@ export const InvestmentsPage: React.FC = () => {
             ))}
           </div>
         )
-      ) : (
+      ) : activeTab === 'reconciliation' ? (
         /* Joint SIP Reconciliation Tab */
         <div className="space-y-6">
           {/* Joint SIP Overview Banner */}
@@ -706,6 +749,15 @@ export const InvestmentsPage: React.FC = () => {
             onOpenRepayModal={(rec) => setSelectedReconciliationForRepay(rec)}
           />
         </div>
+      ) : (
+        /* IPO Applications Tab */
+        <IpoApplicationsSection
+          ipos={ipoApplications}
+          onApplyIpo={() => setIsApplyIpoOpen(true)}
+          onAllotIpo={(tx) => setSelectedIpoForAction({ tx, action: 'allot' })}
+          onReleaseIpo={(tx) => setSelectedIpoForAction({ tx, action: 'release' })}
+          searchQuery={searchQuery}
+        />
       )}
 
       {/* Tier 5: Modals */}
@@ -734,6 +786,26 @@ export const InvestmentsPage: React.FC = () => {
         reconciliation={selectedReconciliationForRepay}
         isOpen={!!selectedReconciliationForRepay}
         onClose={() => setSelectedReconciliationForRepay(null)}
+        onSuccess={loadData}
+      />
+
+      <ApplyIpoModal
+        isOpen={isApplyIpoOpen}
+        onClose={() => setIsApplyIpoOpen(false)}
+        onSuccess={loadData}
+      />
+
+      <AllotIpoModal
+        isOpen={selectedIpoForAction?.action === 'allot'}
+        transaction={selectedIpoForAction?.tx ?? null}
+        onClose={() => setSelectedIpoForAction(null)}
+        onSuccess={loadData}
+      />
+
+      <ReleaseIpoModal
+        isOpen={selectedIpoForAction?.action === 'release'}
+        transaction={selectedIpoForAction?.tx ?? null}
+        onClose={() => setSelectedIpoForAction(null)}
         onSuccess={loadData}
       />
     </div>

@@ -78,4 +78,11 @@ export const investmentsApi = {
       body: JSON.stringify(payload),
     })
   },
+
+  async getIpoApplications(): Promise<import('../../transactions/types').Transaction[]> {
+    const res = await apiClient<import('../../transactions/types').PagedResult<import('../../transactions/types').Transaction>>(
+      '/api/v1/transactions?eventType=IpoApplication&pageSize=100'
+    )
+    return res.items
+  },
 }
