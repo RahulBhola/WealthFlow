@@ -178,8 +178,8 @@ export const InvestmentsPage: React.FC = () => {
               variant="outline"
               size="sm"
               onClick={() => setIsApplyIpoOpen(true)}
-              leftIcon={<Rocket className="w-3.5 h-3.5 text-amber-400 shrink-0" />}
-              className="text-xs bg-slate-900/60 hover:bg-slate-800 border-slate-700/80 text-amber-300 hover:text-white transition-all shadow-sm"
+              leftIcon={<Rocket className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400 shrink-0" />}
+              className="text-xs bg-white dark:bg-slate-900 hover:bg-amber-50 dark:hover:bg-slate-800 border-slate-200 dark:border-slate-700 text-amber-700 dark:text-amber-300 transition-all shadow-sm"
             >
               Apply for IPO
             </Button>
@@ -187,8 +187,8 @@ export const InvestmentsPage: React.FC = () => {
               variant="outline"
               size="sm"
               onClick={() => setIsAddSipOpen(true)}
-              leftIcon={<Calendar className="w-3.5 h-3.5 text-indigo-400 shrink-0" />}
-              className="text-xs bg-slate-900/60 hover:bg-slate-800 border-slate-700/80 text-indigo-300 hover:text-white transition-all shadow-sm"
+              leftIcon={<Calendar className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400 shrink-0" />}
+              className="text-xs bg-white dark:bg-slate-900 hover:bg-indigo-50 dark:hover:bg-slate-800 border-slate-200 dark:border-slate-700 text-indigo-600 dark:text-indigo-300 transition-all shadow-sm"
             >
               Setup SIP
             </Button>
@@ -211,28 +211,28 @@ export const InvestmentsPage: React.FC = () => {
       {/* Tier 2: Metric Strip (4 High-Performance Glassmorphic Cards) */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Card 1: Portfolio Valuation */}
-        <div className="relative overflow-hidden p-5 rounded-2xl bg-gradient-to-b from-slate-900/90 to-slate-950/90 border border-slate-800/80 hover:border-indigo-500/30 transition-all duration-200 shadow-xl group">
+        <div className="relative overflow-hidden p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-400 dark:hover:border-indigo-500/40 transition-all duration-200 shadow-sm hover:shadow group">
           <div className="flex items-start justify-between">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
               Portfolio Valuation
             </span>
-            <div className="p-2.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 group-hover:scale-105 transition-transform">
+            <div className="p-2.5 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200/80 dark:border-indigo-500/20 text-indigo-600 dark:text-indigo-400 group-hover:scale-105 transition-transform">
               <TrendingUp className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-3">
-            <span className="text-2xl font-bold font-mono text-white tracking-tight tabular-nums block">
+            <span className="text-2xl font-bold font-mono text-slate-900 dark:text-white tracking-tight tabular-nums block">
               {formatINR(summary?.totalCurrentValuation ?? 0)}
             </span>
           </div>
-          <div className="mt-3 flex items-center justify-between text-xs pt-2 border-t border-slate-800/60">
-            <span className="text-slate-400">Current market value</span>
+          <div className="mt-3 flex items-center justify-between text-xs pt-2 border-t border-slate-100 dark:border-slate-800/60">
+            <span className="text-slate-500 dark:text-slate-400">Current market value</span>
             {summary && summary.totalInvestedAmount > 0 && (
               <span
                 className={`inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[11px] font-mono font-medium ${
                   summary.overallReturnPercentage >= 0
-                    ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                    : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                    ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20'
+                    : 'bg-rose-50 dark:bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-500/20'
                 }`}
               >
                 {summary.overallReturnPercentage >= 0 ? '+' : ''}
@@ -243,25 +243,25 @@ export const InvestmentsPage: React.FC = () => {
         </div>
 
         {/* Card 2: Invested Capital */}
-        <div className="relative overflow-hidden p-5 rounded-2xl bg-gradient-to-b from-slate-900/90 to-slate-950/90 border border-slate-800/80 hover:border-sky-500/30 transition-all duration-200 shadow-xl group">
+        <div className="relative overflow-hidden p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-sky-400 dark:hover:border-sky-500/40 transition-all duration-200 shadow-sm hover:shadow group">
           <div className="flex items-start justify-between">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
               Invested Capital
             </span>
-            <div className="p-2.5 rounded-xl bg-sky-500/10 border border-sky-500/20 text-sky-400 group-hover:scale-105 transition-transform">
+            <div className="p-2.5 rounded-xl bg-sky-50 dark:bg-sky-500/10 border border-sky-200/80 dark:border-sky-500/20 text-sky-600 dark:text-sky-400 group-hover:scale-105 transition-transform">
               <Wallet className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-3">
-            <span className="text-2xl font-bold font-mono text-white tracking-tight tabular-nums block">
+            <span className="text-2xl font-bold font-mono text-slate-900 dark:text-white tracking-tight tabular-nums block">
               {formatINR(summary?.totalInvestedAmount ?? 0)}
             </span>
           </div>
-          <div className="mt-3 flex items-center justify-between text-xs pt-2 border-t border-slate-800/60">
-            <span className="text-slate-400">
+          <div className="mt-3 flex items-center justify-between text-xs pt-2 border-t border-slate-100 dark:border-slate-800/60">
+            <span className="text-slate-500 dark:text-slate-400">
               {summary?.investments.length ?? 0} holdings tracked
             </span>
-            <span className="inline-flex items-center gap-1 text-[11px] font-mono text-sky-400">
+            <span className="inline-flex items-center gap-1 text-[11px] font-mono text-sky-600 dark:text-sky-400">
               <Layers className="w-3 h-3" />
               Capital Cost
             </span>
@@ -269,16 +269,16 @@ export const InvestmentsPage: React.FC = () => {
         </div>
 
         {/* Card 3: Total Gains / Loss */}
-        <div className="relative overflow-hidden p-5 rounded-2xl bg-gradient-to-b from-slate-900/90 to-slate-950/90 border border-slate-800/80 hover:border-emerald-500/30 transition-all duration-200 shadow-xl group">
+        <div className="relative overflow-hidden p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-emerald-400 dark:hover:border-emerald-500/40 transition-all duration-200 shadow-sm hover:shadow group">
           <div className="flex items-start justify-between">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
               Total Gains / Loss
             </span>
             <div
               className={`p-2.5 rounded-xl border group-hover:scale-105 transition-transform ${
                 (summary?.totalAbsoluteGainLoss ?? 0) >= 0
-                  ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
-                  : 'bg-rose-500/10 border-rose-500/20 text-rose-400'
+                  ? 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200/80 dark:border-emerald-500/20 text-emerald-600 dark:text-emerald-400'
+                  : 'bg-rose-50 dark:bg-rose-500/10 border-rose-200/80 dark:border-rose-500/20 text-rose-600 dark:text-rose-400'
               }`}
             >
               {(summary?.totalAbsoluteGainLoss ?? 0) >= 0 ? (
@@ -291,21 +291,21 @@ export const InvestmentsPage: React.FC = () => {
           <div className="mt-3">
             <span
               className={`text-2xl font-bold font-mono tracking-tight tabular-nums block ${
-                (summary?.totalAbsoluteGainLoss ?? 0) >= 0 ? 'text-emerald-400' : 'text-rose-400'
+                (summary?.totalAbsoluteGainLoss ?? 0) >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
               }`}
             >
               {(summary?.totalAbsoluteGainLoss ?? 0) >= 0 ? '+' : ''}
               {formatINR(summary?.totalAbsoluteGainLoss ?? 0)}
             </span>
           </div>
-          <div className="mt-3 flex items-center justify-between text-xs pt-2 border-t border-slate-800/60">
-            <span className="text-slate-400">Net unrealized returns</span>
+          <div className="mt-3 flex items-center justify-between text-xs pt-2 border-t border-slate-100 dark:border-slate-800/60">
+            <span className="text-slate-500 dark:text-slate-400">Net unrealized returns</span>
             {summary && summary.totalInvestedAmount > 0 && (
               <span
                 className={`inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[11px] font-mono font-medium ${
                   summary.overallReturnPercentage >= 0
-                    ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                    : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                    ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20'
+                    : 'bg-rose-50 dark:bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-500/20'
                 }`}
               >
                 {summary.overallReturnPercentage >= 0 ? '+' : ''}
@@ -316,25 +316,25 @@ export const InvestmentsPage: React.FC = () => {
         </div>
 
         {/* Card 4: Partner Receivables Due */}
-        <div className="relative overflow-hidden p-5 rounded-2xl bg-gradient-to-b from-slate-900/90 to-slate-950/90 border border-slate-800/80 hover:border-amber-500/30 transition-all duration-200 shadow-xl group">
+        <div className="relative overflow-hidden p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-amber-400 dark:hover:border-amber-500/40 transition-all duration-200 shadow-sm hover:shadow group">
           <div className="flex items-start justify-between">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
               Partner Receivables Due
             </span>
-            <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 group-hover:scale-105 transition-transform">
+            <div className="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200/80 dark:border-amber-500/20 text-amber-600 dark:text-amber-400 group-hover:scale-105 transition-transform">
               <HandCoins className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-3">
-            <span className="text-2xl font-bold font-mono text-white tracking-tight tabular-nums block">
+            <span className="text-2xl font-bold font-mono text-slate-900 dark:text-white tracking-tight tabular-nums block">
               {formatINR(jointSummary?.totalPartnerReceivableDue ?? 0)}
             </span>
           </div>
-          <div className="mt-3 flex items-center justify-between text-xs pt-2 border-t border-slate-800/60">
-            <span className="text-slate-400">
+          <div className="mt-3 flex items-center justify-between text-xs pt-2 border-t border-slate-100 dark:border-slate-800/60">
+            <span className="text-slate-500 dark:text-slate-400">
               {pendingReconciliationsCount} pending cycles
             </span>
-            <span className="inline-flex items-center gap-1 text-[11px] font-mono text-amber-400">
+            <span className="inline-flex items-center gap-1 text-[11px] font-mono text-amber-600 dark:text-amber-400">
               <Activity className="w-3 h-3" />
               Shared Split
             </span>
@@ -343,7 +343,7 @@ export const InvestmentsPage: React.FC = () => {
       </div>
 
       {/* Tier 3: Sleek Tab Navigation & Filtering Bar */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 p-2 bg-slate-900/60 border border-slate-800/80 rounded-2xl backdrop-blur-xl">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 p-2 bg-slate-100 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm backdrop-blur-xl">
         {/* Navigation Tabs */}
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
           <button
@@ -351,8 +351,8 @@ export const InvestmentsPage: React.FC = () => {
             onClick={() => setActiveTab('portfolio')}
             className={`px-3.5 py-2 text-xs font-semibold rounded-xl transition-all flex items-center gap-2 cursor-pointer ${
               activeTab === 'portfolio'
-                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 border border-indigo-500/30'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-white/80 dark:hover:bg-slate-800/60'
             }`}
           >
             <PieChart className="w-3.5 h-3.5" />
@@ -364,8 +364,8 @@ export const InvestmentsPage: React.FC = () => {
             onClick={() => setActiveTab('sips')}
             className={`px-3.5 py-2 text-xs font-semibold rounded-xl transition-all flex items-center gap-2 cursor-pointer ${
               activeTab === 'sips'
-                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 border border-indigo-500/30'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-white/80 dark:hover:bg-slate-800/60'
             }`}
           >
             <Calendar className="w-3.5 h-3.5" />
@@ -377,8 +377,8 @@ export const InvestmentsPage: React.FC = () => {
             onClick={() => setActiveTab('reconciliation')}
             className={`px-3.5 py-2 text-xs font-semibold rounded-xl transition-all flex items-center gap-2 cursor-pointer ${
               activeTab === 'reconciliation'
-                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 border border-indigo-500/30'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-white/80 dark:hover:bg-slate-800/60'
             }`}
           >
             <Users className="w-3.5 h-3.5" />
@@ -395,14 +395,14 @@ export const InvestmentsPage: React.FC = () => {
             onClick={() => setActiveTab('ipos')}
             className={`px-3.5 py-2 text-xs font-semibold rounded-xl transition-all flex items-center gap-2 cursor-pointer ${
               activeTab === 'ipos'
-                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 border border-indigo-500/30'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-white/80 dark:hover:bg-slate-800/60'
             }`}
           >
             <Rocket className="w-3.5 h-3.5" />
             <span>IPO Applications ({ipoApplications.length})</span>
             {blockedIposCount > 0 && (
-              <span className="ml-1 px-1.5 py-0.2 bg-amber-500/20 text-amber-300 text-[10px] rounded-full font-mono border border-amber-500/30">
+              <span className="ml-1 px-1.5 py-0.2 bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-300 text-[10px] rounded-full font-mono border border-amber-300 dark:border-amber-500/30">
                 {blockedIposCount} on hold
               </span>
             )}
@@ -412,7 +412,7 @@ export const InvestmentsPage: React.FC = () => {
         {/* Search & Asset Filter */}
         <div className="flex items-center gap-2.5">
           <div className="relative w-full sm:w-60">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-500 pointer-events-none" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
             <Input
               type="text"
               placeholder={
@@ -426,7 +426,7 @@ export const InvestmentsPage: React.FC = () => {
               }
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 h-9 text-xs bg-slate-950/70 border-slate-800 focus:border-indigo-500/50 rounded-xl text-slate-200 placeholder-slate-500"
+              className="pl-9 h-9 text-xs bg-white dark:bg-slate-950/70 border-slate-200 dark:border-slate-800 focus:border-indigo-500/50 rounded-xl text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 shadow-sm"
             />
           </div>
 
@@ -434,7 +434,7 @@ export const InvestmentsPage: React.FC = () => {
             <select
               value={assetClassFilter}
               onChange={(e) => setAssetClassFilter(e.target.value)}
-              className="h-9 px-3 text-xs bg-slate-950/70 border border-slate-800 rounded-xl text-slate-300 focus:border-indigo-500/50 focus:outline-none cursor-pointer"
+              className="h-9 px-3 text-xs bg-white dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-700 dark:text-slate-300 focus:border-indigo-500/50 focus:outline-none cursor-pointer shadow-sm"
             >
               <option value="All">All Classes</option>
               <option value="Mutual Fund">Mutual Fund</option>
@@ -451,19 +451,19 @@ export const InvestmentsPage: React.FC = () => {
 
       {/* Asset Class Allocation Bar (Shown on Portfolio Tab when investments exist) */}
       {activeTab === 'portfolio' && summary && summary.assetAllocation.length > 0 && (
-        <div className="p-5 bg-gradient-to-b from-slate-900/80 to-slate-950/80 border border-slate-800/80 rounded-2xl shadow-xl space-y-3.5">
+        <div className="p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm space-y-3.5">
           <div className="flex items-center justify-between text-xs">
-            <span className="font-semibold text-white flex items-center gap-2">
-              <PieChart className="w-4 h-4 text-indigo-400" />
+            <span className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+              <PieChart className="w-4 h-4 text-indigo-500 dark:text-indigo-400" />
               Asset Allocation & Diversification
             </span>
-            <span className="text-slate-400 font-mono text-[11px]">
+            <span className="text-slate-500 dark:text-slate-400 font-mono text-[11px]">
               Total Value: {formatINR(summary.totalCurrentValuation)}
             </span>
           </div>
 
           {/* Allocation Progress Bar */}
-          <div className="w-full h-3 bg-slate-800/80 rounded-full overflow-hidden flex p-0.5 gap-0.5">
+          <div className="w-full h-3 bg-slate-100 dark:bg-slate-800/80 rounded-full overflow-hidden flex p-0.5 gap-0.5">
             {summary.assetAllocation.map((alloc, idx) => {
               const colors = [
                 'bg-indigo-500',
@@ -500,11 +500,11 @@ export const InvestmentsPage: React.FC = () => {
               return (
                 <div
                   key={alloc.assetClass}
-                  className="flex items-center gap-2 px-2.5 py-1 rounded-lg bg-slate-950/60 border border-slate-800/80 text-xs"
+                  className="flex items-center gap-2 px-2.5 py-1 rounded-lg bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800/80 text-xs"
                 >
                   <span className={`w-2 h-2 rounded-full ${dotColor}`} />
-                  <span className="text-slate-300 font-medium">{alloc.assetClass}</span>
-                  <span className="text-indigo-400 font-mono text-[11px] font-semibold">
+                  <span className="text-slate-700 dark:text-slate-300 font-medium">{alloc.assetClass}</span>
+                  <span className="text-indigo-600 dark:text-indigo-400 font-mono text-[11px] font-semibold">
                     {alloc.allocationPercentage.toFixed(1)}%
                   </span>
                 </div>
@@ -516,7 +516,7 @@ export const InvestmentsPage: React.FC = () => {
 
       {/* Tier 4: Main Content Area */}
       {isLoading ? (
-        <div className="py-20 text-center text-slate-400 flex flex-col items-center justify-center gap-3">
+        <div className="py-20 text-center text-slate-500 dark:text-slate-400 flex flex-col items-center justify-center gap-3">
           <div className="w-8 h-8 border-2 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin" />
           <span className="text-xs font-medium">Loading investment records...</span>
         </div>
@@ -524,13 +524,13 @@ export const InvestmentsPage: React.FC = () => {
         filteredInvestments.length === 0 ? (
           /* High-Value Empty State & Portfolio Launchpad */
           <div className="space-y-6">
-            <div className="p-8 sm:p-12 text-center border border-dashed border-slate-800 rounded-2xl bg-gradient-to-b from-slate-900/40 to-slate-950/60 space-y-4">
-              <div className="w-16 h-16 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center mx-auto shadow-[0_0_25px_rgba(99,102,241,0.15)]">
+            <div className="p-8 sm:p-12 text-center border border-dashed border-slate-300 dark:border-slate-800 rounded-2xl bg-slate-50/80 dark:bg-slate-900/40 space-y-4 shadow-sm">
+              <div className="w-16 h-16 rounded-2xl bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mx-auto shadow-sm">
                 <PieChart className="w-8 h-8" />
               </div>
               <div className="space-y-1">
-                <h3 className="text-lg font-bold text-white tracking-tight">No investments found</h3>
-                <p className="text-xs text-slate-400 max-w-md mx-auto leading-relaxed">
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">No investments found</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto leading-relaxed">
                   Start building your portfolio tracker by adding mutual funds, stocks, fixed deposits, or gold holdings.
                 </p>
               </div>
@@ -544,7 +544,7 @@ export const InvestmentsPage: React.FC = () => {
                     setIsAddInvestmentOpen(true)
                   }}
                   leftIcon={<Plus className="w-3.5 h-3.5 shrink-0" />}
-                  className="text-xs px-5 py-2.5 bg-gradient-to-r from-indigo-500 via-indigo-600 to-teal-500 hover:from-indigo-600 hover:to-teal-600 shadow-lg shadow-indigo-500/25 border-none font-semibold"
+                  className="text-xs px-5 py-2.5 bg-gradient-to-r from-indigo-500 via-indigo-600 to-teal-500 hover:from-indigo-600 hover:to-teal-600 shadow-lg shadow-indigo-500/25 border-none font-semibold text-white"
                 >
                   Add First Investment
                 </Button>
@@ -552,8 +552,8 @@ export const InvestmentsPage: React.FC = () => {
                   variant="outline"
                   size="sm"
                   onClick={() => setIsAddSipOpen(true)}
-                  leftIcon={<Calendar className="w-3.5 h-3.5 text-indigo-400 shrink-0" />}
-                  className="text-xs px-4 py-2.5 bg-slate-900/80 hover:bg-slate-800 border-slate-700/80 text-slate-300 hover:text-white"
+                  leftIcon={<Calendar className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400 shrink-0" />}
+                  className="text-xs px-4 py-2.5 bg-white dark:bg-slate-900/80 hover:bg-slate-100 dark:hover:bg-slate-800 border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white shadow-sm"
                 >
                   Setup Systematic SIP
                 </Button>
@@ -565,22 +565,22 @@ export const InvestmentsPage: React.FC = () => {
               {/* Mutual Funds */}
               <div
                 onClick={() => handleOpenAddWithClass('Mutual Fund')}
-                className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800/80 hover:border-sky-500/40 transition-all duration-200 cursor-pointer group shadow-lg flex flex-col justify-between"
+                className="p-5 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 hover:border-sky-400 dark:hover:border-sky-500/40 transition-all duration-200 cursor-pointer group shadow-sm hover:shadow flex flex-col justify-between"
               >
                 <div className="space-y-3">
-                  <div className="w-10 h-10 rounded-xl bg-sky-500/10 border border-sky-500/20 text-sky-400 flex items-center justify-center group-hover:scale-105 transition-transform">
+                  <div className="w-10 h-10 rounded-xl bg-sky-50 dark:bg-sky-500/10 border border-sky-200 dark:border-sky-500/20 text-sky-600 dark:text-sky-400 flex items-center justify-center group-hover:scale-105 transition-transform">
                     <TrendingUp className="w-5 h-5" />
                   </div>
                   <div>
-                    <h4 className="text-sm font-bold text-white group-hover:text-sky-300 transition-colors">
+                    <h4 className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-sky-600 dark:group-hover:text-sky-300 transition-colors">
                       Mutual Funds & SIPs
                     </h4>
-                    <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
                       Index funds, Flexi-cap, and recurring monthly co-funded SIP plans.
                     </p>
                   </div>
                 </div>
-                <div className="mt-4 pt-3 border-t border-slate-800/60 flex items-center justify-between text-xs text-sky-400 font-medium">
+                <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/60 flex items-center justify-between text-xs text-sky-600 dark:text-sky-400 font-medium">
                   <span>Track Mutual Fund</span>
                   <ArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                 </div>
@@ -589,22 +589,22 @@ export const InvestmentsPage: React.FC = () => {
               {/* Equity Stocks */}
               <div
                 onClick={() => handleOpenAddWithClass('Stock')}
-                className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800/80 hover:border-emerald-500/40 transition-all duration-200 cursor-pointer group shadow-lg flex flex-col justify-between"
+                className="p-5 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 hover:border-emerald-400 dark:hover:border-emerald-500/40 transition-all duration-200 cursor-pointer group shadow-sm hover:shadow flex flex-col justify-between"
               >
                 <div className="space-y-3">
-                  <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center group-hover:scale-105 transition-transform">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center group-hover:scale-105 transition-transform">
                     <Activity className="w-5 h-5" />
                   </div>
                   <div>
-                    <h4 className="text-sm font-bold text-white group-hover:text-emerald-300 transition-colors">
+                    <h4 className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-300 transition-colors">
                       Equity Stocks
                     </h4>
-                    <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
                       Direct equities with unit holdings, purchase price, and valuation tracking.
                     </p>
                   </div>
                 </div>
-                <div className="mt-4 pt-3 border-t border-slate-800/60 flex items-center justify-between text-xs text-emerald-400 font-medium">
+                <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/60 flex items-center justify-between text-xs text-emerald-600 dark:text-emerald-400 font-medium">
                   <span>Track Stocks</span>
                   <ArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                 </div>
@@ -613,22 +613,22 @@ export const InvestmentsPage: React.FC = () => {
               {/* Sovereign Gold */}
               <div
                 onClick={() => handleOpenAddWithClass('Gold')}
-                className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800/80 hover:border-amber-500/40 transition-all duration-200 cursor-pointer group shadow-lg flex flex-col justify-between"
+                className="p-5 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 hover:border-amber-400 dark:hover:border-amber-500/40 transition-all duration-200 cursor-pointer group shadow-sm hover:shadow flex flex-col justify-between"
               >
                 <div className="space-y-3">
-                  <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center group-hover:scale-105 transition-transform">
+                  <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center group-hover:scale-105 transition-transform">
                     <Coins className="w-5 h-5" />
                   </div>
                   <div>
-                    <h4 className="text-sm font-bold text-white group-hover:text-amber-300 transition-colors">
+                    <h4 className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-300 transition-colors">
                       Gold & Sovereign Bonds
                     </h4>
-                    <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
                       SGB bonds, digital gold, and hedge assets with appreciation gains.
                     </p>
                   </div>
                 </div>
-                <div className="mt-4 pt-3 border-t border-slate-800/60 flex items-center justify-between text-xs text-amber-400 font-medium">
+                <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/60 flex items-center justify-between text-xs text-amber-600 dark:text-amber-400 font-medium">
                   <span>Track Gold</span>
                   <ArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                 </div>
@@ -637,22 +637,22 @@ export const InvestmentsPage: React.FC = () => {
               {/* Fixed Deposits & PPF */}
               <div
                 onClick={() => handleOpenAddWithClass('Fixed Deposit')}
-                className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800/80 hover:border-indigo-500/40 transition-all duration-200 cursor-pointer group shadow-lg flex flex-col justify-between"
+                className="p-5 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 hover:border-indigo-400 dark:hover:border-indigo-500/40 transition-all duration-200 cursor-pointer group shadow-sm hover:shadow flex flex-col justify-between"
               >
                 <div className="space-y-3">
-                  <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center group-hover:scale-105 transition-transform">
+                  <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center group-hover:scale-105 transition-transform">
                     <Landmark className="w-5 h-5" />
                   </div>
                   <div>
-                    <h4 className="text-sm font-bold text-white group-hover:text-indigo-300 transition-colors">
+                    <h4 className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-300 transition-colors">
                       Fixed Deposits & PPF
                     </h4>
-                    <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
                       Guaranteed interest deposits, lock-in tenures, and tax-saving accounts.
                     </p>
                   </div>
                 </div>
-                <div className="mt-4 pt-3 border-t border-slate-800/60 flex items-center justify-between text-xs text-indigo-400 font-medium">
+                <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/60 flex items-center justify-between text-xs text-indigo-600 dark:text-indigo-400 font-medium">
                   <span>Track Deposits</span>
                   <ArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                 </div>
@@ -660,13 +660,13 @@ export const InvestmentsPage: React.FC = () => {
             </div>
 
             {/* Financial Accounting Invariant Advisory Banner */}
-            <div className="p-4 rounded-xl bg-indigo-950/20 border border-indigo-900/40 text-xs text-indigo-200/90 flex items-start gap-3">
-              <ShieldCheck className="w-4 h-4 shrink-0 text-indigo-400 mt-0.5" />
+            <div className="p-4 rounded-xl bg-indigo-50/80 dark:bg-indigo-950/20 border border-indigo-200 dark:border-indigo-900/40 text-xs text-indigo-900 dark:text-indigo-200/90 flex items-start gap-3">
+              <ShieldCheck className="w-4 h-4 shrink-0 text-indigo-600 dark:text-indigo-400 mt-0.5" />
               <div className="space-y-1">
-                <span className="font-semibold text-white block">
+                <span className="font-semibold text-slate-900 dark:text-white block">
                   Zero Double-Counting Invariant & Reciprocal Accounting
                 </span>
-                <p className="text-slate-400 leading-relaxed">
+                <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
                   Monthly investment transfers are classified as asset allocations (capital movements) rather than consumer expenses, keeping your monthly budget clean while accurately expanding your total Net Worth.
                 </p>
               </div>
@@ -685,13 +685,13 @@ export const InvestmentsPage: React.FC = () => {
         )
       ) : activeTab === 'sips' ? (
         filteredSips.length === 0 ? (
-          <div className="p-8 sm:p-12 text-center border border-dashed border-slate-800 rounded-2xl bg-gradient-to-b from-slate-900/40 to-slate-950/60 space-y-4">
-            <div className="w-16 h-16 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center mx-auto shadow-[0_0_25px_rgba(99,102,241,0.15)]">
+          <div className="p-8 sm:p-12 text-center border border-dashed border-slate-300 dark:border-slate-800 rounded-2xl bg-slate-50/80 dark:bg-slate-900/40 space-y-4 shadow-sm">
+            <div className="w-16 h-16 rounded-2xl bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mx-auto shadow-sm">
               <Calendar className="w-8 h-8" />
             </div>
             <div className="space-y-1">
-              <h3 className="text-lg font-bold text-white tracking-tight">No SIP schedules configured</h3>
-              <p className="text-xs text-slate-400 max-w-sm mx-auto leading-relaxed">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">No SIP schedules configured</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto leading-relaxed">
                 Schedule automated monthly personal or co-funded joint SIP investments debited from your bank accounts.
               </p>
             </div>
@@ -701,7 +701,7 @@ export const InvestmentsPage: React.FC = () => {
                 size="sm"
                 onClick={() => setIsAddSipOpen(true)}
                 leftIcon={<Plus className="w-3.5 h-3.5 shrink-0" />}
-                className="text-xs px-5 py-2.5 bg-gradient-to-r from-indigo-500 via-indigo-600 to-teal-500 hover:from-indigo-600 hover:to-teal-600 shadow-lg shadow-indigo-500/25 border-none font-semibold"
+                className="text-xs px-5 py-2.5 bg-gradient-to-r from-indigo-500 via-indigo-600 to-teal-500 hover:from-indigo-600 hover:to-teal-600 shadow-lg shadow-indigo-500/25 border-none font-semibold text-white"
               >
                 Setup First SIP
               </Button>
@@ -724,22 +724,22 @@ export const InvestmentsPage: React.FC = () => {
         <div className="space-y-6">
           {/* Joint SIP Overview Banner */}
           {jointSummary && (
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-5 bg-gradient-to-b from-indigo-950/30 to-slate-900/60 border border-indigo-900/50 rounded-2xl shadow-xl text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-5 bg-indigo-50/60 dark:bg-gradient-to-b dark:from-indigo-950/30 dark:to-slate-900/60 border border-indigo-200/80 dark:border-indigo-900/50 rounded-2xl shadow-sm text-xs">
               <div className="space-y-1">
-                <span className="text-slate-400 block font-medium">Total Joint SIPs</span>
-                <span className="font-mono text-lg font-bold text-white">
+                <span className="text-slate-500 dark:text-slate-400 block font-medium">Total Joint SIPs</span>
+                <span className="font-mono text-lg font-bold text-slate-900 dark:text-white">
                   {jointSummary.totalJointSipsCount} active plans
                 </span>
               </div>
               <div className="space-y-1">
-                <span className="text-slate-400 block font-medium">Monthly Partner Commitment</span>
-                <span className="font-mono text-lg font-bold text-sky-400">
+                <span className="text-slate-500 dark:text-slate-400 block font-medium">Monthly Partner Commitment</span>
+                <span className="font-mono text-lg font-bold text-sky-600 dark:text-sky-400">
                   {formatINR(jointSummary.totalPartnerMonthlyShare)} / month
                 </span>
               </div>
               <div className="space-y-1">
-                <span className="text-slate-400 block font-medium">Total Partner Receivables Due</span>
-                <span className="font-mono text-lg font-bold text-amber-400">
+                <span className="text-slate-500 dark:text-slate-400 block font-medium">Total Partner Receivables Due</span>
+                <span className="font-mono text-lg font-bold text-amber-600 dark:text-amber-400">
                   {formatINR(jointSummary.totalPartnerReceivableDue)}
                 </span>
               </div>
